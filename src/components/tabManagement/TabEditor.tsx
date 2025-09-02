@@ -43,7 +43,7 @@ const colorOptions = [
   { value: '#00ffff', label: 'Cyan', color: '#00ffff' },
 ];
 
-export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSave }) => {
+export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -70,7 +70,7 @@ export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSa
     }
   }, [tab, isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {

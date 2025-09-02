@@ -23,10 +23,26 @@ export interface BaseWidget {
   position: { x: number; y: number };
   size: { width: number; height: number };
   tabAssignment: TabAssignment;
-  settings: Record<string, any>;
+  settings: WidgetSettings;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Database interfaces for type safety
+export interface WidgetConfigDB {
+  title?: string;
+  settings?: Record<string, any>;
+}
+
+export interface PositionDB {
+  x: number;
+  y: number;
+}
+
+export interface SizeDB {
+  width: number;
+  height: number;
 }
 
 export interface WidgetDefinition {
@@ -94,3 +110,13 @@ export interface AiOracleSettings {
   responseSpeed: 'fast' | 'normal' | 'slow';
   showStatus: boolean;
 }
+
+// Union type for all widget settings
+export type WidgetSettings = 
+  | CharacterProfileSettings
+  | SpecialStatsSettings
+  | SystemMonitorSettings
+  | WeatherStationSettings
+  | NewsTerminalSettings
+  | CalendarMissionSettings
+  | AiOracleSettings;

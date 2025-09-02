@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BaseWidget, WidgetType, TabAssignment } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, PositionDB, SizeDB } from '@/types/widgets';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
+import { reportError, reportWarning } from '@/lib/errorReporting';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
 
 interface WidgetContextType {
   widgets: BaseWidget[];
@@ -59,29 +61,54 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       }
 
       const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
-        const widgetConfig = widget.widget_config as any;
-        const position = widget.position as any;
-        const size = widget.size as any;
-        
-        return {
-          id: widget.id,
-          type: widget.widget_type as WidgetType,
-          title: widgetConfig?.title || WidgetFactory.getDefinition(widget.widget_type as WidgetType).title,
-          collapsed: widget.is_collapsed || false,
-          position: position || { x: 0, y: 0 },
-          size: size || { width: 300, height: 200 },
-          tabAssignment: widget.tab_assignment as TabAssignment,
-          settings: widgetConfig?.settings || {},
-          userId: widget.user_id,
-          createdAt: new Date(widget.created_at),
-          updatedAt: new Date(widget.updated_at),
-        };
-      });
+        try {
+          const widgetConfig = widget.widget_config as WidgetConfigDB;
+          const position = widget.position as PositionDB;
+          const size = widget.size as SizeDB;
+          const widgetType = widget.widget_type as WidgetType;
+          
+          // Validate widget type exists
+          const definition = WidgetFactory.getDefinition(widgetType);
+          
+          return {
+            id: widget.id,
+            type: widgetType,
+            title: widgetConfig?.title || definition.title,
+            collapsed: widget.is_collapsed || false,
+            position: position || { x: 0, y: 0 },
+            size: size || { width: 300, height: 200 },
+            tabAssignment: widget.tab_assignment as TabAssignment,
+            settings: widgetConfig?.settings || definition.defaultSettings,
+            userId: widget.user_id,
+            createdAt: new Date(widget.created_at),
+            updatedAt: new Date(widget.updated_at),
+          };
+        } catch (widgetError) {
+          reportWarning(
+            'Failed to parse widget data',
+            { 
+              widgetId: widget.id, 
+              userId: user.id,
+              component: 'WidgetContext',
+              action: 'loadWidgets'
+            }
+          );
+          return null;
+        }
+      }).filter((widget): widget is BaseWidget => widget !== null);
 
       setWidgets(formattedWidgets);
     } catch (err) {
-      console.error('Failed to load widgets:', err);
-      setError('Failed to load widgets');
+      reportError(
+        ERROR_MESSAGES.WIDGET_LOAD_FAILED,
+        { 
+          userId: user?.id,
+          component: 'WidgetContext',
+          action: 'loadWidgets'
+        },
+        err
+      );
+      setError(ERROR_MESSAGES.WIDGET_LOAD_FAILED);
       toast({
         title: 'Error',
         description: 'Failed to load your widgets. Please try refreshing the page.',
@@ -132,15 +159,24 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       
       toast({
         title: 'Widget Added',
-        description: `${widget.title} has been added to your dashboard.`,
+        description: SUCCESS_MESSAGES.WIDGET_ADDED,
       });
 
       return widget;
     } catch (err) {
-      console.error('Failed to add widget:', err);
+      reportError(
+        ERROR_MESSAGES.WIDGET_ADD_FAILED,
+        {
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'addWidget',
+          metadata: { widgetType: type, tabAssignment }
+        },
+        err
+      );
       toast({
         title: 'Error',
-        description: 'Failed to add widget. Please try again.',
+        description: ERROR_MESSAGES.WIDGET_ADD_FAILED,
         variant: 'destructive',
       });
       return null;
@@ -166,13 +202,22 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       
       toast({
         title: 'Widget Removed',
-        description: 'The widget has been removed from your dashboard.',
+        description: SUCCESS_MESSAGES.WIDGET_REMOVED,
       });
     } catch (err) {
-      console.error('Failed to remove widget:', err);
+      reportError(
+        ERROR_MESSAGES.WIDGET_DELETE_FAILED,
+        {
+          widgetId,
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'removeWidget'
+        },
+        err
+      );
       toast({
         title: 'Error',
-        description: 'Failed to remove widget. Please try again.',
+        description: ERROR_MESSAGES.WIDGET_DELETE_FAILED,
         variant: 'destructive',
       });
     }
@@ -218,7 +263,17 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
           : widget
       ));
     } catch (err) {
-      console.error('Failed to update widget:', err);
+      reportError(
+        'Failed to update widget',
+        {
+          widgetId,
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'updateWidget',
+          metadata: { updates }
+        },
+        err
+      );
       toast({
         title: 'Error',
         description: 'Failed to update widget. Please try again.',

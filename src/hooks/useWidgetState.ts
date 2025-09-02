@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
+import { reportError } from '@/lib/errorReporting';
+import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
 
 interface WidgetStateHookResult<T> {
   settings: T;
@@ -59,11 +61,29 @@ export function useWidgetState<T extends Record<string, any>>(
           .eq('user_id', user.id);
 
         if (updateError) {
-          console.error('Failed to sync widget state:', updateError);
-          setError('Failed to save widget settings');
+          reportError(
+            ERROR_MESSAGES.WIDGET_SYNC_FAILED,
+            {
+              widgetId,
+              userId: user.id,
+              component: 'useWidgetState',
+              action: 'debouncedSync'
+            },
+            updateError
+          );
+          setError(ERROR_MESSAGES.WIDGET_SYNC_FAILED);
         }
       } catch (err) {
-        console.error('Widget sync error:', err);
+        reportError(
+          'Widget sync error',
+          {
+            widgetId,
+            userId: user.id,
+            component: 'useWidgetState',
+            action: 'debouncedSync'
+          },
+          err
+        );
         setError('Failed to sync widget data');
       } finally {
         setIsLoading(false);

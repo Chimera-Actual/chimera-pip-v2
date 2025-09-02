@@ -28,7 +28,7 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
   return (
     <div className={cn('space-y-6', className)}>
       {/* Existing Widgets */}
-      <div className="grid gap-6 auto-fit-widgets">
+      <div className="widgets-grid">
         {widgets.map((widget) => (
           <div key={widget.id} className="widget-slot">
             <WidgetRenderer widget={widget} />
@@ -75,30 +75,4 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
   );
 };
 
-// CSS for auto-fitting widget grid
-const gridStyles = `
-  .auto-fit-widgets {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  @media (min-width: 1024px) {
-    .auto-fit-widgets {
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    }
-  }
-  
-  @media (min-width: 1536px) {
-    .auto-fit-widgets {
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    }
-  }
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = gridStyles;
-  document.head.appendChild(styleSheet);
-}
+// Note: Moved CSS to index.css for better performance and maintainability
