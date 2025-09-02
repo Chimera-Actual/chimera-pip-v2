@@ -62,9 +62,9 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
       const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
         try {
-          const widgetConfig = widget.widget_config as WidgetConfigDB;
-          const position = widget.position as PositionDB;
-          const size = widget.size as SizeDB;
+          const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
+          const position = widget.position as unknown as PositionDB;
+          const size = widget.size as unknown as SizeDB;
           const widgetType = widget.widget_type as WidgetType;
           
           // Validate widget type exists
@@ -143,7 +143,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
           widget_config: {
             title: widget.title,
             settings: widget.settings
-          },
+          } as any,
           position: widget.position,
           size: widget.size,
           is_collapsed: widget.collapsed,

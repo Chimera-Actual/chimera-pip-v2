@@ -1,4 +1,4 @@
-import { BaseWidget, WidgetType, WidgetDefinition, TabAssignment } from '@/types/widgets';
+import { BaseWidget, WidgetType, WidgetDefinition, TabAssignment, WidgetSettings } from '@/types/widgets';
 
 export class WidgetFactory {
   private static widgetDefinitions: Record<WidgetType, WidgetDefinition> = {
@@ -199,7 +199,7 @@ export class WidgetFactory {
       position: { x: 0, y: 0 },
       size: definition.defaultSize,
       tabAssignment: tabAssignment || definition.defaultTab,
-      settings: { ...definition.defaultSettings },
+      settings: { ...definition.defaultSettings } as WidgetSettings,
       userId,
       createdAt: new Date(),
       updatedAt: new Date(),

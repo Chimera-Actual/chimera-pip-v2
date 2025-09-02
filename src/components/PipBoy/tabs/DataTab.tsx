@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const communications = [
   { type: 'notifications', count: 12, unread: 8, label: 'Alerts' },
 ];
 
-export const DataTab: React.FC = () => {
+export const DataTab = memo(() => {
   return (
     <div className="space-y-6">
       {/* Weather Station */}
@@ -72,7 +72,7 @@ export const DataTab: React.FC = () => {
         <CardContent>
           <div className="space-y-3">
             {newsItems.map((news, index) => (
-              <div key={index} className="flex items-start justify-between p-3 rounded border border-pip-border bg-pip-bg-secondary/50 hover:border-primary/40 transition-colors cursor-pointer">
+              <div key={`${news.title}-${index}`} className="flex items-start justify-between p-3 rounded border border-pip-border bg-pip-bg-secondary/50 hover:border-primary/40 transition-colors cursor-pointer">
                 <div className="flex-1">
                   <div className="font-pip-mono text-pip-text-bright hover:text-primary transition-colors">
                     {news.title}
@@ -185,4 +185,4 @@ export const DataTab: React.FC = () => {
       </div>
     </div>
   );
-};
+});

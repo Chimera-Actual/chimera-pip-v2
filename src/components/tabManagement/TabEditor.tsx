@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { X, Check } from 'lucide-react';
 import { TabConfiguration } from '@/types/tabManagement';
 import { Button } from '@/components/ui/button';
@@ -92,7 +92,7 @@ export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose,
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [formData, onSave, onClose]);
 
   if (!isOpen) return null;
 
@@ -240,4 +240,4 @@ export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose,
       </div>
     </div>
   );
-};
+});

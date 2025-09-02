@@ -88,7 +88,7 @@ export function useWidgetState<T extends Record<string, any>>(
       } finally {
         setIsLoading(false);
       }
-    }, 1000),
+    }, INTERACTION_DELAYS.DEBOUNCE_SYNC),
     [user?.id]
   );
 

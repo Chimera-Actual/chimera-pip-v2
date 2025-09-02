@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ const recentFiles = [
   { name: 'Audio_Log_Entry_47.mp3', size: '12.1 MB', modified: '2 days ago', type: 'audio' },
 ];
 
-export const InvTab: React.FC = () => {
+export const InvTab = memo(() => {
   return (
     <div className="space-y-6">
       {/* Inventory Overview */}
@@ -63,7 +63,7 @@ export const InvTab: React.FC = () => {
         <CardContent>
           <div className="space-y-3">
             {recentFiles.map((file, index) => (
-              <div key={index} className="flex items-center justify-between p-3 rounded border border-pip-border bg-pip-bg-secondary/50 hover:border-primary/40 transition-colors">
+              <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 rounded border border-pip-border bg-pip-bg-secondary/50 hover:border-primary/40 transition-colors">
                 <div className="flex-1">
                   <div className="font-pip-mono text-pip-text-bright">{file.name}</div>
                   <div className="text-xs text-pip-text-muted font-pip-mono">
@@ -134,4 +134,4 @@ export const InvTab: React.FC = () => {
       </div>
     </div>
   );
-};
+});

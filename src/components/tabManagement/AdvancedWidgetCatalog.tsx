@@ -73,7 +73,10 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4">
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4"
+         role="dialog" 
+         aria-modal="true" 
+         aria-labelledby="widget-catalog-title">
       <div className={`relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col pip-glow pip-terminal pip-scanlines`}>
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-20 pip-scanlines rounded-lg" />
@@ -81,7 +84,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
         <div className={`${isMobile ? 'p-4' : 'p-6'} border-b border-pip-border relative z-10`}>
           <div className="flex items-center justify-between mb-4">
             <div className="min-w-0 flex-1">
-              <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold font-pip-display text-pip-green-primary pip-text-glow`}>WIDGET CATALOG</h2>
+              <h2 id="widget-catalog-title" className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold font-pip-display text-pip-green-primary pip-text-glow`}>WIDGET CATALOG</h2>
               <p className="text-pip-text-muted mt-1 font-pip-mono text-xs truncate">
                 {'>'} ADD_WIDGETS_TO_TAB: <span className="text-pip-green-secondary font-semibold">{currentTab}</span>
               </p>
@@ -106,6 +109,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow"
+                aria-label="Search widgets"
               />
             </div>
 
@@ -124,7 +128,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                 <SelectTrigger className={`${isMobile ? 'flex-1 min-w-0' : 'w-40'} bg-pip-bg-tertiary/80 border-pip-border font-pip-mono text-pip-green-primary`}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-pip-bg-primary border-pip-border">
+                <SelectContent className="bg-pip-bg-primary border-pip-border z-50 backdrop-blur-sm">
                   <SelectItem value="category">CATEGORY</SelectItem>
                   <SelectItem value="name">NAME</SelectItem>
                   <SelectItem value="popular">POPULAR</SelectItem>
@@ -273,11 +277,12 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                     </div>
                   </div>
 
-                  <Button
-                    onClick={() => handleAddWidget(widget.widgetType)}
-                    className="w-full mt-3 bg-pip-green-primary/20 border border-pip-green-primary/30 hover:bg-pip-green-primary/30 font-pip-mono text-pip-green-primary pip-button-glow"
-                    size={viewMode === 'list' ? 'sm' : 'default'}
-                  >
+                <Button
+                  onClick={() => handleAddWidget(widget.widgetType)}
+                  className="w-full mt-3 bg-pip-green-primary/20 border border-pip-green-primary/30 hover:bg-pip-green-primary/30 font-pip-mono text-pip-green-primary pip-button-glow"
+                  size={viewMode === 'list' ? 'sm' : 'default'}
+                  aria-label={`Add ${widget.name} widget`}
+                >
                     <Plus className="h-4 w-4 mr-2" />
                     ADD WIDGET
                   </Button>
