@@ -39,7 +39,7 @@ export const Landing: React.FC = () => {
               variant="outline" 
               className="pip-terminal border-pip-border hover:border-primary font-mono text-lg px-8 py-4"
             >
-              <Link to="/auth/login">
+              <Link to="/auth">
                 ACCESS TERMINAL
               </Link>
             </Button>

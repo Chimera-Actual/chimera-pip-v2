@@ -38,6 +38,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
+  // Security features
+  attemptCount: number;
+  isLocked: boolean;
+  lockoutEndTime: number | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +59,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutEndTime, setLockoutEndTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
@@ -152,6 +159,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check if account is locked
+    if (isLocked && lockoutEndTime && Date.now() < lockoutEndTime) {
+      const remainingTime = Math.ceil((lockoutEndTime - Date.now()) / 1000);
+      toast({
+        title: "ACCOUNT LOCKED",
+        description: `Account locked for ${remainingTime} seconds due to multiple failed attempts.`,
+        variant: "destructive",
+      });
+      return { error: new Error('Account locked') };
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -159,12 +177,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        // Increment attempt count and implement progressive delays
+        const newAttemptCount = attemptCount + 1;
+        setAttemptCount(newAttemptCount);
+
+        if (newAttemptCount >= 5) {
+          const lockoutDuration = Math.min(30 * Math.pow(2, newAttemptCount - 5), 300); // Max 5 minutes
+          const lockoutEnd = Date.now() + (lockoutDuration * 1000);
+          setIsLocked(true);
+          setLockoutEndTime(lockoutEnd);
+          
+          setTimeout(() => {
+            setIsLocked(false);
+            setLockoutEndTime(null);
+            setAttemptCount(0);
+          }, lockoutDuration * 1000);
+        }
+
         toast({
           title: "ACCESS DENIED",
           description: "Invalid credentials. Please verify your access codes.",
           variant: "destructive",
         });
       } else {
+        // Reset security counters on successful login
+        setAttemptCount(0);
+        setIsLocked(false);
+        setLockoutEndTime(null);
+        
         toast({
           title: "VAULT ACCESS GRANTED",
           description: "Welcome back to the vault!",
@@ -240,6 +280,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     refreshProfile,
+    attemptCount,
+    isLocked,
+    lockoutEndTime,
   };
 
   return (

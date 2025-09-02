@@ -12,6 +12,10 @@ import { VaultLogin } from "@/components/auth/VaultLogin";
 import { VaultRegistration } from "@/components/auth/VaultRegistration";
 import { CharacterCreation } from "@/components/auth/CharacterCreation";
 import { EmailVerification } from "@/components/auth/EmailVerification";
+import { AuthMethodSelector } from "@/components/auth/AuthMethodSelector";
+import { PinLogin } from "@/components/auth/PinLogin";
+import { PatternLogin } from "@/components/auth/PatternLogin";
+import { BiometricLogin } from "@/components/auth/BiometricLogin";
 import { Landing } from "./pages/Landing";
 import Index from "./pages/Index";
 import WidgetDemo from "./pages/WidgetDemo";
@@ -44,7 +48,11 @@ const App = () => {
                         <Route path="/demo" element={<WidgetDemo />} />
                         
                         {/* Authentication Routes */}
+                        <Route path="/auth" element={<AuthMethodSelector />} />
                         <Route path="/auth/login" element={<VaultLogin />} />
+                        <Route path="/auth/pin" element={<PinLogin />} />
+                        <Route path="/auth/pattern" element={<PatternLogin />} />
+                        <Route path="/auth/biometric" element={<BiometricLogin />} />
                         <Route path="/auth/register" element={<VaultRegistration />} />
                         <Route path="/auth/verify" element={<EmailVerification />} />
                         <Route 
