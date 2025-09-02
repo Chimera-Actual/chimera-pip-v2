@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTabManager } from '@/hooks/useTabManager';
 
 export type ColorTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
+export type PipBoyTab = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
 
 interface PipBoyContainerProps {
   className?: string;
@@ -94,12 +95,12 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
           
           {/* Tab Navigation */}
           <PipBoyTabs 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
+            currentTab={activeTab as PipBoyTab}
+            onTabChange={(tab) => setActiveTab(tab)}
           />
           
           {/* Dashboard Content */}
-          <DashboardContent activeTab={activeTab} />
+          <DashboardContent activeTab={activeTab as PipBoyTab} />
           
           {/* Dashboard Footer */}
           <DashboardFooter />
