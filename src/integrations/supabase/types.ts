@@ -81,6 +81,48 @@ export type Database = {
           },
         ]
       }
+      user_tabs: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_custom: boolean
+          is_default: boolean
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_custom?: boolean
+          is_default?: boolean
+          name: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_custom?: boolean
+          is_default?: boolean
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_widgets: {
         Row: {
           created_at: string | null
@@ -167,6 +209,116 @@ export type Database = {
           theme_config?: Json | null
           updated_at?: string | null
           vault_number?: number
+        }
+        Relationships: []
+      }
+      widget_catalog: {
+        Row: {
+          category: string
+          created_at: string
+          default_settings: Json
+          description: string
+          featured: boolean
+          icon: string
+          id: string
+          is_default: boolean
+          name: string
+          preview_image: string | null
+          required_permissions: string[] | null
+          updated_at: string
+          widget_type: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          default_settings?: Json
+          description: string
+          featured?: boolean
+          icon: string
+          id?: string
+          is_default?: boolean
+          name: string
+          preview_image?: string | null
+          required_permissions?: string[] | null
+          updated_at?: string
+          widget_type: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          default_settings?: Json
+          description?: string
+          featured?: boolean
+          icon?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          preview_image?: string | null
+          required_permissions?: string[] | null
+          updated_at?: string
+          widget_type?: string
+        }
+        Relationships: []
+      }
+      widget_tag_associations: {
+        Row: {
+          created_at: string
+          tag_id: string
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string
+          tag_id: string
+          widget_type: string
+        }
+        Update: {
+          created_at?: string
+          tag_id?: string
+          widget_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_tag_associations_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "widget_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      widget_tags: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_default: boolean
+          name: string
+          usage_count: number
+          user_id: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          usage_count?: number
+          user_id?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          usage_count?: number
+          user_id?: string | null
         }
         Relationships: []
       }

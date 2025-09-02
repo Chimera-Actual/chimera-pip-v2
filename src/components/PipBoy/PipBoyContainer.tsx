@@ -6,8 +6,8 @@ import { DashboardContent } from './DashboardContent';
 import { DashboardFooter } from './DashboardFooter';
 import { BootSequence } from './BootSequence';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabManager } from '@/hooks/useTabManager';
 
-export type PipBoyTab = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
 export type ColorTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
 
 interface PipBoyContainerProps {
@@ -16,7 +16,7 @@ interface PipBoyContainerProps {
 
 export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) => {
   const { profile, updateProfile } = useAuth();
-  const [currentTab, setCurrentTab] = useState<PipBoyTab>('STAT');
+  const { tabs, activeTab, setActiveTab, isLoading: tabsLoading } = useTabManager();
   const [colorTheme, setColorTheme] = useState<ColorTheme>('green');
   const [isBooting, setIsBooting] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -68,9 +68,16 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
     }
   }, [colorTheme, profile, updateProfile]);
 
-
   if (isBooting) {
     return <BootSequence />;
+  }
+
+  if (tabsLoading) {
+    return (
+      <div className="min-h-screen pip-scanlines flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -87,12 +94,12 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
           
           {/* Tab Navigation */}
           <PipBoyTabs 
-            currentTab={currentTab}
-            onTabChange={setCurrentTab}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
           
           {/* Dashboard Content */}
-          <DashboardContent activeTab={currentTab} />
+          <DashboardContent activeTab={activeTab} />
           
           {/* Dashboard Footer */}
           <DashboardFooter />
