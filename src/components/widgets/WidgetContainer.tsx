@@ -2,9 +2,11 @@ import React, { useState, useRef } from 'react';
 import { ChevronDown, Settings, Trash2, Grip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { WidgetSettingsModal } from './WidgetSettingsModal';
 
 interface WidgetContainerProps {
   widgetId: string;
+  widgetType: string;
   title: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
@@ -20,6 +22,7 @@ interface WidgetContainerProps {
 
 export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   widgetId,
+  widgetType,
   title,
   collapsed,
   onToggleCollapse,
@@ -93,7 +96,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
               variant="ghost"
               size="sm"
               className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => setShowSettings(true)}
               aria-label="Widget settings"
             >
               <Settings className="h-4 w-4 text-pip-green-primary" />
@@ -165,6 +168,18 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
           />
         </>
       )}
+
+      {/* Widget Settings Modal */}
+      <WidgetSettingsModal
+        widgetId={widgetId}
+        widgetType={widgetType}
+        widgetTitle={title}
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSettingsChange={(newSettings) => {
+          onSettingsChange?.(newSettings);
+        }}
+      />
     </div>
   );
 };

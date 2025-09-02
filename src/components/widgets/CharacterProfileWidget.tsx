@@ -40,6 +40,7 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = mem
     return (
       <WidgetContainer
         widgetId={widget.id}
+        widgetType={widget.type}
         title={widget.title}
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
@@ -60,6 +61,7 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = mem
   return (
     <WidgetContainer
       widgetId={widget.id}
+      widgetType={widget.type}
       title={widget.title}
       collapsed={collapsed}
       onToggleCollapse={() => setCollapsed(!collapsed)}

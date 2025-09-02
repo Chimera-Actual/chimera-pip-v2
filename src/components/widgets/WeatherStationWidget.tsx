@@ -78,6 +78,7 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({
   return (
     <WidgetContainer
       widgetId={widget.id}
+      widgetType={widget.type}
       title={widget.title}
       collapsed={collapsed}
       onToggleCollapse={() => setCollapsed(!collapsed)}

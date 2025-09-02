@@ -260,6 +260,78 @@ export type Database = {
         }
         Relationships: []
       }
+      widget_instance_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_validated_at: string | null
+          settings_merged: Json
+          settings_overrides: Json
+          updated_at: string | null
+          user_id: string
+          validation_errors: Json | null
+          widget_id: string
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_validated_at?: string | null
+          settings_merged: Json
+          settings_overrides?: Json
+          updated_at?: string | null
+          user_id: string
+          validation_errors?: Json | null
+          widget_id: string
+          widget_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_validated_at?: string | null
+          settings_merged?: Json
+          settings_overrides?: Json
+          updated_at?: string | null
+          user_id?: string
+          validation_errors?: Json | null
+          widget_id?: string
+          widget_type?: string
+        }
+        Relationships: []
+      }
+      widget_settings_schemas: {
+        Row: {
+          created_at: string | null
+          default_settings: Json
+          id: string
+          schema_version: number
+          settings_schema: Json
+          updated_at: string | null
+          validation_rules: Json | null
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          default_settings: Json
+          id?: string
+          schema_version?: number
+          settings_schema: Json
+          updated_at?: string | null
+          validation_rules?: Json | null
+          widget_type: string
+        }
+        Update: {
+          created_at?: string | null
+          default_settings?: Json
+          id?: string
+          schema_version?: number
+          settings_schema?: Json
+          updated_at?: string | null
+          validation_rules?: Json | null
+          widget_type?: string
+        }
+        Relationships: []
+      }
       widget_tag_associations: {
         Row: {
           created_at: string

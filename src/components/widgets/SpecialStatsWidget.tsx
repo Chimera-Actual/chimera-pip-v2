@@ -66,6 +66,7 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = memo(({ wid
     return (
       <WidgetContainer
         widgetId={widget.id}
+        widgetType={widget.type}
         title={widget.title}
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
@@ -145,6 +146,7 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = memo(({ wid
   return (
     <WidgetContainer
       widgetId={widget.id}
+      widgetType={widget.type}
       title={widget.title}
       collapsed={collapsed}
       onToggleCollapse={() => setCollapsed(!collapsed)}

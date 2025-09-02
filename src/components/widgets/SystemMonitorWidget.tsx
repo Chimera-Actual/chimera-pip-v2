@@ -70,6 +70,7 @@ export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = memo(({ w
   return (
     <WidgetContainer
       widgetId={widget.id}
+      widgetType={widget.type}
       title={widget.title}
       collapsed={collapsed}
       onToggleCollapse={() => setCollapsed(!collapsed)}
