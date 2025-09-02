@@ -14,13 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_achievements: {
+        Row: {
+          achievement_data: Json | null
+          achievement_type: string
+          id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_data?: Json | null
+          achievement_type: string
+          id?: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_data?: Json | null
+          achievement_type?: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string | null
+          experience_gained: number | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string | null
+          experience_gained?: number | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string | null
+          experience_gained?: number | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_widgets: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_collapsed: boolean | null
+          position: Json
+          size: Json
+          tab_assignment: string
+          updated_at: string | null
+          user_id: string
+          widget_config: Json
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_collapsed?: boolean | null
+          position?: Json
+          size?: Json
+          tab_assignment: string
+          updated_at?: string | null
+          user_id: string
+          widget_config: Json
+          widget_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_collapsed?: boolean | null
+          position?: Json
+          size?: Json
+          tab_assignment?: string
+          updated_at?: string | null
+          user_id?: string
+          widget_config?: Json
+          widget_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_widgets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          character_name: string | null
+          created_at: string | null
+          email: string
+          experience_points: number | null
+          id: string
+          karma: number | null
+          level: number | null
+          special_stats: Json | null
+          theme_config: Json | null
+          updated_at: string | null
+          vault_number: number
+        }
+        Insert: {
+          character_name?: string | null
+          created_at?: string | null
+          email: string
+          experience_points?: number | null
+          id?: string
+          karma?: number | null
+          level?: number | null
+          special_stats?: Json | null
+          theme_config?: Json | null
+          updated_at?: string | null
+          vault_number: number
+        }
+        Update: {
+          character_name?: string | null
+          created_at?: string | null
+          email?: string
+          experience_points?: number | null
+          id?: string
+          karma?: number | null
+          level?: number | null
+          special_stats?: Json | null
+          theme_config?: Json | null
+          updated_at?: string | null
+          vault_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_vault_number: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
