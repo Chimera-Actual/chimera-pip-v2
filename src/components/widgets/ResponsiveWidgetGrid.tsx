@@ -91,6 +91,21 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     await updateWidget(widgetId, { position });
   }, [updateWidget]);
 
+  const handleDuplicateWidget = useCallback(async (widget: BaseWidget) => {
+    const newWidget = await addWidget(widget.type, widget.tabAssignment);
+    if (newWidget) {
+      const newPosition = {
+        x: (widget.position?.x || 0) + 20,
+        y: (widget.position?.y || 0) + 20
+      };
+      await updateWidget(newWidget.id, { 
+        position: newPosition,
+        settings: widget.settings,
+        size: widget.size
+      });
+    }
+  }, [addWidget, updateWidget]);
+
   const handleAddWidget = useCallback(async (type: WidgetType) => {
     const widget = await addWidget(type, tab as any);
     if (widget) {
@@ -172,6 +187,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         viewMode={viewMode}
         onUpdate={updateWidget}
         onDelete={removeWidget}
+        onDuplicate={handleDuplicateWidget}
         className={cn(
           "transition-all duration-200 ease-out",
           dragState.isDragging && dragState.activeId === widget.id && "opacity-50 scale-95",
@@ -181,7 +197,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, dragState, updateWidget, removeWidget]);
+  }, [viewMode, dragState, updateWidget, removeWidget, handleDuplicateWidget]);
 
   // Grid styles based on configuration
   const gridStyles = useMemo(() => {
@@ -273,10 +289,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       </div>
 
       {/* Widget Grid */}
-      <div className="widget-grid-container">
+      <div className="widget-grid-container relative min-h-[600px]">
         <DndContext {...dndContextProps}>
           <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-            <div className="widgets-responsive-grid" style={gridStyles}>
+            <div 
+              className="widgets-responsive-grid relative" 
+              style={viewMode === 'grid' ? { minHeight: '600px' } : gridStyles}
+            >
               {widgets.map(widget => (
                 <div key={widget.id} className="widget-slot">
                   {renderWidget(widget)}

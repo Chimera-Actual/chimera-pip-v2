@@ -1,6 +1,5 @@
 import React, { memo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, CharacterProfileSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Progress } from '@/components/ui/progress';
@@ -38,19 +37,11 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = mem
 
   if (!profile) {
     return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        isLoading={isLoading}
-        error={error}
-      >
-        <div className="flex items-center justify-center h-32 text-pip-text-muted font-pip-mono">
+      <div className="h-full flex items-center justify-center">
+        <div className="text-pip-text-muted font-pip-mono text-sm">
           No character data available
         </div>
-      </WidgetContainer>
+      </div>
     );
   }
 
@@ -59,17 +50,8 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = mem
     (profile.experience_points || 0) / 10;
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={setSettings}
-      isLoading={isLoading}
-      error={error}
-    >
-      <div className="space-y-4">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 p-4 space-y-4">
         {/* Character Identity */}
         <div className="grid grid-cols-2 gap-4">
           {settings.showVaultNumber && (
@@ -141,6 +123,6 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = mem
           </div>
         )}
       </div>
-    </WidgetContainer>
+    </div>
   );
 });

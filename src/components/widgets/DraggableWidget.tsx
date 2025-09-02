@@ -9,10 +9,14 @@ import {
   ChevronUp, 
   ChevronDown,
   Maximize2,
-  Minimize2 
+  Minimize2,
+  Copy,
+  Pin,
+  RotateCcw,
+  Info
 } from 'lucide-react';
 import { BaseWidget } from '@/types/widgets';
-import { WidgetSettingsModal } from './WidgetSettingsModal';
+import { WidgetSettingsModal } from './WidgetSettingsModalPortal';
 import { useGestureHandler } from '@/hooks/useGestureHandler';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +27,7 @@ interface DraggableWidgetProps {
   children: React.ReactNode;
   onUpdate: (widgetId: string, updates: Partial<BaseWidget>) => void;
   onDelete: (widgetId: string) => void;
+  onDuplicate?: (widget: BaseWidget) => void;
   className?: string;
 }
 
@@ -33,6 +38,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   children,
   onUpdate,
   onDelete,
+  onDuplicate,
   className
 }) => {
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -67,6 +73,12 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 1000 : 'auto',
+    // Apply widget position for absolute positioning
+    position: 'absolute' as const,
+    left: widget.position?.x || 0,
+    top: widget.position?.y || 0,
+    width: widget.size?.width || 300,
+    height: widget.size?.height || 200,
   };
 
   const handleToggleCollapse = () => {
@@ -76,6 +88,22 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 
   const handleDelete = () => {
     onDelete(widget.id);
+    setShowContextMenu(false);
+  };
+
+  const handleDuplicate = () => {
+    if (onDuplicate) {
+      onDuplicate(widget);
+    }
+    setShowContextMenu(false);
+  };
+
+  const handleReset = () => {
+    onUpdate(widget.id, { 
+      settings: undefined,
+      size: { width: 300, height: 200 },
+      collapsed: false 
+    });
     setShowContextMenu(false);
   };
 
@@ -135,7 +163,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
             {widget.collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </button>
 
-          {/* Context Menu Button */}
+          {/* Consolidated Options Menu */}
           <button
             className="widget-control-button p-2 text-pip-text-secondary hover:text-pip-text-bright hover:bg-pip-bg-tertiary rounded transition-colors touch-target"
             onClick={() => setShowContextMenu(!showContextMenu)}
@@ -146,9 +174,9 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         </div>
       </div>
 
-      {/* Context Menu */}
+      {/* Comprehensive Context Menu */}
       {showContextMenu && (
-        <div className="absolute top-full right-2 mt-2 w-48 bg-pip-bg-secondary border border-pip-border rounded-lg shadow-2xl z-50 overflow-hidden">
+        <div className="absolute top-full right-2 mt-2 w-56 bg-pip-bg-secondary border border-pip-border rounded-lg shadow-2xl z-50 overflow-hidden">
           <div className="py-2">
             <button
               className="w-full px-4 py-2 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
@@ -160,6 +188,23 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
               <Settings className="w-4 h-4" />
               Settings
             </button>
+            
+            <div className="border-t border-pip-border my-1" />
+            
+            <button
+              className="w-full px-4 py-2 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
+              onClick={handleDuplicate}
+              disabled={!onDuplicate}
+            >
+              <Copy className="w-4 h-4" />
+              Duplicate Widget
+            </button>
+            
+            <div className="border-t border-pip-border my-1" />
+            
+            <div className="px-4 py-1 text-xs text-pip-text-muted uppercase tracking-wide">
+              Resize Options
+            </div>
             
             <button
               className="w-full px-4 py-2 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
@@ -180,11 +225,29 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
             <div className="border-t border-pip-border my-1" />
             
             <button
+              className="w-full px-4 py-2 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
+              onClick={handleReset}
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset to Default
+            </button>
+            
+            <button
+              className="w-full px-4 py-2 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
+              onClick={() => setShowContextMenu(false)}
+            >
+              <Info className="w-4 h-4" />
+              Widget Info
+            </button>
+            
+            <div className="border-t border-pip-border my-1" />
+            
+            <button
               className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/20 flex items-center gap-3 touch-target"
               onClick={handleDelete}
             >
               <X className="w-4 h-4" />
-              Remove Widget
+              Delete Widget
             </button>
           </div>
         </div>

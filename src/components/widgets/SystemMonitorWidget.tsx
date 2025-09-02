@@ -1,5 +1,4 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, SystemMonitorSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Progress } from '@/components/ui/progress';
@@ -68,17 +67,8 @@ export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = memo(({ w
   }, []);
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={setSettings}
-      isLoading={isLoading}
-      error={error}
-    >
-      <div className="space-y-3">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 p-4 space-y-3">
         {settings.monitoredMetrics.map((metricKey) => {
           const value = metrics[metricKey];
           const threshold = settings.alertThresholds[metricKey];
@@ -135,6 +125,6 @@ export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = memo(({ w
           </div>
         </div>
       </div>
-    </WidgetContainer>
+    </div>
   );
 });
