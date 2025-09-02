@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Package, Database, Map, Radio } from 'lucide-react';
 import { PipBoyTab } from './PipBoyContainer';
@@ -9,32 +9,14 @@ interface PipBoyTabsProps {
 }
 
 const tabs = [
-  { id: 'STAT' as PipBoyTab, label: 'STAT', icon: BarChart3, description: 'Character Statistics & System Status', shortcut: '1' },
-  { id: 'INV' as PipBoyTab, label: 'INV', icon: Package, description: 'Digital Inventory & File Management', shortcut: '2' },
-  { id: 'DATA' as PipBoyTab, label: 'DATA', icon: Database, description: 'Information & Communication Hub', shortcut: '3' },
-  { id: 'MAP' as PipBoyTab, label: 'MAP', icon: Map, description: 'Location Services & Navigation', shortcut: '4' },
-  { id: 'RADIO' as PipBoyTab, label: 'RADIO', icon: Radio, description: 'Media & Entertainment Center', shortcut: '5' },
+  { id: 'STAT' as PipBoyTab, label: 'STAT', icon: BarChart3, description: 'Character Statistics & System Status' },
+  { id: 'INV' as PipBoyTab, label: 'INV', icon: Package, description: 'Digital Inventory & File Management' },
+  { id: 'DATA' as PipBoyTab, label: 'DATA', icon: Database, description: 'Information & Communication Hub' },
+  { id: 'MAP' as PipBoyTab, label: 'MAP', icon: Map, description: 'Location Services & Navigation' },
+  { id: 'RADIO' as PipBoyTab, label: 'RADIO', icon: Radio, description: 'Media & Entertainment Center' },
 ];
 
 export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange }) => {
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      const key = e.key;
-      const tabIndex = parseInt(key) - 1;
-      
-      if (tabIndex >= 0 && tabIndex < tabs.length && !e.ctrlKey && !e.altKey) {
-        const targetTab = tabs[tabIndex];
-        if (targetTab && targetTab.id !== currentTab) {
-          onTabChange(targetTab.id);
-        }
-      }
-    };
-
-    window.addEventListener('keypress', handleKeyPress);
-    return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [currentTab, onTabChange]);
-
   return (
     <div>
       <div className="flex border-b border-pip-border">
@@ -46,7 +28,7 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
             <Button
               key={tab.id}
               variant="ghost"
-              title={`${tab.description} (Press ${tab.shortcut})`}
+              title={tab.description}
               className={`relative flex-1 h-16 rounded-none border-r border-pip-border last:border-r-0 font-pip-display font-semibold transition-all group ${
                 isActive 
                   ? 'pip-tab-active text-primary' 
@@ -57,7 +39,6 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
               <div className="flex flex-col items-center space-y-1">
                 <Icon className="h-5 w-5" />
                 <span className="text-xs">{tab.label}</span>
-                <span className="text-xs opacity-50 font-pip-mono">{tab.shortcut}</span>
               </div>
               
               {/* Tab indicator */}
