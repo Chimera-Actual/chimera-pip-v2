@@ -95,12 +95,12 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
           
           {/* Tab Navigation */}
           <PipBoyTabs 
-            currentTab={activeTab as PipBoyTab}
+            currentTab={activeTab}
             onTabChange={(tab) => setActiveTab(tab)}
           />
           
           {/* Dashboard Content */}
-          <DashboardContent activeTab={activeTab as PipBoyTab} />
+          <DashboardContent activeTab={activeTab} />
           
           {/* Dashboard Footer */}
           <DashboardFooter />

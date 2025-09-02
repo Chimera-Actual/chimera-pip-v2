@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { WidgetGrid } from '@/components/widgets/WidgetGrid';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, MoveIcon, LayersIcon } from 'lucide-react';
-import { PipBoyTab } from './PipBoyContainer';
 
 interface DashboardContentProps {
-  activeTab: PipBoyTab;
+  activeTab: string;
   className?: string;
 }
 
@@ -15,12 +14,15 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
 }) => {
   const [isDragMode, setIsDragMode] = useState(false);
 
-  const tabDescriptions = {
-    STAT: 'Character Statistics & System Status',
-    INV: 'Digital Inventory & File Management', 
-    DATA: 'Information & Communication Hub',
-    MAP: 'Location Services & Navigation',
-    RADIO: 'Media & Entertainment Center'
+  const getTabDescription = (tab: string) => {
+    const descriptions: Record<string, string> = {
+      'STAT': 'Character Statistics & System Status',
+      'INV': 'Digital Inventory & File Management', 
+      'DATA': 'Information & Communication Hub',
+      'MAP': 'Location Services & Navigation',
+      'RADIO': 'Media & Entertainment Center'
+    };
+    return descriptions[tab] || 'Custom dashboard tab';
   };
 
   return (
@@ -32,7 +34,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
             {activeTab}
           </h2>
           <span className="text-sm text-pip-text-secondary font-pip-mono opacity-70">
-            {tabDescriptions[activeTab]}
+            {getTabDescription(activeTab)}
           </span>
         </div>
         
