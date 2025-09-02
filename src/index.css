@@ -1,96 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Share+Tech+Mono:wght@400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Chimera-PIP 4000 mk 2 Design System - Authentic Pip-Boy Aesthetics */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Pip-Boy Green Theme (Default) */
+    --pip-bg-primary: 220 15% 8%;
+    --pip-bg-secondary: 220 12% 12%;
+    --pip-bg-tertiary: 220 10% 16%;
+    --pip-bg-overlay: 220 8% 4%;
+    
+    --pip-green-primary: 120 100% 50%;
+    --pip-green-secondary: 120 80% 40%;
+    --pip-green-muted: 120 60% 30%;
+    --pip-green-glow: 120 100% 60%;
+    
+    --pip-accent: 120 100% 45%;
+    --pip-accent-foreground: 220 15% 8%;
+    
+    --pip-text-primary: 120 80% 85%;
+    --pip-text-secondary: 120 40% 70%;
+    --pip-text-muted: 120 20% 50%;
+    --pip-text-bright: 120 100% 95%;
+    
+    --pip-border: 120 40% 25%;
+    --pip-border-bright: 120 80% 45%;
+    --pip-glow: 120 100% 50%;
+    
+    /* Alternative Color Schemes */
+    --amber-primary: 45 100% 55%;
+    --amber-glow: 45 100% 65%;
+    --blue-primary: 200 100% 55%;
+    --blue-glow: 200 100% 65%;
+    --red-primary: 0 100% 55%;
+    --red-glow: 0 100% 65%;
+    
+    /* Standard Design Tokens */
+    --background: var(--pip-bg-primary);
+    --foreground: var(--pip-text-primary);
+    --card: var(--pip-bg-secondary);
+    --card-foreground: var(--pip-text-primary);
+    --popover: var(--pip-bg-tertiary);
+    --popover-foreground: var(--pip-text-primary);
+    --primary: var(--pip-green-primary);
+    --primary-foreground: var(--pip-bg-primary);
+    --secondary: var(--pip-bg-tertiary);
+    --secondary-foreground: var(--pip-text-secondary);
+    --muted: var(--pip-bg-secondary);
+    --muted-foreground: var(--pip-text-muted);
+    --accent: var(--pip-accent);
+    --accent-foreground: var(--pip-accent-foreground);
+    --destructive: var(--red-primary);
+    --destructive-foreground: var(--pip-bg-primary);
+    --border: var(--pip-border);
+    --input: var(--pip-bg-tertiary);
+    --ring: var(--pip-glow);
+    --radius: 0.375rem;
+    
+    /* Typography Scale */
+    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+    --font-display: 'Orbitron', 'Arial', sans-serif;
+    
+    /* Animation Timings */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-glow: box-shadow 0.2s ease-in-out;
+    
+    /* Pip-Boy Effects */
+    --scan-line-opacity: 0.03;
+    --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
+    --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
+    --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
   }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  
+  /* Amber Theme Override */
+  [data-theme="amber"] {
+    --pip-green-primary: var(--amber-primary);
+    --pip-green-secondary: 45 80% 40%;
+    --pip-green-muted: 45 60% 30%;
+    --pip-green-glow: var(--amber-glow);
+    --pip-glow: var(--amber-glow);
+    --primary: var(--amber-primary);
+    --ring: var(--amber-glow);
+  }
+  
+  /* Blue Theme Override */
+  [data-theme="blue"] {
+    --pip-green-primary: var(--blue-primary);
+    --pip-green-secondary: 200 80% 40%;
+    --pip-green-muted: 200 60% 30%;
+    --pip-green-glow: var(--blue-glow);
+    --pip-glow: var(--blue-glow);
+    --primary: var(--blue-primary);
+    --ring: var(--blue-glow);
+  }
+  
+  /* Red Theme Override */
+  [data-theme="red"] {
+    --pip-green-primary: var(--red-primary);
+    --pip-green-secondary: 0 80% 40%;
+    --pip-green-muted: 0 60% 30%;
+    --pip-green-glow: var(--red-glow);
+    --pip-glow: var(--red-glow);
+    --primary: var(--red-primary);
+    --ring: var(--red-glow);
   }
 }
 
@@ -98,8 +114,73 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+    background: 
+      radial-gradient(circle at 25% 25%, hsl(var(--pip-bg-secondary)) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--pip-bg-secondary)) 0%, transparent 50%),
+      hsl(var(--pip-bg-primary));
+  }
+  
+  /* Pip-Boy Visual Effects */
+  .pip-scanlines {
+    position: relative;
+  }
+  
+  .pip-scanlines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--pip-green-primary) / var(--scan-line-opacity)) 2px,
+      hsl(var(--pip-green-primary) / var(--scan-line-opacity)) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  .pip-glow {
+    box-shadow: var(--phosphor-glow);
+  }
+  
+  .pip-text-glow {
+    text-shadow: var(--text-glow);
+  }
+  
+  .pip-button-glow {
+    box-shadow: var(--button-glow);
+    transition: var(--transition-glow);
+  }
+  
+  .pip-terminal {
+    background: 
+      linear-gradient(135deg, hsl(var(--pip-bg-secondary)) 0%, hsl(var(--pip-bg-tertiary)) 100%);
+    border: 1px solid hsl(var(--pip-border));
+    border-radius: var(--radius);
+  }
+  
+  .pip-widget {
+    @apply pip-terminal pip-glow;
+    border: 2px solid hsl(var(--pip-border-bright) / 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  .pip-tab-active {
+    @apply pip-button-glow pip-text-glow;
+    background: linear-gradient(135deg, hsl(var(--pip-green-primary) / 0.2), hsl(var(--pip-green-secondary) / 0.1));
+    border-color: hsl(var(--pip-green-primary));
+  }
+  
+  .pip-special-stat {
+    background: linear-gradient(135deg, hsl(var(--pip-bg-tertiary)), hsl(var(--pip-bg-secondary)));
+    border: 1px solid hsl(var(--pip-border-bright) / 0.4);
+    @apply pip-glow;
   }
 }
