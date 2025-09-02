@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Zap } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const bootMessages = [
   'INITIALIZING VAULT-TEC SYSTEMS...',
@@ -14,27 +14,36 @@ const bootMessages = [
 ];
 
 export const BootSequence: React.FC = () => {
+  const { profile } = useAuth();
   const [currentMessage, setCurrentMessage] = useState(0);
   const [progress, setProgress] = useState(0);
   const [displayText, setDisplayText] = useState('');
+  const [doorRotation, setDoorRotation] = useState(0);
+  
+  const vaultNumber = profile?.vault_number || 111;
 
   useEffect(() => {
     const messageInterval = setInterval(() => {
       if (currentMessage < bootMessages.length - 1) {
         setCurrentMessage(prev => prev + 1);
       }
-    }, 400);
+    }, 500);
 
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) return 100;
-        return prev + 2;
+        return prev + 2.5;
       });
-    }, 60);
+    }, 75);
+
+    const doorInterval = setInterval(() => {
+      setDoorRotation(prev => (prev + 10) % 360);
+    }, 100);
 
     return () => {
       clearInterval(messageInterval);
       clearInterval(progressInterval);
+      clearInterval(doorInterval);
     };
   }, [currentMessage]);
 
@@ -60,10 +69,35 @@ export const BootSequence: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">
       <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8 max-w-2xl w-full mx-4">
         <div className="text-center space-y-8">
-          {/* Vault-Tec Logo */}
-          <div className="flex items-center justify-center space-x-4 animate-pip-boot">
-            <Zap className="h-16 w-16 text-primary pip-text-glow animate-pip-flicker" />
-            <div>
+          {/* Vault-Tec Logo with Animated Vault Door */}
+          <div className="flex flex-col items-center justify-center space-y-4 animate-pip-boot">
+            <div className="relative w-32 h-32 mb-4">
+              {/* Vault Door */}
+              <div className="absolute inset-0 border-4 border-primary rounded-full pip-glow">
+                <div className="relative w-full h-full">
+                  {/* Door Segments */}
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-12 bg-primary origin-bottom left-1/2 top-0"
+                      style={{
+                        transform: `translateX(-50%) rotate(${(i * 45) + doorRotation}deg)`,
+                        opacity: 0.8
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Vault Number */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl font-pip-display font-bold text-primary pip-text-glow">
+                      {vaultNumber.toString().padStart(3, '0')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
               <h1 className="text-4xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
                 VAULT-TEC
               </h1>

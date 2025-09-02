@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { PipBoyTabs } from './PipBoyTabs';
-import { PipBoyHeader } from './PipBoyHeader';
-import { WidgetGrid } from '@/components/widgets/WidgetGrid';
+import { DashboardHeader } from './DashboardHeader';
+import { DashboardContent } from './DashboardContent';
+import { DashboardFooter } from './DashboardFooter';
 import { BootSequence } from './BootSequence';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -67,9 +68,6 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
     }
   }, [colorTheme, profile, updateProfile]);
 
-  const renderTabContent = () => {
-    return <WidgetGrid tab={currentTab} />;
-  };
 
   if (isBooting) {
     return <BootSequence />;
@@ -78,9 +76,9 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   return (
     <div className={`min-h-screen pip-scanlines ${className}`}>
       <div className="container mx-auto p-4 max-w-7xl">
-        <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 min-h-[800px]">
-          {/* Header */}
-          <PipBoyHeader 
+        <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 min-h-[800px] flex flex-col">
+          {/* Dashboard Header */}
+          <DashboardHeader 
             colorTheme={colorTheme}
             onColorThemeChange={setColorTheme}
             soundEnabled={soundEnabled}
@@ -93,10 +91,11 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
             onTabChange={setCurrentTab}
           />
           
-          {/* Tab Content */}
-          <div className="p-6">
-            {renderTabContent()}
-          </div>
+          {/* Dashboard Content */}
+          <DashboardContent activeTab={currentTab} />
+          
+          {/* Dashboard Footer */}
+          <DashboardFooter />
         </Card>
       </div>
     </div>
