@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Package, Database, Map, Radio, Settings, Plus, GripVertical } from 'lucide-react';
 import { PipBoyTab } from './PipBoyContainer';
@@ -6,11 +6,13 @@ import { useTabManager } from '@/hooks/useTabManager';
 import { TabEditor } from '@/components/tabManagement/TabEditor';
 import { TabContextMenu } from './TabContextMenu';
 import { TabConfiguration } from '@/types/tabManagement';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DndContext,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -45,12 +47,13 @@ const getTabIcon = (name: string, iconName?: string) => {
 };
 
 // Sortable Tab Component
-const SortableTab: React.FC<{
+const SortableTab = React.memo<{
   tab: TabConfiguration;
   isActive: boolean;
   onTabChange: (tab: string) => void;
   onContextMenu: (e: React.MouseEvent, tab: TabConfiguration) => void;
-}> = ({ tab, isActive, onTabChange, onContextMenu }) => {
+  isMobile: boolean;
+}>(({ tab, isActive, onTabChange, onContextMenu, isMobile }) => {
   const {
     attributes,
     listeners,
@@ -60,6 +63,8 @@ const SortableTab: React.FC<{
     isDragging,
   } = useSortable({ id: tab.id });
 
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -68,23 +73,44 @@ const SortableTab: React.FC<{
 
   const Icon = getTabIcon(tab.name, tab.icon);
 
+  // Mobile long press handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isMobile) {
+      const timer = setTimeout(() => {
+        onContextMenu(e as any, tab);
+      }, 500); // 500ms long press
+      setLongPressTimer(timer);
+    }
+  }, [isMobile, onContextMenu, tab]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  }, [longPressTimer]);
+
   return (
     <div ref={setNodeRef} style={style} className="relative group">
       <Button
         variant="ghost"
         title={tab.description}
-        className={`relative flex-1 h-16 rounded-none border-r border-pip-border last:border-r-0 font-pip-display font-semibold transition-all ${
+        className={`relative flex-1 ${isMobile ? 'h-14 px-2' : 'h-16 px-4'} rounded-none border-r border-pip-border last:border-r-0 font-pip-display font-semibold transition-all ${
           isActive 
             ? 'pip-tab-active text-primary' 
             : 'text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50'
         }`}
         onClick={() => onTabChange(tab.name)}
         onContextMenu={(e) => onContextMenu(e, tab)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{ color: tab.color || undefined }}
       >
-        <div className="flex flex-col items-center space-y-1">
-          <Icon className="h-5 w-5" />
-          <span className="text-xs">{tab.name}</span>
+        <div className={`flex ${isMobile ? 'flex-col items-center space-y-0.5' : 'flex-col items-center space-y-1'}`}>
+          <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+          <span className={`${isMobile ? 'text-xs font-medium' : 'text-xs'} truncate max-w-full`}>
+            {isMobile && tab.name.length > 6 ? tab.name.slice(0, 6) : tab.name}
+          </span>
         </div>
         
         {/* Tab indicator */}
@@ -96,8 +122,8 @@ const SortableTab: React.FC<{
         />
       </Button>
 
-      {/* Drag Handle */}
-      {!tab.isDefault && (
+      {/* Drag Handle - Hidden on mobile, shown on hover on desktop */}
+      {!tab.isDefault && !isMobile && (
         <div
           {...attributes}
           {...listeners}
@@ -106,9 +132,20 @@ const SortableTab: React.FC<{
           <GripVertical className="h-3 w-3 text-pip-text-muted" />
         </div>
       )}
+
+      {/* Mobile drag handle - always visible but subtle */}
+      {!tab.isDefault && isMobile && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-1 right-1 opacity-30 p-1 touch-none"
+        >
+          <GripVertical className="h-3 w-3 text-pip-text-muted" />
+        </div>
+      )}
     </div>
   );
-};
+});
 
 export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange }) => {
   const { tabs, createTab, reorderTabs, isLoading } = useTabManager();
@@ -120,8 +157,20 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
     tab: TabConfiguration;
   } | null>(null);
 
+  const isMobile = useIsMobile();
+
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: isMobile ? 10 : 5, // Larger distance for mobile to prevent accidental drags
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100, // Slight delay to distinguish from scrolling
+        tolerance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -136,20 +185,48 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
     });
   };
 
-  const handleCreateTab = async (tabData: any) => {
+  const handleCreateTab = useCallback(async (tabData: any) => {
     await createTab(tabData);
     setShowTabEditor(false);
-  };
+  }, [createTab]);
 
-  const handleEditTab = (tab: TabConfiguration) => {
+  const handleEditTab = useCallback((tab: TabConfiguration) => {
     setEditingTab(tab);
     setShowTabEditor(true);
-  };
+  }, []);
 
-  const handleCloseEditor = () => {
+  const handleCloseEditor = useCallback(() => {
     setShowTabEditor(false);
     setEditingTab(null);
-  };
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 't':
+            e.preventDefault();
+            setShowTabEditor(true);
+            break;
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+            e.preventDefault();
+            const index = parseInt(e.key) - 1;
+            if (tabs[index]) {
+              onTabChange(tabs[index].name);
+            }
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [tabs, onTabChange]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -179,7 +256,7 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex border-b border-pip-border">
+        <div className={`flex border-b border-pip-border ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
           <SortableContext items={tabs.map(tab => tab.id)} strategy={horizontalListSortingStrategy}>
             {tabs.map((tab) => {
               const isActive = currentTab === tab.name;
@@ -191,6 +268,7 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
                   isActive={isActive}
                   onTabChange={onTabChange}
                   onContextMenu={handleContextMenu}
+                  isMobile={isMobile}
                 />
               );
             })}
@@ -199,11 +277,11 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
           {/* Add Tab Button */}
           <Button
             variant="ghost"
-            className="h-16 px-4 border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all"
+            className={`${isMobile ? 'h-14 px-3' : 'h-16 px-4'} border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
             onClick={() => setShowTabEditor(true)}
-            title="Create new tab"
+            title="Create new tab (Ctrl+T)"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
           </Button>
         </div>
       </DndContext>

@@ -69,14 +69,14 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-glow: box-shadow 0.2s ease-in-out;
     
-    /* Pip-Boy Effects */
-    --scan-line-opacity: 0.03;
-    --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
-    --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
-    --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
-  }
-  
-  /* Amber Theme Override */
+  /* Pip-Boy Effects */
+  --scan-line-opacity: 0.03;
+  --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
+  --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
+  --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
+}
+
+/* Amber Theme Override */
   [data-theme="amber"] {
     --pip-green-primary: var(--amber-primary);
     --pip-green-secondary: 45 80% 40%;
@@ -182,5 +182,41 @@
     background: linear-gradient(135deg, hsl(var(--pip-bg-tertiary)), hsl(var(--pip-bg-secondary)));
     border: 1px solid hsl(var(--pip-border-bright) / 0.4);
     @apply pip-glow;
+  }
+  
+  /* Mobile Optimizations */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Touch-friendly button sizes on mobile */
+  @media (max-width: 768px) {
+    .pip-button-glow {
+      min-height: 44px;
+    }
+  }
+  
+  /* Loading and Animation Classes */
+  @keyframes pip-boot-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  @keyframes pip-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+  
+  .pip-boot-flicker {
+    animation: pip-boot-flicker 0.1s infinite;
+  }
+  
+  .pip-scan-line {
+    animation: pip-scan 2s linear infinite;
   }
 }

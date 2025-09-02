@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Search, Grid, List, Plus, X, Filter, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { WidgetType } from '@/types/widgets';
 import { useWidgetCatalog } from '@/hooks/useWidgetCatalog';
 import { useTagManager } from '@/hooks/useTagManager';
+import { useIsMobile } from '@/hooks/use-mobile';
 import * as LucideIcons from 'lucide-react';
 
 interface AdvancedWidgetCatalogProps {
@@ -16,10 +17,10 @@ interface AdvancedWidgetCatalogProps {
   onClose: () => void;
 }
 
-const IconComponent = ({ iconName, className }: { iconName: string; className?: string }) => {
+const IconComponent = React.memo(({ iconName, className }: { iconName: string; className?: string }) => {
   const Icon = (LucideIcons as any)[iconName] || LucideIcons.Folder;
   return <Icon className={className} />;
-};
+});
 
 export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   currentTab,
@@ -42,10 +43,26 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
 
   const { tags } = useTagManager();
   const [showFilters, setShowFilters] = useState(false);
+  const isMobile = useIsMobile();
 
-  const handleAddWidget = (widgetType: string) => {
+  const handleAddWidget = useCallback((widgetType: string) => {
     onAddWidget(widgetType as WidgetType);
-  };
+  }, [onAddWidget]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        setShowFilters(!showFilters);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, showFilters]);
 
   const categoryColors = {
     productivity: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -56,16 +73,16 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg w-full max-w-6xl h-[90vh] flex flex-col pip-glow pip-terminal pip-scanlines">
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4">
+      <div className={`relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col pip-glow pip-terminal pip-scanlines`}>
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-20 pip-scanlines rounded-lg" />
         {/* Header */}
-        <div className="p-6 border-b border-pip-border relative z-10">
+        <div className={`${isMobile ? 'p-4' : 'p-6'} border-b border-pip-border relative z-10`}>
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold font-pip-display text-pip-green-primary pip-text-glow">WIDGET CATALOG</h2>
-              <p className="text-pip-text-muted mt-1 font-pip-mono text-sm">
+            <div className="min-w-0 flex-1">
+              <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold font-pip-display text-pip-green-primary pip-text-glow`}>WIDGET CATALOG</h2>
+              <p className="text-pip-text-muted mt-1 font-pip-mono text-xs truncate">
                 {'>'} ADD_WIDGETS_TO_TAB: <span className="text-pip-green-secondary font-semibold">{currentTab}</span>
               </p>
             </div>
@@ -73,14 +90,14 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-pip-text-secondary hover:text-pip-green-primary pip-button-glow border border-pip-border hover:border-pip-green-secondary"
+              className="text-pip-text-secondary hover:text-pip-green-primary pip-button-glow border border-pip-border hover:border-pip-green-secondary flex-shrink-0 ml-2"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Search and Controls */}
-          <div className="flex gap-4 items-center">
+          <div className={`${isMobile ? 'flex flex-col gap-3' : 'flex gap-4 items-center'}`}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -92,44 +109,46 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
               />
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`font-pip-mono pip-button-glow ${showFilters ? 'bg-pip-green-primary/20 border-pip-green-primary text-pip-green-primary' : 'border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary'}`}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              FILTERS
-            </Button>
-
-            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-              <SelectTrigger className="w-40 bg-pip-bg-tertiary/80 border-pip-border font-pip-mono text-pip-green-primary">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-pip-bg-primary border-pip-border">
-                <SelectItem value="category">CATEGORY</SelectItem>
-                <SelectItem value="name">NAME</SelectItem>
-                <SelectItem value="popular">MOST POPULAR</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex border border-pip-border rounded-md bg-pip-bg-tertiary/50">
+            <div className={`${isMobile ? 'flex flex-wrap gap-2' : 'flex gap-4'} ${isMobile ? 'w-full' : ''}`}>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => setViewMode('grid')}
-                className={`rounded-none pip-button-glow ${viewMode === 'grid' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`font-pip-mono pip-button-glow ${showFilters ? 'bg-pip-green-primary/20 border-pip-green-primary text-pip-green-primary' : 'border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary'} ${isMobile ? 'flex-1' : ''}`}
               >
-                <Grid className="h-4 w-4" />
+                <Filter className="h-4 w-4 mr-2" />
+                {isMobile ? '' : 'FILTERS'}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className={`rounded-none pip-button-glow ${viewMode === 'list' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className={`${isMobile ? 'flex-1 min-w-0' : 'w-40'} bg-pip-bg-tertiary/80 border-pip-border font-pip-mono text-pip-green-primary`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-pip-bg-primary border-pip-border">
+                  <SelectItem value="category">CATEGORY</SelectItem>
+                  <SelectItem value="name">NAME</SelectItem>
+                  <SelectItem value="popular">POPULAR</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex border border-pip-border rounded-md bg-pip-bg-tertiary/50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className={`rounded-none pip-button-glow ${viewMode === 'grid' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className={`rounded-none pip-button-glow ${viewMode === 'list' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -189,7 +208,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
           ) : (
             <div className={`${
               viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' 
+                ? `grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}` 
                 : 'space-y-3'
             }`}>
               {widgets.map(widget => (
