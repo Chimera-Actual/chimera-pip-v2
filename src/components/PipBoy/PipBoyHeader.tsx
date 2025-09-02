@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, Volume2, VolumeX, Zap, User, LogOut } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ColorTheme } from './PipBoyContainer';
+import { UserAvatar } from './UserAvatar';
+import { SettingsModal } from './SettingsModal';
 
 interface PipBoyHeaderProps {
   colorTheme: ColorTheme;
@@ -17,14 +19,8 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
   soundEnabled, 
   onSoundToggle 
 }) => {
-  const { profile, signOut } = useAuth();
-  const themeColors: Record<ColorTheme, string> = {
-    green: 'hsl(120 100% 50%)',
-    amber: 'hsl(45 100% 55%)',
-    blue: 'hsl(200 100% 55%)',
-    red: 'hsl(0 100% 55%)',
-    white: 'hsl(0 0% 90%)'
-  };
+  const { profile } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <div className="flex items-center justify-between p-4 border-b border-pip-border">
@@ -43,18 +39,8 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
         </div>
       </div>
 
-      {/* Center: User Profile */}
+      {/* Center: System Info */}
       <div className="flex items-center space-x-6">
-        <div className="text-center">
-          <div className="text-xs text-pip-text-muted font-pip-mono">STATUS</div>
-          <div className="text-sm text-primary font-pip-mono pip-text-glow">OPERATIONAL</div>
-        </div>
-        <div className="text-center">
-          <div className="text-xs text-pip-text-muted font-pip-mono">VAULT DWELLER</div>
-          <div className="text-sm text-primary font-pip-mono pip-text-glow">
-            {profile?.character_name || 'UNNAMED'}
-          </div>
-        </div>
         <div className="text-center">
           <div className="text-xs text-pip-text-muted font-pip-mono">VAULT</div>
           <div className="text-sm text-primary font-pip-mono pip-text-glow">
@@ -64,32 +50,14 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
       </div>
 
       {/* Right: Controls */}
-      <div className="flex items-center space-x-2">
-        {/* Theme Selector */}
-        <div className="flex space-x-1">
-          {(Object.keys(themeColors) as ColorTheme[]).map((theme) => (
-            <Button
-              key={theme}
-              size="sm"
-              variant="ghost"
-              className={`w-6 h-6 p-0 rounded-full border-2 transition-all ${
-                colorTheme === theme 
-                  ? 'border-pip-text-bright shadow-pip-glow' 
-                  : 'border-pip-border hover:border-pip-border-bright'
-              }`}
-              style={{ backgroundColor: themeColors[theme] }}
-              onClick={() => onColorThemeChange(theme)}
-              title={`${theme.charAt(0).toUpperCase() + theme.slice(1)} Theme`}
-            />
-          ))}
-        </div>
-
+      <div className="flex items-center space-x-3">
         {/* Sound Toggle */}
         <Button
           size="sm"
           variant="ghost"
           onClick={onSoundToggle}
-          className="text-pip-text-secondary hover:text-primary"
+          className="text-pip-text-secondary hover:text-primary transition-colors pip-button-glow"
+          title={soundEnabled ? 'Mute System Sounds' : 'Enable System Sounds'}
         >
           {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </Button>
@@ -98,22 +66,22 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
         <Button
           size="sm"
           variant="ghost"
-          className="text-pip-text-secondary hover:text-primary"
+          onClick={() => setShowSettings(true)}
+          className="text-pip-text-secondary hover:text-primary transition-colors pip-button-glow"
+          title="System Preferences"
         >
           <Settings className="h-4 w-4" />
         </Button>
 
-        {/* Logout */}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={signOut}
-          className="text-pip-text-secondary hover:text-destructive"
-          title="Exit Vault"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
+        {/* User Avatar */}
+        <UserAvatar />
       </div>
+      
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </div>
   );
 };

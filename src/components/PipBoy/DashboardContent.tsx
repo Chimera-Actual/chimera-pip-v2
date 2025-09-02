@@ -38,17 +38,17 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
           </span>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 group">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className={`font-pip-mono text-xs border-pip-border hover:border-primary transition-colors ${
-              isDragMode ? 'bg-primary/20 border-primary text-primary' : ''
+            className={`h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 font-pip-mono text-xs border border-pip-border hover:border-primary ${
+              isDragMode ? 'opacity-100 bg-primary/20 border-primary text-primary pip-glow' : 'hover:bg-pip-bg-secondary/50'
             }`}
             onClick={() => setIsDragMode(!isDragMode)}
+            title={isDragMode ? 'Exit Edit Mode' : 'Edit Widget Layout'}
           >
-            <MoveIcon className="w-4 h-4 mr-2" />
-            {isDragMode ? 'Exit Edit' : 'Edit Layout'}
+            <MoveIcon className="w-4 h-4" />
           </Button>
         </div>
       </div>

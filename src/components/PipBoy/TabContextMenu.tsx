@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Edit, Copy, Trash2, X, Settings } from 'lucide-react';
+import { Edit3, Copy, Trash2, X, Settings2, Eye } from 'lucide-react';
 import { TabConfiguration } from '@/types/tabManagement';
 import { useTabManager } from '@/hooks/useTabManager';
 import { Button } from '@/components/ui/button';
@@ -87,54 +87,70 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-48 bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright rounded-md shadow-lg animate-scale-in pip-glow pip-terminal"
+      className="fixed z-50 min-w-52 bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright rounded-md shadow-lg animate-fade-in pip-glow pip-terminal"
       style={{
         top: position.y,
         left: position.x,
       }}
     >
-      <div className="py-1">
+      <div className="py-1.5">
+        {/* View Tab */}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
+          className="w-full justify-start px-3 py-2.5 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary transition-all duration-200 pip-button-glow"
+          onClick={() => {
+            // Could implement tab preview/view functionality
+            onClose();
+          }}
+        >
+          <Eye className="w-4 h-4 mr-3" />
+          VIEW TAB
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start px-3 py-2.5 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary transition-all duration-200 pip-button-glow"
           onClick={handleEdit}
         >
-          <Edit className="w-4 h-4 mr-2" />
+          <Edit3 className="w-4 h-4 mr-3" />
           EDIT TAB
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
+          className="w-full justify-start px-3 py-2.5 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary transition-all duration-200 pip-button-glow"
           onClick={handleDuplicate}
         >
-          <Copy className="w-4 h-4 mr-2" />
-          DUPLICATE TAB
+          <Copy className="w-4 h-4 mr-3" />
+          DUPLICATE
         </Button>
 
-        <div className="border-t border-pip-border/30 my-1" />
+        <div className="border-t border-pip-border/30 my-1.5" />
 
         {!tab.isDefault && (
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-destructive/20 text-destructive pip-button-glow"
+            className="w-full justify-start px-3 py-2.5 text-sm font-pip-mono hover:bg-destructive/20 text-destructive transition-all duration-200 pip-button-glow"
             onClick={handleDelete}
           >
-            <Trash2 className="w-4 h-4 mr-2" />
+            <Trash2 className="w-4 h-4 mr-3" />
             DELETE TAB
           </Button>
         )}
 
+        <div className="border-t border-pip-border/30 my-1.5" />
+
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
+          className="w-full justify-start px-3 py-2.5 text-sm font-pip-mono text-pip-text-secondary hover:bg-pip-bg-secondary/30 hover:text-primary transition-all duration-200"
           onClick={onClose}
         >
-          <X className="w-4 h-4 mr-2" />
+          <X className="w-4 h-4 mr-3" />
           CLOSE
         </Button>
       </div>

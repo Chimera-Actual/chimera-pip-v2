@@ -286,12 +286,6 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
         </div>
       </DndContext>
       
-      {/* Tab Description */}
-      <div className="px-6 py-2 border-b border-pip-border/30">
-        <span className="text-xs font-pip-mono text-pip-text-muted italic">
-          {tabs.find(t => t.name === currentTab)?.description || 'Custom dashboard tab'}
-        </span>
-      </div>
 
       {/* Tab Editor Modal */}
       <TabEditor
