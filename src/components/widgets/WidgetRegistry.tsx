@@ -1,12 +1,14 @@
-import React from 'react';
-import { WidgetType } from '@/types/widgets';
+import React, { memo } from 'react';
+import { WidgetType, BaseWidget } from '@/types/widgets';
 import { CharacterProfileWidget } from './CharacterProfileWidget';
 import { SpecialStatsWidget } from './SpecialStatsWidget';
 import { SystemMonitorWidget } from './SystemMonitorWidget';
 import { WeatherStationWidget } from './WeatherStationWidget';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Widget component registry
-export const WidgetComponents: Record<WidgetType, React.ComponentType<any>> = {
+export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: BaseWidget }>> = {
   'character-profile': CharacterProfileWidget,
   'special-stats': SpecialStatsWidget,
   'system-monitor': SystemMonitorWidget,
@@ -79,21 +81,27 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<any>> = {
 
 // Widget renderer component
 interface WidgetRendererProps {
-  widget: any; // BaseWidget
+  widget: BaseWidget;
 }
 
-export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget }) => {
+export const WidgetRenderer: React.FC<WidgetRendererProps> = memo(({ widget }) => {
   const Component = WidgetComponents[widget.type];
   
   if (!Component) {
     return (
-      <div className="pip-special-stat p-4 text-center">
-        <div className="text-destructive font-pip-mono">
-          Unknown widget type: {widget.type}
-        </div>
-      </div>
+      <Card className="pip-widget border-destructive/50">
+        <CardContent className="p-6 text-center">
+          <div className="text-pip-text-muted font-pip-mono">
+            Widget type "{widget.type}" not implemented
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
-  return <Component widget={widget} />;
-};
+  return (
+    <WidgetErrorBoundary widgetId={widget.id} widgetTitle={widget.title}>
+      <Component widget={widget} />
+    </WidgetErrorBoundary>
+  );
+});
