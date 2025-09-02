@@ -501,7 +501,7 @@
   }
 }
 
-// Screen Reader Classes
+/* Screen Reader Classes */
 @layer utilities {
   .sr-only {
     position: absolute !important;
