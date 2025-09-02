@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, Volume2, VolumeX, Zap, User } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Zap, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { ColorTheme } from './PipBoyContainer';
 
 interface PipBoyHeaderProps {
@@ -10,12 +11,13 @@ interface PipBoyHeaderProps {
   onSoundToggle: () => void;
 }
 
-export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
-  colorTheme,
-  onColorThemeChange,
-  soundEnabled,
-  onSoundToggle
+export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({ 
+  colorTheme, 
+  onColorThemeChange, 
+  soundEnabled, 
+  onSoundToggle 
 }) => {
+  const { profile, signOut } = useAuth();
   const themeColors: Record<ColorTheme, string> = {
     green: 'hsl(120 100% 50%)',
     amber: 'hsl(45 100% 55%)',
@@ -41,15 +43,23 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
         </div>
       </div>
 
-      {/* Center: Status Display */}
+      {/* Center: User Profile */}
       <div className="flex items-center space-x-6">
         <div className="text-center">
           <div className="text-xs text-pip-text-muted font-pip-mono">STATUS</div>
           <div className="text-sm text-primary font-pip-mono pip-text-glow">OPERATIONAL</div>
         </div>
         <div className="text-center">
-          <div className="text-xs text-pip-text-muted font-pip-mono">USER</div>
-          <div className="text-sm text-primary font-pip-mono pip-text-glow">VAULT DWELLER</div>
+          <div className="text-xs text-pip-text-muted font-pip-mono">VAULT DWELLER</div>
+          <div className="text-sm text-primary font-pip-mono pip-text-glow">
+            {profile?.character_name || 'UNNAMED'}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="text-xs text-pip-text-muted font-pip-mono">VAULT</div>
+          <div className="text-sm text-primary font-pip-mono pip-text-glow">
+            {profile?.vault_number?.toString().padStart(3, '0') || '000'}
+          </div>
         </div>
       </div>
 
@@ -91,6 +101,17 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
           className="text-pip-text-secondary hover:text-primary"
         >
           <Settings className="h-4 w-4" />
+        </Button>
+
+        {/* Logout */}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={signOut}
+          className="text-pip-text-secondary hover:text-destructive"
+          title="Exit Vault"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </div>

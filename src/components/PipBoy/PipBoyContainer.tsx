@@ -8,6 +8,7 @@ import { DataTab } from './tabs/DataTab';
 import { MapTab } from './tabs/MapTab';
 import { RadioTab } from './tabs/RadioTab';
 import { BootSequence } from './BootSequence';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type PipBoyTab = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
 export type ColorTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
@@ -17,10 +18,19 @@ interface PipBoyContainerProps {
 }
 
 export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) => {
+  const { profile, updateProfile } = useAuth();
   const [currentTab, setCurrentTab] = useState<PipBoyTab>('STAT');
   const [colorTheme, setColorTheme] = useState<ColorTheme>('green');
   const [isBooting, setIsBooting] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Initialize theme from user profile
+  useEffect(() => {
+    if (profile?.theme_config) {
+      setColorTheme(profile.theme_config.colorScheme);
+      setSoundEnabled(profile.theme_config.soundEnabled);
+    }
+  }, [profile]);
 
   useEffect(() => {
     // Boot sequence timer
@@ -31,10 +41,35 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
     return () => clearTimeout(bootTimer);
   }, []);
 
-  // Apply theme to document
+  const handleSoundToggle = () => {
+    const newSoundState = !soundEnabled;
+    setSoundEnabled(newSoundState);
+    
+    // Update user profile
+    if (profile) {
+      updateProfile({
+        theme_config: {
+          ...profile.theme_config,
+          soundEnabled: newSoundState,
+        }
+      });
+    }
+  };
+
+  // Apply theme to document and sync with user profile
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', colorTheme);
-  }, [colorTheme]);
+    
+    // Update user profile theme if user is authenticated
+    if (profile && profile.theme_config.colorScheme !== colorTheme) {
+      updateProfile({
+        theme_config: {
+          ...profile.theme_config,
+          colorScheme: colorTheme,
+        }
+      });
+    }
+  }, [colorTheme, profile, updateProfile]);
 
   const renderTabContent = () => {
     switch (currentTab) {
@@ -66,7 +101,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
             colorTheme={colorTheme}
             onColorThemeChange={setColorTheme}
             soundEnabled={soundEnabled}
-            onSoundToggle={() => setSoundEnabled(!soundEnabled)}
+            onSoundToggle={handleSoundToggle}
           />
           
           {/* Tab Navigation */}
