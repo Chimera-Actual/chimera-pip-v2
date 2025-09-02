@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, SystemMonitorSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
@@ -39,7 +39,7 @@ const generateSystemMetrics = (): SystemMetrics => ({
   storage: 65 + Math.random() * 20, // Storage tends to be more stable
 });
 
-export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = ({ widget }) => {
+export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = memo(({ widget }) => {
   const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
     widget.id,
     widget.settings as SystemMonitorSettings
@@ -55,17 +55,17 @@ export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = ({ widget
     return () => clearInterval(interval);
   }, [settings.refreshRate]);
 
-  const getStatusColor = (value: number, threshold: number): string => {
+  const getStatusColor = useCallback((value: number, threshold: number): string => {
     if (value >= threshold) return 'text-destructive';
     if (value >= threshold * 0.7) return 'text-yellow-500';
     return 'text-pip-green-primary';
-  };
+  }, []);
 
-  const getStatusBadge = (value: number, threshold: number): { label: string; variant: 'default' | 'destructive' | 'secondary' } => {
+  const getStatusBadge = useCallback((value: number, threshold: number): { label: string; variant: 'default' | 'destructive' | 'secondary' } => {
     if (value >= threshold) return { label: 'CRITICAL', variant: 'destructive' };
     if (value >= threshold * 0.8) return { label: 'WARNING', variant: 'secondary' };
     return { label: 'NORMAL', variant: 'default' };
-  };
+  }, []);
 
   return (
     <WidgetContainer
@@ -136,4 +136,4 @@ export const SystemMonitorWidget: React.FC<SystemMonitorWidgetProps> = ({ widget
       </div>
     </WidgetContainer>
   );
-};
+});

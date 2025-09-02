@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, SpecialStatsSettings } from '@/types/widgets';
@@ -55,7 +55,7 @@ const specialStats = [
   }
 ];
 
-export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = ({ widget }) => {
+export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = memo(({ widget }) => {
   const { profile } = useAuth();
   const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
     widget.id,
@@ -81,7 +81,7 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = ({ widget }
 
   const userStats = profile.special_stats;
 
-  const renderStatRow = (stat: typeof specialStats[0]) => {
+  const renderStatRow = useCallback((stat: typeof specialStats[0]) => {
     const value = userStats[stat.name] || 5;
     
     const StatContent = (
@@ -140,7 +140,7 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = ({ widget }
     }
 
     return <div key={stat.name}>{StatContent}</div>;
-  };
+  }, [userStats, settings.displayStyle, settings.showProgressBars, settings.showTooltips]);
 
   return (
     <WidgetContainer
@@ -168,4 +168,4 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = ({ widget }
       </div>
     </WidgetContainer>
   );
-};
+});

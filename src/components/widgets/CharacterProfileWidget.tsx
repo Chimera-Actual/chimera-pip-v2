@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, CharacterProfileSettings } from '@/types/widgets';
@@ -29,7 +29,7 @@ const getKarmaColor = (karma: number): string => {
   return 'text-destructive';
 };
 
-export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = ({ widget }) => {
+export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = memo(({ widget }) => {
   const { profile } = useAuth();
   const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
     widget.id, 
@@ -141,4 +141,4 @@ export const CharacterProfileWidget: React.FC<CharacterProfileWidgetProps> = ({ 
       </div>
     </WidgetContainer>
   );
-};
+});

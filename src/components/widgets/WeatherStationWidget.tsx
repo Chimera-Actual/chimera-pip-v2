@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, WeatherStationSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
@@ -50,7 +50,7 @@ const getAirQualityColor = (airQuality: string): string => {
   }
 };
 
-export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = ({ widget }) => {
+export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({ widget }) => {
   const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
     widget.id,
     widget.settings as WeatherStationSettings
@@ -68,9 +68,9 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = ({ widg
     }
   }, [settings.autoRefresh, settings.refreshInterval]);
 
-  const convertTemperature = (tempF: number): number => {
+  const convertTemperature = useCallback((tempF: number): number => {
     return settings.temperatureUnit === 'C' ? (tempF - 32) * 5/9 : tempF;
-  };
+  }, [settings.temperatureUnit]);
 
   const temperatureDisplay = convertTemperature(weatherData.temperature);
   const temperatureUnit = settings.temperatureUnit;
@@ -168,4 +168,4 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = ({ widg
       </div>
     </WidgetContainer>
   );
-};
+});
