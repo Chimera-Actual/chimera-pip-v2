@@ -9,6 +9,7 @@ import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidget
 import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileWidgetContainer } from './MobileWidgetContainer';
+import { ResponsiveWidgetGrid } from './ResponsiveWidgetGrid';
 
 interface WidgetGridProps {
   tab: string;
@@ -98,14 +99,8 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
     </div>
   );
 
-  // Return with pull-to-refresh on mobile
-  return isMobile ? (
-    <PullToRefresh onRefresh={handleRefresh}>
-      {gridContent}
-    </PullToRefresh>
-  ) : (
-    gridContent
-  );
+  // Use advanced grid system for enhanced experience
+  return <ResponsiveWidgetGrid tab={tab} className={className} />;
 };
 
 // Note: Moved CSS to index.css for better performance and maintainability

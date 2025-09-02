@@ -250,6 +250,25 @@
   align-items: start;
 }
 
+.widgets-responsive-grid {
+  /* Dynamic grid that adapts to content and screen size */
+  display: grid;
+  align-items: start;
+  /* Grid properties set dynamically via inline styles */
+}
+
+/* Performance optimizations for drag operations */
+.widgets-responsive-grid .widget-slot {
+  transform-origin: center;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.widgets-responsive-grid .widget-slot.dragging {
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
 @media (min-width: 1200px) {
   .widgets-grid {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -388,5 +407,58 @@
       0 0 10px hsl(var(--pip-green-primary) / 0.2),
       0 0 15px hsl(var(--pip-green-primary) / 0.1),
       inset 0 0 1px hsl(var(--pip-green-primary) / 0.1);
+  }
+}
+
+/* Advanced drag animations */
+@keyframes drag-lift {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.05) rotate(2deg); }
+}
+
+@keyframes drag-drop {
+  0% { transform: scale(1.05) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.widget-dragging {
+  animation: drag-lift 0.2s ease-out;
+  z-index: 1000;
+  box-shadow: 
+    0 20px 40px hsl(var(--pip-green-primary) / 0.3),
+    0 0 0 1px hsl(var(--pip-green-primary) / 0.5);
+}
+
+.widget-drag-overlay {
+  animation: drag-lift 0.2s ease-out;
+  transform: rotate(5deg) scale(1.1);
+  opacity: 0.9;
+  filter: brightness(1.1);
+}
+
+/* Smooth transitions for all widget interactions */
+.pip-widget {
+  transition: 
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.15s ease-out;
+}
+
+/* Grid density responsive adjustments */
+@media (max-width: 640px) {
+  .widgets-responsive-grid {
+    padding: 0.5rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .widgets-responsive-grid {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .widgets-responsive-grid {
+    padding: 1.5rem;
   }
 }
