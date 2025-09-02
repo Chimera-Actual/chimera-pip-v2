@@ -87,7 +87,7 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-48 bg-background/95 backdrop-blur-sm border border-pip-border rounded-md shadow-lg animate-scale-in"
+      className="fixed z-50 min-w-48 bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright rounded-md shadow-lg animate-scale-in pip-glow pip-terminal"
       style={{
         top: position.y,
         left: position.x,
@@ -97,21 +97,21 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-pip-bg-secondary/50"
+          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
           onClick={handleEdit}
         >
           <Edit className="w-4 h-4 mr-2" />
-          Edit Tab
+          EDIT TAB
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-pip-bg-secondary/50"
+          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
           onClick={handleDuplicate}
         >
           <Copy className="w-4 h-4 mr-2" />
-          Duplicate Tab
+          DUPLICATE TAB
         </Button>
 
         <div className="border-t border-pip-border/30 my-1" />
@@ -120,22 +120,22 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-destructive/20 text-destructive"
+            className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-destructive/20 text-destructive pip-button-glow"
             onClick={handleDelete}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Delete Tab
+            DELETE TAB
           </Button>
         )}
 
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 text-sm font-pip-mono hover:bg-pip-bg-secondary/50"
+          className="w-full justify-start px-3 py-2 text-sm font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-pip-green-primary pip-button-glow"
           onClick={onClose}
         >
           <X className="w-4 h-4 mr-2" />
-          Close
+          CLOSE
         </Button>
       </div>
     </div>

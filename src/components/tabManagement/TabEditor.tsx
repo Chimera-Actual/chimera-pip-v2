@@ -97,35 +97,42 @@ export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSa
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="bg-card border-2 border-pip-border-bright/30 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto pip-glow">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold font-pip-display text-primary">
-            {tab ? 'Edit Tab' : 'Create New Tab'}
-          </h2>
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto pip-glow pip-terminal pip-scanlines">
+        {/* Scanline overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-30 pip-scanlines rounded-lg" />
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <div>
+            <h2 className="text-xl font-bold font-pip-display text-pip-green-primary pip-text-glow">
+              {tab ? 'EDIT TAB' : 'CREATE NEW TAB'}
+            </h2>
+            <div className="text-xs font-pip-mono text-pip-text-muted mt-1">
+              {'>'} TAB_MANAGEMENT_PROTOCOL_v2.1
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-muted-foreground hover:text-primary"
+            className="text-pip-text-secondary hover:text-pip-green-primary pip-button-glow border border-pip-border hover:border-pip-green-secondary"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
           {/* Tab Name */}
           <div className="space-y-2">
-            <Label htmlFor="tab-name" className="text-sm font-bold text-primary uppercase tracking-wide">
-              Tab Name
+            <Label htmlFor="tab-name" className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+              TAB NAME
             </Label>
             <Input
               id="tab-name"
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="My Custom Tab"
-              className="bg-black/50 border-pip-border focus:border-primary"
+              placeholder="MY_CUSTOM_TAB"
+              className="bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow"
               required
               maxLength={20}
             />
@@ -133,36 +140,36 @@ export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSa
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="tab-description" className="text-sm font-bold text-primary uppercase tracking-wide">
-              Description
+            <Label htmlFor="tab-description" className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+              DESCRIPTION
             </Label>
             <Textarea
               id="tab-description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe what this tab is for..."
+              placeholder="DESCRIBE WHAT THIS TAB IS FOR..."
               rows={3}
-              className="bg-black/50 border-pip-border focus:border-primary resize-none"
+              className="bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted resize-none pip-glow"
               maxLength={100}
             />
           </div>
 
           {/* Icon Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-bold text-primary uppercase tracking-wide">
-              Icon
+            <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+              ICON SELECTION
             </Label>
-            <div className="grid grid-cols-8 gap-2 p-3 border border-pip-border rounded-md bg-black/30 max-h-48 overflow-y-auto">
+            <div className="grid grid-cols-8 gap-2 p-3 border border-pip-border rounded-md bg-pip-bg-tertiary/50 max-h-48 overflow-y-auto pip-glow">
               {availableIcons.map((iconOption) => {
                 const IconComponent = iconOption.icon;
                 return (
                   <button
                     key={iconOption.name}
                     type="button"
-                    className={`aspect-square flex items-center justify-center p-2 rounded border transition-all ${
+                    className={`aspect-square flex items-center justify-center p-2 rounded border transition-all pip-button-glow ${
                       formData.icon === iconOption.name
-                        ? 'border-primary bg-primary/20 text-primary'
-                        : 'border-pip-border bg-black/40 text-muted-foreground hover:border-primary/50 hover:text-primary'
+                        ? 'border-pip-green-primary bg-pip-green-primary/20 text-pip-green-primary pip-glow'
+                        : 'border-pip-border bg-pip-bg-tertiary/40 text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary'
                     }`}
                     onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
                     title={iconOption.label}
@@ -176,18 +183,18 @@ export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSa
 
           {/* Color Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-bold text-primary uppercase tracking-wide">
-              Accent Color (Optional)
+            <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+              ACCENT COLOR [OPTIONAL]
             </Label>
             <div className="flex gap-2 flex-wrap">
               {colorOptions.map((colorOption) => (
                 <button
                   key={colorOption.value}
                   type="button"
-                  className={`w-10 h-10 rounded-full border-2 transition-all ${
+                  className={`w-10 h-10 rounded-full border-2 transition-all pip-button-glow ${
                     formData.color === colorOption.value
-                      ? 'border-primary shadow-lg shadow-primary/30'
-                      : 'border-pip-border hover:border-primary/50'
+                      ? 'border-pip-green-primary shadow-lg shadow-pip-green-glow pip-glow'
+                      : 'border-pip-border hover:border-pip-green-secondary'
                   }`}
                   style={{ 
                     backgroundColor: colorOption.color || 'transparent',
@@ -206,25 +213,25 @@ export const TabEditor: React.FC<TabEditorProps> = ({ tab, isOpen, onClose, onSa
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary font-pip-mono pip-button-glow"
               disabled={isSubmitting}
             >
-              Cancel
+              CANCEL
             </Button>
             <Button
               type="submit"
-              className="flex-1"
+              className="flex-1 bg-pip-green-primary/20 border border-pip-green-primary text-pip-green-primary hover:bg-pip-green-primary/30 font-pip-mono pip-button-glow"
               disabled={isSubmitting || !formData.name.trim()}
             >
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                  Saving...
+                  PROCESSING...
                 </>
               ) : (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  {tab ? 'Update Tab' : 'Create Tab'}
+                  {tab ? 'UPDATE TAB' : 'CREATE TAB'}
                 </>
               )}
             </Button>

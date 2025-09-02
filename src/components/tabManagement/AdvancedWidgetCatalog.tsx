@@ -56,22 +56,24 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-      <div className="bg-card border-2 border-pip-border-bright/30 rounded-lg w-full max-w-6xl h-[90vh] flex flex-col pip-glow">
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg w-full max-w-6xl h-[90vh] flex flex-col pip-glow pip-terminal pip-scanlines">
+        {/* Scanline overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-20 pip-scanlines rounded-lg" />
         {/* Header */}
-        <div className="p-6 border-b border-pip-border">
+        <div className="p-6 border-b border-pip-border relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold font-pip-display text-primary">Widget Catalog</h2>
-              <p className="text-muted-foreground mt-1">
-                Add widgets to <span className="text-primary font-semibold">{currentTab}</span> tab
+              <h2 className="text-2xl font-bold font-pip-display text-pip-green-primary pip-text-glow">WIDGET CATALOG</h2>
+              <p className="text-pip-text-muted mt-1 font-pip-mono text-sm">
+                {'>'} ADD_WIDGETS_TO_TAB: <span className="text-pip-green-secondary font-semibold">{currentTab}</span>
               </p>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-muted-foreground hover:text-primary"
+              className="text-pip-text-secondary hover:text-pip-green-primary pip-button-glow border border-pip-border hover:border-pip-green-secondary"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -83,10 +85,10 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search widgets..."
+                placeholder="SEARCH WIDGETS..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-black/50 border-pip-border focus:border-primary"
+                className="pl-10 bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow"
               />
             </div>
 
@@ -94,29 +96,29 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={showFilters ? 'bg-primary/20 border-primary' : ''}
+              className={`font-pip-mono pip-button-glow ${showFilters ? 'bg-pip-green-primary/20 border-pip-green-primary text-pip-green-primary' : 'border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary'}`}
             >
               <Filter className="h-4 w-4 mr-2" />
-              Filters
+              FILTERS
             </Button>
 
             <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-              <SelectTrigger className="w-40 bg-black/50 border-pip-border">
+              <SelectTrigger className="w-40 bg-pip-bg-tertiary/80 border-pip-border font-pip-mono text-pip-green-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="category">Category</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
+              <SelectContent className="bg-pip-bg-primary border-pip-border">
+                <SelectItem value="category">CATEGORY</SelectItem>
+                <SelectItem value="name">NAME</SelectItem>
+                <SelectItem value="popular">MOST POPULAR</SelectItem>
               </SelectContent>
             </Select>
 
-            <div className="flex border border-pip-border rounded-md bg-black/50">
+            <div className="flex border border-pip-border rounded-md bg-pip-bg-tertiary/50">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className={`rounded-none ${viewMode === 'grid' ? 'bg-primary/20 text-primary' : ''}`}
+                className={`rounded-none pip-button-glow ${viewMode === 'grid' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
               >
                 <Grid className="h-4 w-4" />
               </Button>
@@ -124,7 +126,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className={`rounded-none ${viewMode === 'list' ? 'bg-primary/20 text-primary' : ''}`}
+                className={`rounded-none pip-button-glow ${viewMode === 'list' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -133,12 +135,12 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
 
           {/* Filter Tags */}
           {showFilters && (
-            <div className="mt-4 p-4 border border-pip-border rounded-md bg-black/30">
+            <div className="mt-4 p-4 border border-pip-border rounded-md bg-pip-bg-tertiary/30 pip-glow">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-primary">Filter by tags:</span>
+                <span className="text-sm font-semibold font-pip-mono text-pip-green-primary">FILTER BY TAGS:</span>
                 {selectedTags.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    Clear All
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="font-pip-mono text-pip-text-secondary hover:text-pip-green-secondary pip-button-glow">
+                    CLEAR ALL
                   </Button>
                 )}
               </div>
@@ -147,10 +149,10 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                   <button
                     key={tag.id}
                     onClick={() => toggleTagSelection(tag.id)}
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium font-pip-mono border transition-all pip-button-glow ${
                       selectedTags.includes(tag.id)
-                        ? 'border-primary bg-primary/20 text-primary'
-                        : 'border-pip-border bg-black/40 text-muted-foreground hover:border-primary/50'
+                        ? 'border-pip-green-primary bg-pip-green-primary/20 text-pip-green-primary'
+                        : 'border-pip-border bg-pip-bg-tertiary/40 text-pip-text-muted hover:border-pip-green-secondary hover:text-pip-green-secondary'
                     }`}
                     style={{
                       borderColor: selectedTags.includes(tag.id) ? tag.color : undefined,
@@ -168,7 +170,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
         </div>
 
         {/* Widget Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 relative z-10">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -193,14 +195,14 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
               {widgets.map(widget => (
                 <div
                   key={widget.id}
-                  className={`bg-black/60 border border-pip-border rounded-lg p-4 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 ${
+                  className={`bg-pip-bg-secondary/60 border border-pip-border rounded-lg p-4 transition-all hover:border-pip-green-secondary/50 hover:shadow-lg hover:shadow-pip-green-glow/10 pip-widget ${
                     viewMode === 'list' ? 'flex items-center gap-4' : ''
                   }`}
                 >
                   <div className={`flex items-start gap-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                     <div className="flex-shrink-0 relative">
-                      <div className="w-10 h-10 bg-primary/20 rounded-md flex items-center justify-center">
-                        <IconComponent iconName={widget.icon} className="h-5 w-5 text-primary" />
+                      <div className="w-10 h-10 bg-pip-green-primary/20 rounded-md flex items-center justify-center pip-glow">
+                        <IconComponent iconName={widget.icon} className="h-5 w-5 text-pip-green-primary" />
                       </div>
                       {widget.featured && (
                         <Star className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 fill-current" />
@@ -209,7 +211,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-primary truncate">{widget.name}</h3>
+                        <h3 className="font-semibold font-pip-mono text-pip-green-primary truncate">{widget.name}</h3>
                         <Badge 
                           variant="secondary" 
                           className={categoryColors[widget.category]}
@@ -218,7 +220,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      <p className="text-sm text-pip-text-muted mb-2 line-clamp-2 font-pip-mono">
                         {widget.description}
                       </p>
 
@@ -254,11 +256,11 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
 
                   <Button
                     onClick={() => handleAddWidget(widget.widgetType)}
-                    className="w-full mt-3 bg-primary/20 border border-primary/30 hover:bg-primary/30"
+                    className="w-full mt-3 bg-pip-green-primary/20 border border-pip-green-primary/30 hover:bg-pip-green-primary/30 font-pip-mono text-pip-green-primary pip-button-glow"
                     size={viewMode === 'list' ? 'sm' : 'default'}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Widget
+                    ADD WIDGET
                   </Button>
                 </div>
               ))}
@@ -267,14 +269,14 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-pip-border bg-black/30">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="p-4 border-t border-pip-border bg-pip-bg-tertiary/30 relative z-10">
+          <div className="flex items-center justify-between text-sm text-pip-text-muted font-pip-mono">
             <span>
-              Showing {widgets.length} widget{widgets.length !== 1 ? 's' : ''}
+              SHOWING {widgets.length} WIDGET{widgets.length !== 1 ? 'S' : ''}
             </span>
             <div className="flex gap-4">
-              <Button variant="ghost" size="sm">Manage Tags</Button>
-              <Button variant="ghost" size="sm">Import Widgets</Button>
+              <Button variant="ghost" size="sm" className="font-pip-mono text-pip-text-secondary hover:text-pip-green-secondary pip-button-glow">MANAGE TAGS</Button>
+              <Button variant="ghost" size="sm" className="font-pip-mono text-pip-text-secondary hover:text-pip-green-secondary pip-button-glow">IMPORT WIDGETS</Button>
             </div>
           </div>
         </div>
