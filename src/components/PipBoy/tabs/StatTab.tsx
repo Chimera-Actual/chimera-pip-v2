@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { User, Star, Trophy, Activity } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SpecialStat {
   name: string;
@@ -11,15 +12,6 @@ interface SpecialStat {
   description: string;
 }
 
-const specialStats: SpecialStat[] = [
-  { name: 'S', fullName: 'Strength', value: 7, description: 'Physical power and carry capacity' },
-  { name: 'P', fullName: 'Perception', value: 6, description: 'Environmental awareness and accuracy' },
-  { name: 'E', fullName: 'Endurance', value: 8, description: 'Stamina and physical resilience' },
-  { name: 'C', fullName: 'Charisma', value: 5, description: 'Social skills and leadership' },
-  { name: 'I', fullName: 'Intelligence', value: 9, description: 'Reasoning ability and technical skill' },
-  { name: 'A', fullName: 'Agility', value: 6, description: 'Speed and finesse' },
-  { name: 'L', fullName: 'Luck', value: 4, description: 'Fate and random chance' }
-];
 
 const achievements = [
   { name: 'Vault Dweller', description: 'Welcome to your new PIP-Boy!', earned: true },
@@ -29,10 +21,44 @@ const achievements = [
 ];
 
 export const StatTab: React.FC = () => {
-  const level = 12;
-  const experience = 2847;
-  const nextLevelXP = 3200;
+  const { profile } = useAuth();
+  
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-pip-text-muted font-pip-mono">Loading profile...</div>
+      </div>
+    );
+  }
+
+  const level = profile.level;
+  const experience = profile.experience_points;
+  const nextLevelXP = level * 1000; // Simple XP calculation
   const xpProgress = (experience / nextLevelXP) * 100;
+  
+  const specialStats: SpecialStat[] = [
+    { name: 'S', fullName: 'Strength', value: profile.special_stats.strength, description: 'Physical power and carry capacity' },
+    { name: 'P', fullName: 'Perception', value: profile.special_stats.perception, description: 'Environmental awareness and accuracy' },
+    { name: 'E', fullName: 'Endurance', value: profile.special_stats.endurance, description: 'Stamina and physical resilience' },
+    { name: 'C', fullName: 'Charisma', value: profile.special_stats.charisma, description: 'Social skills and leadership' },
+    { name: 'I', fullName: 'Intelligence', value: profile.special_stats.intelligence, description: 'Reasoning ability and technical skill' },
+    { name: 'A', fullName: 'Agility', value: profile.special_stats.agility, description: 'Speed and finesse' },
+    { name: 'L', fullName: 'Luck', value: profile.special_stats.luck, description: 'Fate and random chance' }
+  ];
+  
+  const getKarmaLabel = (karma: number) => {
+    if (karma >= 500) return 'VERY GOOD';
+    if (karma >= 200) return 'GOOD';
+    if (karma >= -199) return 'NEUTRAL';
+    if (karma >= -499) return 'EVIL';
+    return 'VERY EVIL';
+  };
+  
+  const getKarmaColor = (karma: number) => {
+    if (karma >= 200) return 'text-pip-green-secondary';
+    if (karma >= -199) return 'text-pip-text-secondary';
+    return 'text-destructive';
+  };
 
   return (
     <div className="space-y-6">
@@ -48,7 +74,9 @@ export const StatTab: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-xs text-pip-text-muted font-pip-mono">VAULT</div>
-              <div className="text-2xl font-pip-display font-bold text-primary pip-text-glow">111</div>
+              <div className="text-2xl font-pip-display font-bold text-primary pip-text-glow">
+                {profile.vault_number.toString().padStart(3, '0')}
+              </div>
             </div>
             <div>
               <div className="text-xs text-pip-text-muted font-pip-mono">LEVEL</div>
@@ -60,7 +88,9 @@ export const StatTab: React.FC = () => {
             </div>
             <div>
               <div className="text-xs text-pip-text-muted font-pip-mono">KARMA</div>
-              <div className="text-2xl font-pip-display font-bold text-pip-green-secondary">GOOD</div>
+              <div className={`text-2xl font-pip-display font-bold ${getKarmaColor(profile.karma)}`}>
+                {getKarmaLabel(profile.karma)}
+              </div>
             </div>
           </div>
           
