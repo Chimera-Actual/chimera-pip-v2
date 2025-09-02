@@ -194,10 +194,31 @@
     display: none;
   }
   
-  /* Touch-friendly button sizes on mobile */
+  /* Enhanced Touch Targets - Platform-Specific */
   @media (max-width: 768px) {
-    .pip-button-glow {
-      min-height: 44px;
+    .pip-button-glow,
+    .touch-target {
+      min-height: 44px; /* iOS minimum */
+      min-width: 44px;
+    }
+    
+    .touch-target-large {
+      min-height: 48px; /* Android minimum */
+      min-width: 48px;
+    }
+    
+    .touch-target-xl {
+      min-height: 56px; /* High-frequency actions */
+      min-width: 56px;
+    }
+    
+    /* Enhanced spacing for touch */
+    .touch-spacing {
+      gap: 8px;
+    }
+    
+    .touch-spacing-lg {
+      gap: 12px;
     }
   }
   
@@ -257,9 +278,40 @@
   }
   
   /* Touch-friendly controls */
-  .collapse-button {
+  .collapse-button,
+  .widget-control-button {
     min-width: 44px;
     min-height: 44px;
+    padding: 8px;
+  }
+  
+  .drag-handle {
+    min-width: 48px;
+    min-height: 48px;
+    cursor: grab;
+    touch-action: manipulation;
+  }
+  
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+  
+  /* Pull-to-refresh indicator */
+  .pull-to-refresh {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--pip-text-secondary));
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: all 0.3s ease;
+  }
+  
+  .pull-to-refresh.active {
+    opacity: 1;
+    transform: translateY(0);
   }
   
   /* Improved text readability on small screens */
@@ -286,9 +338,38 @@
     background-color: transparent;
   }
   
-  .collapse-button:active {
+  /* Touch feedback animations */
+  .touch-feedback:active {
+    background-color: hsl(var(--pip-green-primary) / 0.3);
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+  }
+  
+  .collapse-button:active,
+  .widget-control-button:active {
     background-color: hsl(var(--pip-green-primary) / 0.3);
     transform: scale(0.98);
+  }
+  
+  /* Long press indicator */
+  .long-press-indicator {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .long-press-indicator::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, hsl(var(--pip-green-primary) / 0.2) 0%, transparent 70%);
+    opacity: 0;
+    animation: long-press-glow 0.4s ease-out;
+  }
+  
+  @keyframes long-press-glow {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1); }
   }
 }
 

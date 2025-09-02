@@ -6,6 +6,9 @@ import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetType } from '@/types/widgets';
 import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
+import { PullToRefresh } from '@/components/common/PullToRefresh';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileWidgetContainer } from './MobileWidgetContainer';
 
 interface WidgetGridProps {
   tab: string;
@@ -13,8 +16,9 @@ interface WidgetGridProps {
 }
 
 export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
-  const { getWidgetsByTab, addWidget, isLoading } = useWidgets();
+  const { getWidgetsByTab, addWidget, removeWidget, updateWidget, refreshWidgets, isLoading } = useWidgets();
   const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
+  const isMobile = useIsMobile();
   
   const widgets = getWidgetsByTab(tab as any);
 
@@ -25,13 +29,32 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
     }
   };
 
-  return (
+  const handleRefresh = async () => {
+    await refreshWidgets();
+  };
+
+  const gridContent = (
     <div className={cn('space-y-6', className)}>
       {/* Existing Widgets */}
       <div className="widgets-grid">
         {widgets.map((widget) => (
           <div key={widget.id} className="widget-slot">
-            <WidgetRenderer widget={widget} />
+            {isMobile ? (
+              <MobileWidgetContainer
+                widgetId={widget.id}
+                widgetType={widget.type}
+                title={widget.title}
+                collapsed={widget.collapsed}
+                onToggleCollapse={() => updateWidget(widget.id, { collapsed: !widget.collapsed })}
+                onSettingsChange={(settings) => updateWidget(widget.id, { settings })}
+                onDelete={() => removeWidget(widget.id)}
+                onMove={(position) => updateWidget(widget.id, { position })}
+              >
+                <WidgetRenderer widget={widget} />
+              </MobileWidgetContainer>
+            ) : (
+              <WidgetRenderer widget={widget} />
+            )}
           </div>
         ))}
       </div>
@@ -39,6 +62,7 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
       {/* Add Widget Button */}
       <Button
         variant="outline"
+        size={isMobile ? "touch-large" : "default"}
         className="w-full h-32 border-2 border-dashed border-pip-border hover:border-primary/50 bg-transparent hover:bg-pip-bg-secondary/30 transition-all duration-200 group"
         disabled={isLoading}
         onClick={() => setShowAdvancedCatalog(true)}
@@ -72,6 +96,15 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
         </div>
       )}
     </div>
+  );
+
+  // Return with pull-to-refresh on mobile
+  return isMobile ? (
+    <PullToRefresh onRefresh={handleRefresh}>
+      {gridContent}
+    </PullToRefresh>
+  ) : (
+    gridContent
   );
 };
 

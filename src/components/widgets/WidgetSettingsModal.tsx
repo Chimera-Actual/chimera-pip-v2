@@ -445,8 +445,8 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       
-      {/* Modal */}
-      <div className="relative w-[90%] max-w-4xl h-[85vh] bg-background/95 border-2 border-primary/30 rounded-lg flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20">
+      {/* Modal - Mobile-first responsive */}
+      <div className="relative w-full h-full md:w-[90%] md:max-w-4xl md:h-[85vh] md:rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 md:max-inline-size-[min(90vw,900px)] md:max-block-size-[min(80vh,100%)]">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-primary/20 bg-primary/5">
           <div className="flex items-center gap-3">

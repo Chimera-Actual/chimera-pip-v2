@@ -26,6 +26,9 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        "touch": "h-11 px-6 py-3 touch-target", // iOS 44px minimum
+        "touch-large": "h-12 px-6 py-3 touch-target-large", // Android 48px minimum
+        "touch-xl": "h-14 px-8 py-4 touch-target-xl", // High-frequency actions
       },
     },
     defaultVariants: {
