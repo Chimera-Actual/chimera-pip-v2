@@ -145,13 +145,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const renderWidget = useCallback((widget: BaseWidget, isDragOverlay = false) => {
     if (viewMode === 'list') {
       return (
-        <div className="flex items-center gap-4 p-4 bg-pip-bg-secondary rounded-lg border border-pip-border">
-          <div className="w-12 h-12 bg-pip-bg-tertiary rounded-lg flex items-center justify-center">
+        <div className="flex items-center gap-4 p-4 bg-secondary rounded-lg border border-border">
+          <div className="w-12 h-12 bg-secondary/50 rounded-lg flex items-center justify-center">
             <div className="w-6 h-6 bg-primary rounded" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-pip-text-bright truncate">{widget.title}</h3>
-            <p className="text-sm text-pip-text-secondary">{widget.type}</p>
+            <h3 className="font-semibold text-foreground truncate">{widget.title}</h3>
+            <p className="text-sm text-muted-foreground">{widget.type}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={() => updateWidget(widget.id, { collapsed: !widget.collapsed })}>
@@ -212,16 +212,22 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const gridContent = (
     <div className={cn('space-y-6', className)}>
       {/* Grid Controls */}
-      <div className="flex items-center justify-between gap-4 p-4 bg-pip-bg-secondary/30 rounded-lg border border-pip-border">
+      <div className="flex items-center justify-between gap-4 p-4 bg-secondary/30 rounded-lg border border-border pip-glow">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-pip-text-secondary uppercase tracking-wide">
+          <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
             View Mode:
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 border border-border rounded-md bg-secondary/20">
             <Button
               size="sm"
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               onClick={() => setViewMode('grid')}
+              className={cn(
+                "rounded-none border-0 pip-button-glow transition-colors",
+                viewMode === 'grid' 
+                  ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
+                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+              )}
             >
               <Grid className="w-4 h-4" />
             </Button>
@@ -229,6 +235,12 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
               size="sm"
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               onClick={() => setViewMode('list')}
+              className={cn(
+                "rounded-none border-0 pip-button-glow transition-colors",
+                viewMode === 'list' 
+                  ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
+                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+              )}
             >
               <List className="w-4 h-4" />
             </Button>
@@ -241,13 +253,14 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             variant="outline"
             onClick={handleAutoArrange}
             disabled={isLoading || widgets.length === 0}
+            className="pip-button-glow border-border text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Shuffle className="w-4 h-4 mr-2" />
             Auto-Arrange
           </Button>
           
           <select
-            className="px-3 py-1 text-sm bg-pip-bg-tertiary border border-pip-border rounded text-pip-text-bright"
+            className="px-3 py-1 text-sm bg-secondary border border-border rounded text-foreground pip-glow focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={gridDensity}
             onChange={(e) => setGridDensity(e.target.value as GridDensity)}
             disabled={viewMode === 'list'}
@@ -288,13 +301,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       <Button
         variant="outline"
         size={isMobile ? "touch-large" : "default"}
-        className="w-full h-32 border-2 border-dashed border-pip-border hover:border-primary/50 bg-transparent hover:bg-pip-bg-secondary/30 transition-all duration-200 group"
+        className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 bg-transparent hover:bg-secondary/30 transition-all duration-200 group pip-glow"
         disabled={isLoading}
         onClick={() => setShowAdvancedCatalog(true)}
       >
-        <div className="flex flex-col items-center gap-2 text-pip-text-muted group-hover:text-primary transition-colors">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
           <Plus className="h-8 w-8" />
-          <span className="font-pip-mono text-sm">ADD WIDGET</span>
+          <span className="font-mono text-sm pip-text-glow">ADD WIDGET</span>
         </div>
       </Button>
 
@@ -310,11 +323,11 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       {/* Empty State */}
       {widgets.length === 0 && (
         <div className="text-center py-12">
-          <div className="pip-special-stat p-8 max-w-md mx-auto">
-            <div className="text-pip-text-muted font-pip-mono mb-4">
+          <div className="p-8 max-w-md mx-auto border border-border rounded-lg bg-secondary/20 pip-glow">
+            <div className="text-muted-foreground font-mono mb-4 pip-text-glow">
               No widgets in this tab yet
             </div>
-            <div className="text-xs text-pip-text-secondary font-pip-mono">
+            <div className="text-xs text-muted-foreground font-mono">
               Click "ADD WIDGET" above to get started
             </div>
           </div>

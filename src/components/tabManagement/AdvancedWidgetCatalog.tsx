@@ -9,6 +9,7 @@ import { WidgetType } from '@/types/widgets';
 import { useWidgetCatalog } from '@/hooks/useWidgetCatalog';
 import { useTagManager } from '@/hooks/useTagManager';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import * as LucideIcons from 'lucide-react';
 
 interface AdvancedWidgetCatalogProps {
@@ -135,12 +136,17 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                 </SelectContent>
               </Select>
 
-              <div className="flex border border-pip-border rounded-md bg-pip-bg-tertiary/50">
+              <div className="flex border border-border rounded-md bg-secondary/20 pip-glow">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className={`rounded-none pip-button-glow ${viewMode === 'grid' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
+                  className={cn(
+                    "rounded-none pip-button-glow border-0 transition-all duration-300",
+                    viewMode === 'grid' 
+                      ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                  )}
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -148,7 +154,12 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={`rounded-none pip-button-glow ${viewMode === 'list' ? 'bg-pip-green-primary/20 text-pip-green-primary' : 'text-pip-text-secondary hover:text-pip-green-secondary'}`}
+                  className={cn(
+                    "rounded-none pip-button-glow border-0 transition-all duration-300",
+                    viewMode === 'list' 
+                      ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                  )}
                 >
                   <List className="h-4 w-4" />
                 </Button>
