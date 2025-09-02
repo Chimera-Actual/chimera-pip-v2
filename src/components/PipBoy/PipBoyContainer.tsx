@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { PipBoyTabs } from './PipBoyTabs';
 import { PipBoyHeader } from './PipBoyHeader';
-import { StatTab } from './tabs/StatTab';
-import { InvTab } from './tabs/InvTab';
-import { DataTab } from './tabs/DataTab';
-import { MapTab } from './tabs/MapTab';
-import { RadioTab } from './tabs/RadioTab';
+import { WidgetGrid } from '@/components/widgets/WidgetGrid';
 import { BootSequence } from './BootSequence';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -72,20 +68,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   }, [colorTheme, profile, updateProfile]);
 
   const renderTabContent = () => {
-    switch (currentTab) {
-      case 'STAT':
-        return <StatTab />;
-      case 'INV':
-        return <InvTab />;
-      case 'DATA':
-        return <DataTab />;
-      case 'MAP':
-        return <MapTab />;
-      case 'RADIO':
-        return <RadioTab />;
-      default:
-        return <StatTab />;
-    }
+    return <WidgetGrid tab={currentTab} />;
   };
 
   if (isBooting) {
