@@ -60,19 +60,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden">
         <DialogHeader className="border-b border-pip-border/30 pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-              SYSTEM PREFERENCES
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-pip-text-secondary hover:text-primary"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
+            SYSTEM PREFERENCES
+          </DialogTitle>
           <p className="text-xs text-pip-text-muted font-pip-mono">
             CHIMERA-PIP 4000 mk2 CONFIGURATION INTERFACE
           </p>

@@ -441,18 +441,18 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     : availableGroups.filter(g => g !== 'advanced');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       
-      {/* Modal - Mobile-first responsive */}
-      <div className="relative w-full h-full md:w-[90%] md:max-w-4xl md:h-[85vh] md:rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 md:max-inline-size-[min(90vw,900px)] md:max-block-size-[min(80vh,100%)]">
+      {/* Modal - Centered with fixed responsive width */}
+      <div className="relative w-full max-w-4xl max-h-[85vh] md:max-w-[800px] rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-primary/20 bg-primary/5">
           <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-primary" />
-            <h3 className="text-lg font-bold text-primary uppercase tracking-wide">
-              {widgetTitle} Settings
+            <Settings className="w-6 h-6 text-primary pip-glow" />
+            <h3 className="text-lg font-bold text-primary uppercase tracking-wide pip-text-glow">
+              {widgetTitle} - Settings
             </h3>
           </div>
           <div className="flex items-center gap-2">
