@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WidgetProvider } from "@/contexts/WidgetContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VaultLogin } from "@/components/auth/VaultLogin";
 import { VaultRegistration } from "@/components/auth/VaultRegistration";
@@ -19,9 +20,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <WidgetProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             {/* Public Landing Page */}
             <Route path="/welcome" element={<Landing />} />
@@ -53,6 +55,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        </WidgetProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
