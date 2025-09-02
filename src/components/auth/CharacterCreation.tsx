@@ -84,6 +84,32 @@ export const CharacterCreation: React.FC = () => {
     setIsLoading(false);
   };
 
+  const handleSkipAllocation = async (data: CharacterFormData) => {
+    setIsLoading(true);
+
+    // Use default S.P.E.C.I.A.L. stats (all 5s) when skipping
+    const defaultStats = {
+      strength: 5,
+      perception: 5,
+      endurance: 5,
+      charisma: 5,
+      intelligence: 5,
+      agility: 5,
+      luck: 5,
+    };
+
+    const { error } = await updateProfile({
+      character_name: data.character_name,
+      special_stats: defaultStats,
+    });
+
+    if (!error) {
+      navigate('/');
+    }
+
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen pip-scanlines bg-pip-bg-primary flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -97,7 +123,7 @@ export const CharacterCreation: React.FC = () => {
               CHARACTER CREATION
             </h1>
             <p className="text-pip-text-secondary mt-2 font-mono text-sm">
-              Define your vault identity and S.P.E.C.I.A.L. attributes
+              Define your vault identity and optionally customize your S.P.E.C.I.A.L. attributes
             </p>
             {profile && (
               <p className="text-primary font-mono text-lg mt-2">
@@ -191,26 +217,43 @@ export const CharacterCreation: React.FC = () => {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading || availablePoints !== 0}
-              className="w-full pip-button-glow font-mono font-bold text-base py-3"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  INITIALIZING VAULT...
-                </>
-              ) : (
-                'COMPLETE REGISTRATION'
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full pip-button-glow font-mono font-bold text-base py-3"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    INITIALIZING VAULT...
+                  </>
+                ) : availablePoints === 0 ? (
+                  'COMPLETE REGISTRATION'
+                ) : (
+                  'REGISTER WITH CUSTOM STATS'
+                )}
+              </Button>
+              
+              {availablePoints > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading}
+                  onClick={handleSubmit(handleSkipAllocation)}
+                  className="w-full pip-terminal border-pip-border hover:border-primary font-mono font-bold text-base py-3"
+                >
+                  SKIP ALLOCATION & USE DEFAULTS
+                </Button>
               )}
-            </Button>
-            
-            {availablePoints !== 0 && (
-              <p className="text-center text-destructive font-mono text-sm">
-                You must allocate all {availablePoints} remaining points before proceeding
-              </p>
-            )}
+              
+              {availablePoints > 0 && (
+                <p className="text-center text-pip-text-muted font-mono text-xs">
+                  You can customize your S.P.E.C.I.A.L. stats later from your profile
+                </p>
+              )}
+            </div>
           </form>
         </Card>
       </div>
