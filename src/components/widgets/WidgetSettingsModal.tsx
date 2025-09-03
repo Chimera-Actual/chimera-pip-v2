@@ -443,7 +443,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-pip-bg-overlay/80 backdrop-blur-md" onClick={onClose} />
       
       {/* Modal - Centered with fixed responsive width */}
       <div className="relative w-full max-w-4xl max-h-[85vh] md:max-w-[800px] rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow">

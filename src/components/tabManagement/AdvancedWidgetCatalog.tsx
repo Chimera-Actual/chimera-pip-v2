@@ -74,7 +74,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4"
+    <div className="fixed inset-0 z-50 bg-pip-bg-overlay/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4"
          role="dialog" 
          aria-modal="true" 
          aria-labelledby="widget-catalog-title">

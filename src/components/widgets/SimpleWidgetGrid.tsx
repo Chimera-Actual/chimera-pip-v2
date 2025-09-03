@@ -69,7 +69,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   const renderWidget = (widget: BaseWidget) => {
     const widgetClass = cn(
-      "rounded-lg border border-amber-500/30 bg-black/40 backdrop-blur-sm transition-all duration-200 hover:border-amber-400/60 hover:bg-black/60",
+      "rounded-lg border border-pip-border/30 bg-pip-bg-overlay/40 backdrop-blur-sm transition-all duration-200 hover:border-pip-border-bright/60 hover:bg-pip-bg-overlay/60",
       widget.widgetWidth === 'full' ? "col-span-2" : "col-span-1",
       widget.collapsed && "h-14"
     );
@@ -77,10 +77,10 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     return (
       <div key={widget.id} className={widgetClass}>
         {/* Widget Header */}
-        <div className="flex items-center justify-between p-3 border-b border-amber-500/20">
+        <div className="flex items-center justify-between p-3 border-b border-pip-border/20">
           <div className="flex items-center gap-2">
-            <Move className="h-4 w-4 text-amber-400 cursor-grab" />
-            <h3 className="text-sm font-medium text-amber-100 truncate">{widget.title}</h3>
+            <Move className="h-4 w-4 text-pip-text-primary cursor-grab" />
+            <h3 className="text-sm font-medium text-pip-text-bright truncate">{widget.title}</h3>
           </div>
           <div className="flex items-center gap-1">
             {/* Width Toggle - Desktop Only */}
@@ -88,7 +88,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
                 onClick={() => handleToggleWidth(widget)}
               >
                 {widget.widgetWidth === 'half' ? <Maximize className="h-3 w-3" /> : <Minimize className="h-3 w-3" />}
@@ -99,7 +99,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+              className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
               onClick={() => handleUpdateWidget(widget.id, { collapsed: !widget.collapsed })}
             >
               <Minimize className="h-3 w-3" />
@@ -109,7 +109,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+              className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
               onClick={() => setSettingsWidget(widget)}
             >
               <Settings className="h-3 w-3" />
@@ -119,7 +119,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              className="h-6 w-6 text-destructive hover:text-destructive-foreground hover:bg-destructive/10"
               onClick={() => handleDeleteWidget(widget.id)}
             >
               <X className="h-3 w-3" />
@@ -135,7 +135,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
         )}
 
         {widget.collapsed && (
-          <div className="px-3 pb-2 text-xs text-amber-400/60">
+          <div className="px-3 pb-2 text-xs text-pip-text-muted">
             Click to expand
           </div>
         )}
@@ -148,7 +148,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       {/* Header Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-amber-100">
+          <h2 className="text-lg font-semibold text-pip-text-bright">
             {tab} Widgets ({widgets.length})
           </h2>
         </div>
@@ -158,7 +158,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             size="sm"
             onClick={() => refreshWidgets()}
             disabled={isLoading}
-            className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+            className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
           >
             <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             Refresh
@@ -167,7 +167,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             variant="outline"
             size="sm"
             onClick={() => setShowAdvancedCatalog(true)}
-            className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+            className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
           >
             <Plus className="h-4 w-4" />
             Add Widget
@@ -186,13 +186,13 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="max-w-md">
-            <h3 className="text-lg font-medium text-amber-100 mb-2">No widgets yet</h3>
-            <p className="text-sm text-amber-400/60 mb-4">
+            <h3 className="text-lg font-medium text-pip-text-bright mb-2">No widgets yet</h3>
+            <p className="text-sm text-pip-text-muted mb-4">
               Add your first widget to get started with your {tab} dashboard
             </p>
             <Button
               onClick={() => setShowAdvancedCatalog(true)}
-              className="bg-amber-600 hover:bg-amber-500 text-black"
+              className="bg-pip-green-primary hover:bg-pip-green-secondary text-pip-bg-primary"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Widget

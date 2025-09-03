@@ -68,12 +68,14 @@
     --font-family-mono: 'Share Tech Mono', 'Courier New', monospace;
     --font-family-display: 'Orbitron', monospace;
     --pip-animation-speed: 0.3s;
+    --radius: 6px;
     
   /* Pip-Boy Effects */
   --scan-line-opacity: 0.03;
   --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
   --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
   --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
+  --transition-glow: all 0.2s ease-in-out;
 }
 
 /* Theme Overrides - Complete color system changes */

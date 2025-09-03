@@ -64,7 +64,7 @@ export default {
 					primary: 'hsl(var(--pip-green-primary))',
 					secondary: 'hsl(var(--pip-green-secondary))',
 					muted: 'hsl(var(--pip-green-muted))',
-					glow: 'hsl(var(--pip-green-glow))'
+					glow: 'hsl(var(--pip-glow))'
 				},
 				'pip-text': {
 					primary: 'hsl(var(--pip-text-primary))',

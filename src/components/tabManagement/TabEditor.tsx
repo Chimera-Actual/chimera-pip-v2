@@ -97,7 +97,7 @@ export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-pip-bg-overlay/90 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto pip-glow pip-terminal pip-scanlines">
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-30 pip-scanlines rounded-lg" />
