@@ -214,6 +214,9 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       {settingsWidget && (
         <WidgetSettingsModal
           widgetId={settingsWidget.id}
+          widgetType={settingsWidget.type}
+          widgetTitle={settingsWidget.title}
+          isOpen={true}
           onClose={() => setSettingsWidget(null)}
         />
       )}
