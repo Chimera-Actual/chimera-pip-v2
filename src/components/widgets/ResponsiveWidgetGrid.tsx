@@ -11,6 +11,7 @@ import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { DraggableWidget } from './DraggableWidget';
 import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetType, BaseWidget } from '@/types/widgets';
+import { SimpleDragTest } from './SimpleDragTest';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveWidgetGridProps {
@@ -220,6 +221,14 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
 
   const gridContent = (
     <div className={cn('space-y-6', className)}>
+      {/* Simple Drag Test - Temporary */}
+      <div className="p-4 bg-pip-bg-secondary/30 rounded-lg border border-pip-border">
+        <h3 className="text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-4">
+          🧪 DRAG TEST - If this works, the issue is in our widget setup
+        </h3>
+        <SimpleDragTest />
+      </div>
+
       {/* Grid Controls */}
       <div className="flex items-center justify-between gap-4 p-4 bg-secondary/30 rounded-lg border border-border pip-glow">
         <div className="flex items-center gap-2">
