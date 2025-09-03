@@ -14,6 +14,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import { restrictToWindowEdges, restrictToParentElement } from '@dnd-kit/modifiers';
 import { BaseWidget } from '@/types/widgets';
+import { useGridSystem, GridConfig } from './useGridSystem';
 
 interface DragState {
   activeId: string | null;
@@ -22,10 +23,7 @@ interface DragState {
   dragOffset: { x: number; y: number };
 }
 
-interface GridConfig {
-  columns: number;
-  gap: number;
-  cellSize: { width: number; height: number };
+interface ExtendedGridConfig extends GridConfig {
   containerWidth: number;
 }
 
@@ -33,8 +31,16 @@ export const useAdvancedDragDrop = (
   widgets: BaseWidget[],
   onWidgetsReorder: (widgets: BaseWidget[]) => void,
   onWidgetMove: (widgetId: string, position: { x: number; y: number }) => void,
-  gridConfig: GridConfig
+  gridConfig: ExtendedGridConfig
 ) => {
+  const gridSystemConfig: GridConfig = {
+    cellSize: gridConfig.cellSize,
+    gap: gridConfig.gap,
+    columns: gridConfig.columns,
+    rows: Math.ceil(widgets.length / gridConfig.columns) + 5 // Extra rows for flexibility
+  };
+
+  const gridSystem = useGridSystem(gridSystemConfig);
   const [dragState, setDragState] = useState<DragState>({
     activeId: null,
     overId: null,
@@ -61,111 +67,46 @@ export const useAdvancedDragDrop = (
     return rectIntersection(args);
   }, []);
 
-  // Auto-arrange algorithm for optimal grid layout
+  // Auto-arrange using grid system
   const autoArrangeWidgets = useCallback((widgetsToArrange: BaseWidget[]) => {
-    const arranged = [...widgetsToArrange];
-    const { columns, gap, cellSize } = gridConfig;
-    
-    // Sort by priority (collapsed widgets go to end, then by creation date)
-    arranged.sort((a, b) => {
-      if (a.collapsed !== b.collapsed) {
-        return a.collapsed ? 1 : -1;
-      }
-      return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-    });
+    return gridSystem.autoArrangeWidgets(widgetsToArrange);
+  }, [gridSystem]);
 
-    // Calculate positions using a simple grid algorithm
-    const positions: Array<{ x: number; y: number }> = [];
-    let currentRow = 0;
-    let currentCol = 0;
-
-    arranged.forEach((widget, index) => {
-      const widgetWidth = widget.size?.width || cellSize.width;
-      const widgetHeight = widget.size?.height || cellSize.height;
-      
-      // Calculate how many columns this widget spans
-      const widgetCols = Math.ceil(widgetWidth / (cellSize.width + gap));
-      
-      // Check if widget fits in current row
-      if (currentCol + widgetCols > columns) {
-        currentRow++;
-        currentCol = 0;
-      }
-
-      positions.push({
-        x: currentCol * (cellSize.width + gap),
-        y: currentRow * (cellSize.height + gap)
-      });
-
-      currentCol += widgetCols;
-    });
-
-    // Update widgets with new positions
-    const arrangedWidgets = arranged.map((widget, index) => ({
-      ...widget,
-      position: positions[index] || { x: 0, y: 0 }
-    }));
-
-    return arrangedWidgets;
-  }, [gridConfig]);
-
-  // Snap to grid helper
+  // Snap to grid helper using grid system
   const snapToGrid = useCallback((x: number, y: number) => {
-    const { gap, cellSize } = gridConfig;
-    const gridX = Math.round(x / (cellSize.width + gap)) * (cellSize.width + gap);
-    const gridY = Math.round(y / (cellSize.height + gap)) * (cellSize.height + gap);
-    return { x: Math.max(0, gridX), y: Math.max(0, gridY) };
-  }, [gridConfig]);
+    return gridSystem.snapToGrid(x, y);
+  }, [gridSystem]);
 
-  // Check for collisions when placing widgets
+  // Check for collisions using grid system
   const checkCollision = useCallback((
     widget: BaseWidget, 
     newPosition: { x: number; y: number },
     excludeWidget?: string
   ) => {
-    const widgetWidth = widget.size?.width || gridConfig.cellSize.width;
-    const widgetHeight = widget.size?.height || gridConfig.cellSize.height;
-
-    return widgets.some(otherWidget => {
-      if (otherWidget.id === widget.id || otherWidget.id === excludeWidget) {
-        return false;
-      }
-
-      const otherWidth = otherWidget.size?.width || gridConfig.cellSize.width;
-      const otherHeight = otherWidget.size?.height || gridConfig.cellSize.height;
-      const otherPos = otherWidget.position || { x: 0, y: 0 };
-
-      // Check if rectangles overlap
-      return !(
-        newPosition.x + widgetWidth <= otherPos.x ||
-        otherPos.x + otherWidth <= newPosition.x ||
-        newPosition.y + widgetHeight <= otherPos.y ||
-        otherPos.y + otherHeight <= newPosition.y
-      );
-    });
-  }, [widgets, gridConfig]);
-
-  // Find the next available position for a widget
-  const findAvailablePosition = useCallback((widget: BaseWidget) => {
-    const { columns, gap, cellSize } = gridConfig;
-    const widgetCols = Math.ceil((widget.size?.width || cellSize.width) / (cellSize.width + gap));
+    const { row, col } = gridSystem.pixelToGrid(newPosition.x, newPosition.y);
+    const { width, height } = gridSystem.sizeToGrid(
+      widget.size?.width || gridConfig.cellSize,
+      widget.size?.height || gridConfig.cellSize
+    );
     
-    for (let row = 0; row < 100; row++) { // Reasonable limit
-      for (let col = 0; col <= columns - widgetCols; col++) {
-        const position = {
-          x: col * (cellSize.width + gap),
-          y: row * (cellSize.height + gap)
-        };
-        
-        if (!checkCollision(widget, position)) {
-          return position;
-        }
-      }
+    return !gridSystem.isPositionAvailable(row, col, width, height, excludeWidget);
+  }, [gridSystem, gridConfig]);
+
+  // Find the next available position using grid system
+  const findAvailablePosition = useCallback((widget: BaseWidget) => {
+    const { width, height } = gridSystem.sizeToGrid(
+      widget.size?.width || gridConfig.cellSize,
+      widget.size?.height || gridConfig.cellSize
+    );
+    
+    const gridPos = gridSystem.findAvailablePosition(width, height);
+    if (gridPos) {
+      return gridSystem.gridToPixel(gridPos.row, gridPos.col);
     }
     
-    // Fallback to bottom of grid
-    return { x: 0, y: widgets.length * (cellSize.height + gap) };
-  }, [gridConfig, checkCollision, widgets]);
+    // Fallback
+    return { x: 0, y: widgets.length * (gridConfig.cellSize + gridConfig.gap) };
+  }, [gridSystem, gridConfig, widgets]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
@@ -187,20 +128,39 @@ export const useAdvancedDragDrop = (
   }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over, delta } = event;
     
-    console.log('Drag ended:', { activeId: active?.id, overId: over?.id });
+    console.log('Drag ended:', { activeId: active?.id, overId: over?.id, delta });
     
-    if (active && over && active.id !== over.id) {
-      // Simple reorder - let the sortable context handle the visual changes
-      const oldIndex = widgets.findIndex(w => w.id === active.id);
-      const newIndex = widgets.findIndex(w => w.id === over.id);
-      
-      console.log('Reordering from index', oldIndex, 'to', newIndex);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
-        onWidgetsReorder(reorderedWidgets);
+    if (active) {
+      const draggedWidget = widgets.find(w => w.id === active.id);
+      if (draggedWidget && delta) {
+        // Calculate new position with grid snapping
+        const currentPos = draggedWidget.position || { x: 0, y: 0 };
+        const newPos = {
+          x: currentPos.x + delta.x,
+          y: currentPos.y + delta.y
+        };
+        
+        const snappedPos = snapToGrid(newPos.x, newPos.y);
+        
+        // Check if the new position is valid
+        if (!checkCollision(draggedWidget, snappedPos, draggedWidget.id)) {
+          onWidgetMove(draggedWidget.id, snappedPos);
+        } else {
+          // Find alternative position if collision detected
+          const alternativePos = findAvailablePosition(draggedWidget);
+          onWidgetMove(draggedWidget.id, alternativePos);
+        }
+      } else if (active && over && active.id !== over.id) {
+        // Fallback to simple reorder
+        const oldIndex = widgets.findIndex(w => w.id === active.id);
+        const newIndex = widgets.findIndex(w => w.id === over.id);
+        
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+          onWidgetsReorder(reorderedWidgets);
+        }
       }
     }
 
@@ -210,7 +170,7 @@ export const useAdvancedDragDrop = (
       isDragging: false,
       dragOffset: { x: 0, y: 0 }
     });
-  }, [widgets, onWidgetsReorder]);
+  }, [widgets, onWidgetsReorder, onWidgetMove, snapToGrid, checkCollision, findAvailablePosition]);
 
   // Modifiers for constraining drag behavior
   const dragModifiers = useMemo(() => [
@@ -229,6 +189,7 @@ export const useAdvancedDragDrop = (
     checkCollision,
     findAvailablePosition,
     dragModifiers,
+    gridSystem,
     // DndContext props
     dndContextProps: {
       collisionDetection: customCollisionDetection,

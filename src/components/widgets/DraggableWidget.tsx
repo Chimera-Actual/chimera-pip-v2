@@ -136,13 +136,26 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     document.body.style.userSelect = '';
   }, [onUpdate, widget.id]);
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragOverlay ? 'none' : transition,
-    zIndex: isDragging ? 1000 : isOver ? 100 : 'auto',
-    width: widget.size?.width || 300,
-    height: widget.size?.height || 200,
-    touchAction: 'none'
+    transition: isDragging ? 'none' : 'transform 200ms ease',
+    opacity: isDragging ? 0.8 : 1,
+    zIndex: isDragging ? 1000 : isResizing ? 999 : 1,
+    ...(viewMode === 'grid' ? {
+      position: 'absolute',
+      left: widget.position?.x || 0,
+      top: widget.position?.y || 0,
+      width: widget.size?.width || 300,
+      height: widget.size?.height || 200,
+    } : {
+      width: widget.size?.width || 300,
+      height: widget.size?.height || 200,
+    }),
+    touchAction: 'none',
+    // Add subtle border when in grid mode for better visual feedback
+    ...(viewMode === 'grid' ? {
+      border: '1px solid hsl(var(--pip-border) / 0.3)',
+    } : {})
   };
 
   return (

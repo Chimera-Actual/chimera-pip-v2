@@ -346,6 +346,30 @@
   transform: translateZ(0); /* Force hardware acceleration */
 }
 
+/* Grid visualization */
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-line-horizontal,
+.grid-line-vertical {
+  position: absolute;
+  background: hsl(var(--pip-border) / 0.2);
+}
+
+.grid-line-horizontal {
+  height: 1px;
+  width: 100%;
+}
+
+.grid-line-vertical {
+  width: 1px;
+  height: 100%;
+}
+
 @media (min-width: 1200px) {
   .widgets-grid {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));

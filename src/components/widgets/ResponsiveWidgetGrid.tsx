@@ -26,6 +26,7 @@ import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetType, BaseWidget } from '@/types/widgets';
 import { SimpleDragTest } from './SimpleDragTest';
 import { cn } from '@/lib/utils';
+import { useAdvancedDragDrop } from '@/hooks/useAdvancedDragDrop';
 
 interface ResponsiveWidgetGridProps {
   tab: string;
@@ -37,19 +38,19 @@ type GridDensity = 'comfortable' | 'compact' | 'dense';
 
 const GRID_CONFIGS = {
   mobile: {
-    comfortable: { columns: 1, gap: 16, cellSize: { width: 320, height: 200 } },
-    compact: { columns: 1, gap: 12, cellSize: { width: 320, height: 180 } },
-    dense: { columns: 1, gap: 8, cellSize: { width: 320, height: 160 } }
+    comfortable: { columns: 1, gap: 16, cellSize: 320 },
+    compact: { columns: 1, gap: 12, cellSize: 300 },
+    dense: { columns: 1, gap: 8, cellSize: 280 }
   },
   tablet: {
-    comfortable: { columns: 2, gap: 20, cellSize: { width: 350, height: 220 } },
-    compact: { columns: 2, gap: 16, cellSize: { width: 320, height: 200 } },
-    dense: { columns: 3, gap: 12, cellSize: { width: 280, height: 180 } }
+    comfortable: { columns: 2, gap: 20, cellSize: 280 },
+    compact: { columns: 2, gap: 16, cellSize: 260 },
+    dense: { columns: 3, gap: 12, cellSize: 240 }
   },
   desktop: {
-    comfortable: { columns: 3, gap: 24, cellSize: { width: 400, height: 250 } },
-    compact: { columns: 4, gap: 20, cellSize: { width: 350, height: 220 } },
-    dense: { columns: 5, gap: 16, cellSize: { width: 300, height: 200 } }
+    comfortable: { columns: 3, gap: 24, cellSize: 300 },
+    compact: { columns: 4, gap: 20, cellSize: 280 },
+    dense: { columns: 5, gap: 16, cellSize: 260 }
   }
 };
 
@@ -102,99 +103,77 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     return 'desktop';
   }, [isMobile, containerWidth]);
 
+  const baseConfig = GRID_CONFIGS[deviceType][gridDensity];
   const gridConfig = useMemo(() => ({
-    ...GRID_CONFIGS[deviceType][gridDensity],
-    containerWidth
-  }), [deviceType, gridDensity, containerWidth]);
+    ...baseConfig,
+    containerWidth,
+    rows: Math.ceil(sortedWidgets.length / baseConfig.columns) + 5
+  }), [baseConfig, containerWidth, sortedWidgets.length]);
 
-  // Smooth drag start handler
-  const handleDragStart = useCallback((event: DragEndEvent) => {
-    const widget = sortedWidgets.find(w => w.id === event.active.id);
-    setDraggedWidget(widget || null);
-  }, [sortedWidgets]);
-
-  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    setDraggedWidget(null);
-
-    if (!over || active.id === over.id) {
-      return;
-    }
-
-    const oldIndex = sortedWidgets.findIndex((widget) => widget.id === active.id);
-    const newIndex = sortedWidgets.findIndex((widget) => widget.id === over.id);
-    
-    if (oldIndex === -1 || newIndex === -1) {
-      return;
-    }
-
+  // Grid-based drag and drop system
+  const onWidgetsReorder = useCallback(async (widgets: BaseWidget[]) => {
     try {
-      const reorderedWidgets = arrayMove(sortedWidgets, oldIndex, newIndex);
-      
-      // Update positions smoothly
-      for (let i = 0; i < reorderedWidgets.length; i++) {
-        const widget = reorderedWidgets[i];
+      for (let i = 0; i < widgets.length; i++) {
+        const widget = widgets[i];
         await updateWidget(widget.id, { 
-          position: { x: i, y: 0 }
+          position: { x: i * 50, y: 0 } // Simple positioning for now
         });
       }
     } catch (error) {
       console.error('Error during reordering:', error);
     }
-  }, [sortedWidgets, updateWidget]);
+  }, [updateWidget]);
 
-  // Auto-arrange widgets to optimize space usage  
+  const onWidgetMove = useCallback(async (widgetId: string, position: { x: number; y: number }) => {
+    try {
+      await updateWidget(widgetId, { position });
+    } catch (error) {
+      console.error('Error during widget move:', error);
+    }
+  }, [updateWidget]);
+
+  const {
+    dragState,
+    handleDragStart,
+    handleDragEnd,
+    autoArrangeWidgets,
+    gridSystem,
+    dndContextProps
+  } = useAdvancedDragDrop(
+    sortedWidgets,
+    onWidgetsReorder,
+    onWidgetMove,
+    gridConfig
+  );
+
+  // Set dragged widget for overlay
+  const handleDragStartProxy = useCallback((event: DragEndEvent) => {
+    const widget = sortedWidgets.find(w => w.id === event.active.id);
+    setDraggedWidget(widget || null);
+    handleDragStart(event);
+  }, [sortedWidgets, handleDragStart]);
+
+  const handleDragEndProxy = useCallback(async (event: DragEndEvent) => {
+    setDraggedWidget(null);
+    handleDragEnd(event);
+  }, [handleDragEnd]);
+
+  // Auto-arrange using grid system
   const handleAutoArrange = useCallback(async () => {
     if (sortedWidgets.length === 0) return;
     
-    console.log('🔄 Auto-arranging widgets...');
+    console.log('🔄 Auto-arranging widgets with grid system...');
     
     try {
-      // Simple grid packing algorithm
-      const { columns } = gridConfig;
-      const positions: { [key: string]: { x: number; y: number } } = {};
-      
-      // Sort widgets by area (larger first for better packing)
-      const sortedBySize = [...sortedWidgets].sort((a, b) => {
-        const aArea = (a.size?.width || 300) * (a.size?.height || 200);
-        const bArea = (b.size?.width || 300) * (b.size?.height || 200);
-        return bArea - aArea;
-      });
-      
-      let currentRow = 0;
-      let currentCol = 0;
-      let rowHeight = 0;
-      
-      for (const widget of sortedBySize) {
-        const widgetWidth = widget.size?.width || 300;
-        const widgetHeight = widget.size?.height || 200;
-        
-        // Calculate grid cells occupied
-        const cellsWide = Math.ceil(widgetWidth / (gridConfig.cellSize.width + gridConfig.gap));
-        const cellsHigh = Math.ceil(widgetHeight / (gridConfig.cellSize.height + gridConfig.gap));
-        
-        // Check if widget fits in current row
-        if (currentCol + cellsWide > columns) {
-          // Move to next row
-          currentRow += Math.max(1, rowHeight);
-          currentCol = 0;
-          rowHeight = 0;
-        }
-        
-        // Place widget
-        positions[widget.id] = { x: currentCol, y: currentRow };
-        
-        // Update position for next widget
-        currentCol += cellsWide;
-        rowHeight = Math.max(rowHeight, cellsHigh);
-      }
+      const arrangedWidgets = autoArrangeWidgets(sortedWidgets);
       
       // Update all widget positions
-      for (const widget of sortedWidgets) {
-        const newPosition = positions[widget.id];
-        if (newPosition) {
-          await updateWidget(widget.id, { position: newPosition });
+      for (const widget of arrangedWidgets) {
+        if (widget.position) {
+          await updateWidget(widget.id, { 
+            position: widget.position,
+            size: widget.size 
+          });
         }
       }
       
@@ -203,7 +182,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     } catch (error) {
       console.error('❌ Error during auto-arrangement:', error);
     }
-  }, [sortedWidgets, gridConfig, updateWidget]);
+  }, [sortedWidgets, autoArrangeWidgets, updateWidget]);
 
   // Enhanced widget update with auto-reflow
   const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
@@ -305,7 +284,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     );
   }, [viewMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
 
-  // Grid styles based on configuration
+  // Grid styles for absolute positioning system
   const gridStyles = useMemo(() => {
     if (viewMode === 'list') {
       return {
@@ -315,19 +294,10 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       };
     }
 
-    if (viewMode === 'masonry') {
-      return {
-        columnCount: gridConfig.columns,
-        columnGap: `${gridConfig.gap}px`,
-        columnFill: 'balance' as const
-      };
-    }
-
     return {
-      display: 'grid',
-      gridTemplateColumns: `repeat(${gridConfig.columns}, 1fr)`,
-      gap: `${gridConfig.gap}px`,
-      alignItems: 'start'
+      position: 'relative' as const,
+      width: '100%',
+      minHeight: `${(gridConfig.rows * gridConfig.cellSize) + ((gridConfig.rows - 1) * gridConfig.gap)}px`
     };
   }, [viewMode, gridConfig]);
 
@@ -378,16 +348,27 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleAutoArrange}
-            disabled={isLoading || sortedWidgets.length === 0}
-            className="pip-button-glow border-border text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Shuffle className="w-4 h-4 mr-2" />
-            Auto-Arrange
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline" 
+              size="sm"
+              onClick={handleAutoArrange}
+              className="flex items-center gap-2 hover:bg-pip-green-primary/20"
+            >
+              <Shuffle className="h-4 w-4" />
+              Auto Arrange
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => gridSystem.setShowGrid(!gridSystem.showGrid)}
+              className={`flex items-center gap-2 ${gridSystem.showGrid ? 'bg-pip-green-primary/20' : ''}`}
+            >
+              <Grid className="h-4 w-4" />
+              Grid
+            </Button>
+          </div>
           
           <select
             className="px-3 py-1 text-sm bg-secondary border border-border rounded text-foreground pip-glow focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
@@ -402,23 +383,40 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         </div>
       </div>
 
-        {/* Widget Grid - Simplified like working test */}
+        {/* Grid-Based Widget System */}
         <div className="widget-grid-container relative min-h-[600px]">
-          <DndContext 
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext 
-              items={sortedWidgets.map(w => w.id)} 
-              strategy={rectSortingStrategy}
+          <DndContext {...dndContextProps}>
+            <div
+              className="widgets-responsive-grid relative"
+              style={gridStyles}
             >
-              <div 
-                className="widgets-responsive-grid grid" 
-                style={gridStyles}
+              {/* Grid Overlay */}
+              {gridSystem.showGrid && viewMode !== 'list' && (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                  {/* Vertical Grid Lines */}
+                  {gridSystem.getGridLines.vertical.map((x, index) => (
+                    <div
+                      key={`v-${index}`}
+                      className="absolute h-full border-l border-pip-border/30"
+                      style={{ left: `${x}px` }}
+                    />
+                  ))}
+                  {/* Horizontal Grid Lines */}
+                  {gridSystem.getGridLines.horizontal.map((y, index) => (
+                    <div
+                      key={`h-${index}`}
+                      className="absolute w-full border-t border-pip-border/30"
+                      style={{ top: `${y}px` }}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              <SortableContext 
+                items={sortedWidgets.map(w => w.id)}
+                strategy={rectSortingStrategy}
               >
-                {sortedWidgets.map((widget, index) => (
+                {sortedWidgets.map((widget) => (
                   <DraggableWidget
                     key={widget.id}
                     widget={widget}
@@ -435,23 +433,19 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                     <WidgetRenderer widget={widget} />
                   </DraggableWidget>
                 ))}
-              </div>
-            </SortableContext>
+              </SortableContext>
+            </div>
 
-            {/* Smooth Drag Overlay */}
+            {/* Drag Overlay */}
             <DragOverlay
               adjustScale={false}
-              style={{
-                cursor: 'grabbing',
-              }}
+              style={{ cursor: 'grabbing' }}
             >
-              {draggedWidget ? (
+              {draggedWidget && (
                 <div className={cn(
-                  "transform-gpu",
-                  "opacity-95 rotate-3 scale-110",
+                  "transform-gpu opacity-95 rotate-3 scale-110",
                   "shadow-2xl shadow-primary/20",
-                  "transition-all duration-200 ease-out",
-                  "animate-pulse"
+                  "transition-all duration-200 ease-out"
                 )}>
                   <DraggableWidget
                     widget={draggedWidget}
@@ -465,7 +459,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                     <WidgetRenderer widget={draggedWidget} />
                   </DraggableWidget>
                 </div>
-              ) : null}
+              )}
             </DragOverlay>
           </DndContext>
         </div>
