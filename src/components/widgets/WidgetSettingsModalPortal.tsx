@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Settings, X, Save, RotateCcw, AlertCircle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
+import { Settings, X, Save, RotateCcw, AlertCircle, Download, Upload, Copy, Eye, EyeOff, Zap, Maximize2, Minimize2, Trash2, Palette, Monitor, Sliders } from 'lucide-react';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,10 @@ interface WidgetSettingsModalProps<T = any> {
   isOpen: boolean;
   onClose: () => void;
   onSettingsChange?: (settings: T) => void;
+  onDelete?: () => void;
+  onDuplicate?: () => void;
+  onResize?: (size: { width: number; height: number }) => void;
+  currentSize?: { width: number; height: number };
 }
 
 interface WidgetSettingsField {
@@ -279,7 +283,11 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   widgetTitle,
   isOpen,
   onClose,
-  onSettingsChange
+  onSettingsChange,
+  onDelete,
+  onDuplicate,
+  onResize,
+  currentSize = { width: 300, height: 200 }
 }: WidgetSettingsModalProps<T>) => {
   const {
     settings,
@@ -296,9 +304,9 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     importSettings
   } = useWidgetSettings<T>(widgetId, widgetType);
 
-  const [activeGroup, setActiveGroup] = useState<string>('general');
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showImportExport, setShowImportExport] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('general');
+  const [localSize, setLocalSize] = useState(currentSize);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSave = async () => {
     if (await saveSettings()) {
@@ -342,6 +350,23 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
   if (!isOpen) return null;
 
+  // Handle size changes
+  const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
+    const newSize = { ...localSize, [dimension]: value };
+    setLocalSize(newSize);
+    onResize?.(newSize);
+  };
+
+  const handleDelete = () => {
+    if (showDeleteConfirm) {
+      onDelete?.();
+      onClose();
+    } else {
+      setShowDeleteConfirm(true);
+      setTimeout(() => setShowDeleteConfirm(false), 3000);
+    }
+  };
+
   // Group settings by their group property
   const groupedSettings = schema ? Object.entries(schema.settingsSchema).reduce(
     (groups, [key, fieldSchema]) => {
@@ -353,17 +378,13 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     {} as Record<string, Array<[string, any]>>
   ) : {};
 
-  const availableGroups = Object.keys(groupedSettings);
-  const filteredGroups = showAdvanced 
-    ? availableGroups 
-    : availableGroups.filter(g => g !== 'advanced');
-
-  const tabLabels = {
-    general: 'GENERAL',
-    display: 'DISPLAY', 
-    api: 'API',
-    advanced: 'ADVANCED'
-  };
+  const tabs = [
+    { id: 'general', label: 'GENERAL', icon: Settings },
+    { id: 'display', label: 'DISPLAY', icon: Palette },
+    { id: 'size', label: 'SIZE', icon: Maximize2 },
+    { id: 'actions', label: 'ACTIONS', icon: Sliders },
+    { id: 'advanced', label: 'ADVANCED', icon: Monitor }
+  ];
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -385,12 +406,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
           </div>
           <div className="flex items-center gap-2">
             <button 
-              className="px-3 py-1 text-xs bg-pip-bg-secondary text-pip-text-bright border border-pip-border rounded hover:bg-pip-bg-tertiary transition-colors uppercase tracking-wide font-pip-mono"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              {showAdvanced ? 'Basic' : 'Advanced'}
-            </button>
-            <button 
               className="p-2 text-destructive hover:bg-destructive/20 border border-destructive/30 rounded transition-colors"
               onClick={onClose}
             >
@@ -400,24 +415,23 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
         </div>
 
         {/* Tabs */}
-        {filteredGroups.length > 1 && (
-          <div className="flex border-b border-pip-border bg-pip-bg-secondary/30">
-            {filteredGroups.map((group) => (
-              <button
-                key={group}
-                className={cn(
-                  "px-4 py-3 text-sm font-pip-mono uppercase tracking-wide transition-colors border-b-2",
-                  activeGroup === group
-                    ? "text-primary border-primary bg-primary/10 pip-text-glow"
-                    : "text-pip-text-secondary border-transparent hover:text-pip-text-bright hover:bg-pip-bg-tertiary/50"
-                )}
-                onClick={() => setActiveGroup(group)}
-              >
-                {tabLabels[group as keyof typeof tabLabels] || group}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex border-b border-pip-border bg-pip-bg-secondary/30">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 text-sm font-pip-mono uppercase tracking-wide transition-colors border-b-2",
+                activeTab === tab.id
+                  ? "text-primary border-primary bg-primary/10 pip-text-glow"
+                  : "text-pip-text-secondary border-transparent hover:text-pip-text-bright hover:bg-pip-bg-tertiary/50"
+              )}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* Body */}
         <div className="flex-1 overflow-hidden">
@@ -430,25 +444,177 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
             </div>
           ) : (
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-200px)]">
-              <div className="space-y-6">
-                {groupedSettings[activeGroup]?.map(([key, fieldSchema]) => (
-                  <SettingsField
-                    key={key}
-                    fieldKey={key}
-                    fieldSchema={fieldSchema}
-                    value={settingsOverrides[key] ?? settings[key]}
-                    error={errors[key]}
-                    onChange={(value) => updateSetting(key, value)}
-                    onTestConnection={handleTestConnection}
-                  />
-                ))}
-                
-                {!groupedSettings[activeGroup]?.length && (
-                  <div className="text-center py-8 text-pip-text-muted font-pip-mono">
-                    No settings available for this category
+              {/* General Tab */}
+              {activeTab === 'general' && (
+                <div className="space-y-6">
+                  {groupedSettings.general?.map(([key, fieldSchema]) => (
+                    <SettingsField
+                      key={key}
+                      fieldKey={key}
+                      fieldSchema={fieldSchema}
+                      value={settingsOverrides[key] ?? settings[key]}
+                      error={errors[key]}
+                      onChange={(value) => updateSetting(key, value)}
+                      onTestConnection={handleTestConnection}
+                    />
+                  ))}
+                  
+                  {(!groupedSettings.general || groupedSettings.general.length === 0) && (
+                    <div className="text-center py-8 text-pip-text-muted font-pip-mono">
+                      No general settings available
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Display Tab */}
+              {activeTab === 'display' && (
+                <div className="space-y-6">
+                  {groupedSettings.display?.map(([key, fieldSchema]) => (
+                    <SettingsField
+                      key={key}
+                      fieldKey={key}
+                      fieldSchema={fieldSchema}
+                      value={settingsOverrides[key] ?? settings[key]}
+                      error={errors[key]}
+                      onChange={(value) => updateSetting(key, value)}
+                      onTestConnection={handleTestConnection}
+                    />
+                  ))}
+                  
+                  {(!groupedSettings.display || groupedSettings.display.length === 0) && (
+                    <div className="text-center py-8 text-pip-text-muted font-pip-mono">
+                      No display settings available
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Size Tab */}
+              {activeTab === 'size' && (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="flex items-center gap-1 text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-2">
+                        Width: {localSize.width}px
+                      </label>
+                      <input
+                        type="range"
+                        min="200"
+                        max="800"
+                        step="20"
+                        value={localSize.width}
+                        onChange={(e) => handleSizeChange('width', Number(e.target.value))}
+                        className="w-full h-2 bg-pip-bg-secondary rounded-lg appearance-none cursor-pointer slider"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-1 text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-2">
+                        Height: {localSize.height}px
+                      </label>
+                      <input
+                        type="range"
+                        min="150"
+                        max="600"
+                        step="20"
+                        value={localSize.height}
+                        onChange={(e) => handleSizeChange('height', Number(e.target.value))}
+                        className="w-full h-2 bg-pip-bg-secondary rounded-lg appearance-none cursor-pointer slider"
+                      />
+                    </div>
+
+                    <button
+                      className="px-4 py-2 bg-pip-bg-tertiary text-pip-text-secondary border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide"
+                      onClick={() => {
+                        const defaultSize = { width: 300, height: 200 };
+                        setLocalSize(defaultSize);
+                        onResize?.(defaultSize);
+                      }}
+                    >
+                      Reset to Default Size
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Actions Tab */}
+              {activeTab === 'actions' && (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <button
+                      className="w-full px-4 py-3 bg-pip-bg-tertiary text-pip-text-bright border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide flex items-center gap-3"
+                      onClick={() => {
+                        onDuplicate?.();
+                        onClose();
+                      }}
+                      disabled={!onDuplicate}
+                    >
+                      <Copy className="w-4 h-4" />
+                      Duplicate Widget
+                    </button>
+
+                    <button
+                      className="w-full px-4 py-3 bg-pip-bg-tertiary text-pip-text-bright border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide flex items-center gap-3"
+                      onClick={() => {
+                        const settings = exportSettings();
+                        navigator.clipboard.writeText(settings);
+                        // Show toast or feedback
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                      Export Settings
+                    </button>
+
+                    <button
+                      className="w-full px-4 py-3 bg-pip-bg-tertiary text-pip-text-bright border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide flex items-center gap-3"
+                      onClick={resetToDefaults}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset to Defaults
+                    </button>
+
+                    <div className="border-t border-pip-border pt-4">
+                      <button
+                        className={cn(
+                          "w-full px-4 py-3 border rounded font-pip-mono uppercase tracking-wide flex items-center gap-3 transition-colors",
+                          showDeleteConfirm
+                            ? "bg-destructive text-white border-destructive hover:bg-destructive/80"
+                            : "bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30"
+                        )}
+                        onClick={handleDelete}
+                        disabled={!onDelete}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {showDeleteConfirm ? 'Click Again to Confirm Delete' : 'Delete Widget'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Advanced Tab */}
+              {activeTab === 'advanced' && (
+                <div className="space-y-6">
+                  {groupedSettings.advanced?.map(([key, fieldSchema]) => (
+                    <SettingsField
+                      key={key}
+                      fieldKey={key}
+                      fieldSchema={fieldSchema}
+                      value={settingsOverrides[key] ?? settings[key]}
+                      error={errors[key]}
+                      onChange={(value) => updateSetting(key, value)}
+                      onTestConnection={handleTestConnection}
+                    />
+                  ))}
+                  
+                  {(!groupedSettings.advanced || groupedSettings.advanced.length === 0) && (
+                    <div className="text-center py-8 text-pip-text-muted font-pip-mono">
+                      No advanced settings available
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
