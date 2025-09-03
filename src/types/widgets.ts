@@ -28,7 +28,6 @@ export interface BaseWidget {
   title: string;
   collapsed: boolean;
   gridPosition: GridPosition;
-  size: { width: number; height: number };
   tabAssignment: TabAssignment;
   settings: WidgetSettings;
   userId: string;

@@ -13,8 +13,6 @@ interface WidgetSettingsModalProps<T = any> {
   onSettingsChange?: (settings: T) => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
-  onResize?: (size: { width: number; height: number }) => void;
-  currentSize?: { width: number; height: number };
 }
 
 interface WidgetSettingsField {
@@ -285,9 +283,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   onClose,
   onSettingsChange,
   onDelete,
-  onDuplicate,
-  onResize,
-  currentSize = { width: 300, height: 200 }
+  onDuplicate
 }: WidgetSettingsModalProps<T>) => {
   const {
     settings,
@@ -305,7 +301,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   } = useWidgetSettings<T>(widgetId, widgetType);
 
   const [activeTab, setActiveTab] = useState<string>('general');
-  const [localSize, setLocalSize] = useState(currentSize);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSave = async () => {
@@ -357,14 +352,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
   if (!isOpen) return null;
 
-  // Handle size changes
-  const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
-    console.log(`Size change: ${dimension} = ${value}`);
-    const newSize = { ...localSize, [dimension]: value };
-    setLocalSize(newSize);
-    onResize?.(newSize);
-  };
-
   const handleDelete = () => {
     if (showDeleteConfirm) {
       onDelete?.();
@@ -389,7 +376,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   const tabs = [
     { id: 'general', label: 'GENERAL', icon: Settings },
     { id: 'display', label: 'DISPLAY', icon: Palette },
-    { id: 'size', label: 'SIZE', icon: Maximize2 },
     { id: 'actions', label: 'ACTIONS', icon: Sliders },
     { id: 'advanced', label: 'ADVANCED', icon: Monitor }
   ];
@@ -495,55 +481,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
                       No display settings available
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Size Tab */}
-              {activeTab === 'size' && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="flex items-center gap-1 text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-2">
-                        Width: {localSize.width}px
-                      </label>
-                      <input
-                        type="range"
-                        min="200"
-                        max="800"
-                        step="20"
-                        value={localSize.width}
-                        onChange={(e) => handleSizeChange('width', Number(e.target.value))}
-                        className="w-full h-2 bg-pip-bg-secondary rounded-lg appearance-none cursor-pointer slider"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-1 text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-2">
-                        Height: {localSize.height}px
-                      </label>
-                      <input
-                        type="range"
-                        min="150"
-                        max="600"
-                        step="20"
-                        value={localSize.height}
-                        onChange={(e) => handleSizeChange('height', Number(e.target.value))}
-                        className="w-full h-2 bg-pip-bg-secondary rounded-lg appearance-none cursor-pointer slider"
-                      />
-                    </div>
-
-                      <button
-                        className="px-4 py-2 bg-pip-bg-tertiary text-pip-text-secondary border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide"
-                        onClick={() => {
-                          console.log('Reset size clicked');
-                          const defaultSize = { width: 300, height: 200 };
-                          setLocalSize(defaultSize);
-                          onResize?.(defaultSize);
-                        }}
-                      >
-                        Reset to Default Size
-                      </button>
-                  </div>
                 </div>
               )}
 

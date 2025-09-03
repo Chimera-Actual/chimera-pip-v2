@@ -8,13 +8,13 @@ export interface GridBreakpoint {
 }
 
 export const GRID_BREAKPOINTS: GridBreakpoint[] = [
-  { name: 'mobile', minWidth: 0, columns: 12 },
-  { name: 'tablet', minWidth: 768, columns: 24 },
-  { name: 'desktop', minWidth: 1200, columns: 36 },
+  { name: 'mobile', minWidth: 0, columns: 6 },
+  { name: 'tablet', minWidth: 768, columns: 8 },
+  { name: 'desktop', minWidth: 1200, columns: 12 },
 ];
 
-export const GRID_CELL_SIZE = 20;
-export const GRID_GAP = 4;
+export const GRID_CELL_SIZE = 40;
+export const GRID_GAP = 8;
 
 export interface GridLayoutHook {
   currentBreakpoint: GridBreakpoint;
@@ -71,8 +71,9 @@ export const useGridLayout = (containerWidth: number): GridLayoutHook => {
     gridTemplateColumns: `repeat(${currentBreakpoint.columns}, ${GRID_CELL_SIZE}px)`,
     gridAutoRows: `${GRID_CELL_SIZE}px`,
     gap: `${GRID_GAP}px`,
-    padding: `8px`,
+    padding: `16px`,
     justifyContent: 'center',
+    minHeight: '400px',
   }), [currentBreakpoint.columns]);
 
   const getWidgetStyle = useCallback((position: GridPosition): React.CSSProperties => ({

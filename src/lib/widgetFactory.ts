@@ -196,10 +196,6 @@ export class WidgetFactory {
         width: definition.defaultSize.width,
         height: definition.defaultSize.height
       },
-      size: {
-        width: definition.defaultSize.width * 20, // Convert grid cells to pixels
-        height: definition.defaultSize.height * 20
-      },
       tabAssignment: tabAssignment || definition.defaultTab,
       settings: { ...definition.defaultSettings } as WidgetSettings,
       userId,

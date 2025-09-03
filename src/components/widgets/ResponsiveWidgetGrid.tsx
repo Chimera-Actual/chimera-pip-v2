@@ -123,8 +123,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({ tab,
     const newWidget = await addWidget(widget.type, widget.tabAssignment);
     if (newWidget) {
       await updateWidget(newWidget.id, { 
-        settings: widget.settings,
-        size: widget.size
+        settings: widget.settings
       });
     }
   }, [addWidget, updateWidget]);

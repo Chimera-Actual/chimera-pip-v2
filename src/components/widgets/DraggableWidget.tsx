@@ -33,7 +33,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   style: externalStyle,
 }) => {
   const [showSettings, setShowSettings] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -57,83 +56,14 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     onUpdate({ collapsed: !widget.collapsed });
   };
 
-  // Resize functionality
-  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
-    if (isDragOverlay) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const rect = widgetRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    setIsResizing(true);
-    const startData = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startWidth: rect.width,
-      startHeight: rect.height,
-      direction
-    };
-
-    const handleResizeMove = (e: MouseEvent) => {
-      if (!widgetRef.current) return;
-
-      let newWidth = startData.startWidth;
-      let newHeight = startData.startHeight;
-
-      if (direction.includes('e')) {
-        newWidth = Math.max(280, startData.startWidth + (e.clientX - startData.startX));
-      }
-      if (direction.includes('s')) {
-        newHeight = Math.max(200, startData.startHeight + (e.clientY - startData.startY));
-      }
-
-      // Apply size immediately for smooth resizing
-      widgetRef.current.style.width = `${newWidth}px`;
-      widgetRef.current.style.height = `${newHeight}px`;
-    };
-
-    const handleResizeEnd = () => {
-      if (!widgetRef.current) return;
-
-      const rect = widgetRef.current.getBoundingClientRect();
-      const newSize = {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height)
-      };
-
-      // Update the widget size in the parent
-      onUpdate({ size: newSize });
-
-      // Cleanup
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleResizeMove);
-      document.removeEventListener('mouseup', handleResizeEnd);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
-    document.body.style.cursor = direction.includes('e') && direction.includes('s') ? 'se-resize' : 
-                                 direction.includes('e') ? 'e-resize' : 's-resize';
-    document.body.style.userSelect = 'none';
-  }, [isDragOverlay, onUpdate, widget.id]);
-
   const style: React.CSSProperties = {
     ...externalStyle,
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : 'transform 200ms ease',
     opacity: isDragging ? 0.8 : 1,
-    zIndex: isDragging ? 1000 : isResizing ? 999 : 1,
-    width: widget.size?.width || 320,
-    minWidth: 280,
-    maxWidth: '100%',
-    height: widget.collapsed ? 'auto' : (widget.size?.height || 240),
-    minHeight: widget.collapsed ? 'auto' : 200,
-    flexShrink: 0,
-    touchAction: 'none'
+    zIndex: isDragging ? 1000 : 1,
+    touchAction: 'none',
+    minHeight: widget.collapsed ? 'auto' : '160px',
   };
 
   return (
@@ -168,9 +98,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           "scale-110 rotate-3 z-[1000]",
           "opacity-95"
         ],
-        
-        // Resizing state
-        isResizing && "transition-none select-none",
         
         className
       )}
@@ -255,46 +182,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           }}
           onDelete={() => onDelete(widget.id)}
           onDuplicate={onDuplicate ? () => onDuplicate(widget) : undefined}
-          onResize={(newSize) => {
-            onUpdate({ size: newSize });
-          }}
-          currentSize={widget.size}
         />
-      )}
-
-      {/* Resize Handles */}
-      {!widget.collapsed && !isDragOverlay && !isDragging && (
-        <>
-          {/* Right Edge Handle */}
-          <div
-            className="absolute right-0 top-8 bottom-8 w-2 cursor-e-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
-            onMouseDown={(e) => handleResizeStart(e, 'e')}
-            style={{ touchAction: 'none' }}
-          />
-          
-          {/* Bottom Edge Handle */}
-          <div
-            className="absolute bottom-0 left-8 right-8 h-2 cursor-s-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
-            onMouseDown={(e) => handleResizeStart(e, 's')}
-            style={{ touchAction: 'none' }}
-          />
-          
-          {/* Corner Handle */}
-          <div
-            className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize opacity-0 hover:opacity-100 transition-all duration-200 bg-primary/50 hover:bg-primary/80 hover:scale-110"
-            onMouseDown={(e) => handleResizeStart(e, 'se')}
-            style={{ 
-              touchAction: 'none',
-              clipPath: 'polygon(100% 0%, 0% 100%, 100% 100%)'
-            }}
-          />
-          
-          {/* Corner Visual Indicator */}
-          <div className="absolute bottom-1 right-1 w-3 h-3 pointer-events-none opacity-30">
-            <div className="w-full h-px bg-pip-text-secondary mb-px"></div>
-            <div className="w-full h-px bg-pip-text-secondary"></div>
-          </div>
-        </>
       )}
     </div>
   );

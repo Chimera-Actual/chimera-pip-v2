@@ -24,15 +24,15 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
   if (!isVisible) return null;
 
   const gridCells = [];
-  const maxRows = Math.max(8, Math.max(...widgets.map(w => w.gridPosition.row + w.gridPosition.height)) + 4);
+  const maxRows = Math.min(20, Math.max(8, Math.max(...widgets.map(w => w.gridPosition.row + w.gridPosition.height)) + 2));
 
   for (let row = 0; row < maxRows; row++) {
     for (let col = 0; col < columns; col++) {
       const cellPosition: GridPosition = {
         row,
         col,
-        width: draggedWidget?.gridPosition.width || 10,
-        height: draggedWidget?.gridPosition.height || 10,
+        width: draggedWidget?.gridPosition.width || 2,
+        height: draggedWidget?.gridPosition.height || 2,
       };
 
       const isHovered = hoverPosition && 
@@ -52,7 +52,7 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
         <div
           key={`${row}-${col}`}
           className={cn(
-            "border transition-all duration-150 min-h-[20px]",
+            "border transition-all duration-150",
             isHovered && isValid && "bg-accent/30 border-accent border-2",
             isHovered && !isValid && "bg-destructive/20 border-destructive border-2",
             !isHovered && isOccupied && "bg-muted/30 border-muted-foreground/40",

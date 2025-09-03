@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, GridPositionDB, SizeDB } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, GridPositionDB } from '@/types/widgets';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
@@ -65,7 +65,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         try {
           const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
           const gridPosition = widget.grid_position as unknown as GridPositionDB;
-          const size = widget.size as unknown as SizeDB;
           const widgetType = widget.widget_type as WidgetType;
           
           // Validate widget type exists
@@ -77,7 +76,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             title: widgetConfig?.title || definition.title,
             collapsed: widget.is_collapsed || false,
             gridPosition: gridPosition || { row: 0, col: 0, width: 2, height: 2 },
-            size: size || { width: 300, height: 200 },
             tabAssignment: widget.tab_assignment as TabAssignment,
             settings: widgetConfig?.settings || definition.defaultSettings,
             userId: widget.user_id,
@@ -159,7 +157,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             settings: widget.settings
           } as any,
           grid_position: widget.gridPosition as any,
-          size: widget.size,
           is_collapsed: widget.collapsed,
         })
         .select()
@@ -282,7 +279,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       }
 
       if (updates.gridPosition !== undefined) dbUpdates.grid_position = updates.gridPosition;
-      if (updates.size !== undefined) dbUpdates.size = updates.size;
       if (updates.collapsed !== undefined) dbUpdates.is_collapsed = updates.collapsed;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;
 

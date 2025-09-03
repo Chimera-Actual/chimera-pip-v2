@@ -129,8 +129,6 @@ export type Database = {
           grid_position: Json
           id: string
           is_collapsed: boolean | null
-          position: Json
-          size: Json
           tab_assignment: string
           updated_at: string | null
           user_id: string
@@ -142,8 +140,6 @@ export type Database = {
           grid_position?: Json
           id?: string
           is_collapsed?: boolean | null
-          position?: Json
-          size?: Json
           tab_assignment: string
           updated_at?: string | null
           user_id: string
@@ -155,8 +151,6 @@ export type Database = {
           grid_position?: Json
           id?: string
           is_collapsed?: boolean | null
-          position?: Json
-          size?: Json
           tab_assignment?: string
           updated_at?: string | null
           user_id?: string
