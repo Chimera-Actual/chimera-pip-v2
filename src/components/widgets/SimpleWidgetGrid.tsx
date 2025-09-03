@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { RefreshCw, Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowRight } from 'lucide-react';
+import { RefreshCw, Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowRight, LayoutGrid } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
 
 interface SimpleWidgetGridProps {
@@ -146,42 +147,48 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
   const gridContent = (
     <div className="space-y-4">
       {/* Header Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-pip-text-bright">
-            {tab} Widgets ({widgets.length})
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refreshWidgets()}
-            disabled={isLoading}
-            className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
-          >
-            <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-            Refresh
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAdvancedCatalog(true)}
-            className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
-          >
-            <Plus className="h-4 w-4" />
-            Add Widget
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-2 mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refreshWidgets()}
+          disabled={isLoading}
+          className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
+        >
+          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          Refresh
+        </Button>
       </div>
 
       {/* Widget Grid */}
       {widgets.length > 0 ? (
         <div className={cn(
-          "grid gap-4",
+          "grid gap-4 relative",
           isMobile ? "grid-cols-1" : "grid-cols-2"
         )}>
           {widgets.map(renderWidget)}
+          
+          {/* Compact Add Widget Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowAdvancedCatalog(true)}
+                  className="absolute -top-10 right-0 h-8 w-8 text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10 hover:border-pip-green-primary/50"
+                >
+                  <div className="flex items-center justify-center">
+                    <Plus className="h-3 w-3" />
+                    <LayoutGrid className="h-3 w-3 -ml-1" />
+                  </div>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Widget</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
