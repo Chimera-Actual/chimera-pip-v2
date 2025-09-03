@@ -82,6 +82,7 @@ export interface WeatherStationSettings {
   showAirQuality: boolean;
   autoRefresh: boolean;
   refreshInterval: number;
+  location: string;
 }
 
 export interface NewsTerminalSettings {

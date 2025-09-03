@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Clock, Radio, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NewsTerminalWidgetProps {
   widget: BaseWidget;
@@ -19,55 +20,26 @@ interface NewsItem {
   priority: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
   source: string;
+  url?: string;
+  imageUrl?: string;
 }
 
-const mockNewsItems: NewsItem[] = [
-  {
-    id: '1',
-    headline: 'Vault Security Status: All Clear',
-    content: 'All vault systems operating within normal parameters. No security breaches detected in the last 24 hours.',
-    category: 'security',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
-    source: 'VAULT-SEC'
-  },
-  {
-    id: '2',
-    headline: 'Water Purification System Maintenance',
-    content: 'Scheduled maintenance on water purification systems completed successfully. Water quality remains excellent.',
-    category: 'system',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    source: 'MAINT-SYS'
-  },
-  {
-    id: '3',
-    headline: 'New Wasteland Radio Transmission Detected',
-    content: 'Long-range communications detected from settlement Delta-7. Signal strength increasing.',
-    category: 'wasteland',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-    source: 'COMM-NET'
-  },
-  {
-    id: '4',
-    headline: 'Power Grid Optimization Complete',
-    content: 'Fusion reactor efficiency increased by 3.2%. Estimated power surplus for next 47 years.',
-    category: 'system',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
-    source: 'PWR-MGMT'
-  },
-  {
-    id: '5',
-    headline: 'Radiation Storm Warning - Sector 12',
-    content: 'Elevated radiation levels detected in external sector 12. All surface operations postponed.',
-    category: 'wasteland',
-    priority: 'critical',
-    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-    source: 'RAD-MON'
+// Fetch real news data from API
+const fetchNewsData = async (categories: string[], maxItems: number): Promise<NewsItem[]> => {
+  const { data, error } = await supabase.functions.invoke('news-aggregator', {
+    body: { categories, maxItems, country: 'us' }
+  });
+
+  if (error) {
+    console.error('News API error:', error);
+    throw new Error('Failed to fetch news data');
   }
-];
+
+  return data.news.map((item: any) => ({
+    ...item,
+    timestamp: new Date(item.timestamp)
+  }));
+};
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -104,47 +76,59 @@ const formatTimeAgo = (timestamp: Date) => {
 };
 
 export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ widget }) => {
-  const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
+  const { settings, setSettings, collapsed, setCollapsed, isLoading: hookLoading, error: hookError } = useWidgetState(
     widget.id,
     widget.settings as NewsTerminalSettings
   );
 
-  const [filteredNews, setFilteredNews] = useState<NewsItem[]>(mockNewsItems);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (settings) {
-      let filtered = mockNewsItems;
-
-      // Apply category filter
-      if (settings.categories?.length > 0) {
-        filtered = filtered.filter(item => settings.categories.includes(item.category));
-      }
-
-      // Apply max items limit
-      if (settings.maxItems) {
-        filtered = filtered.slice(0, settings.maxItems);
-      }
-
-      // Sort by timestamp (newest first)
-      filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-      setFilteredNews(filtered);
+  const fetchNews = async () => {
+    if (!settings?.categories || settings.categories.length === 0) {
+      setError('No news categories selected in widget settings');
+      return;
     }
-  }, [settings]);
+
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Map fallout categories to real news categories
+      const realCategories = settings.categories.map(cat => {
+        switch(cat) {
+          case 'wasteland': return 'general';
+          case 'vault': return 'science';
+          case 'security': return 'politics';
+          case 'system': return 'technology';
+          default: return 'general';
+        }
+      });
+
+      const data = await fetchNewsData(realCategories, settings.maxItems || 10);
+      setNewsItems(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch news data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchNews();
+  }, [settings?.categories, settings?.maxItems]);
 
   // Auto-refresh logic
   useEffect(() => {
     if (!settings?.autoRefresh || !settings?.refreshInterval) return;
 
-    const interval = setInterval(() => {
-      // In a real app, this would fetch new news items
-      console.log('Auto-refreshing news...');
-    }, settings.refreshInterval * 1000);
-
+    const interval = setInterval(fetchNews, settings.refreshInterval * 1000);
     return () => clearInterval(interval);
   }, [settings?.autoRefresh, settings?.refreshInterval]);
 
-  if (isLoading) {
+  if (isLoading && newsItems.length === 0) {
     return (
       <WidgetContainer
         widgetId={widget.id}
@@ -170,7 +154,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
       onToggleCollapse={() => setCollapsed(!collapsed)}
       onSettingsChange={() => {}}
       onDelete={() => {}}
-      error={error}
+      error={error || hookError}
     >
       <div className="space-y-3">
         <div className="flex items-center justify-between text-xs">
@@ -187,7 +171,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
 
         <ScrollArea className="h-64">
           <div className="space-y-3">
-            {filteredNews.map((item) => (
+            {newsItems.map((item) => (
               <Card key={item.id} className="border-pip-border bg-pip-bg-secondary/50">
                 <CardContent className="p-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -226,7 +210,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
         </ScrollArea>
 
         <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
-          <span>{filteredNews.length} messages</span>
+          <span>{newsItems.length} messages</span>
           <span className="animate-pulse">● LIVE</span>
         </div>
       </div>

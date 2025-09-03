@@ -19,6 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AiOracleWidgetProps {
   widget: BaseWidget;
@@ -125,15 +126,28 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({ widget }) => {
     setIsThinking(true);
 
     try {
-      // Simulate AI response - in a real implementation, this would call an AI API
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
-      const aiResponse = generateAiResponse(userMessage.content, currentPersonality, aiSettings);
+      // Call real AI API
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: userMessage.content,
+          personality: currentPersonality.id,
+          conversationHistory
+        }
+      });
+
+      if (error) {
+        throw new Error('Failed to get AI response');
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: aiResponse,
+        content: data.response,
         timestamp: new Date(),
         personality: currentPersonality.id,
       };
