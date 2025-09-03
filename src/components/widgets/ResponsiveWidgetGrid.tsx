@@ -229,7 +229,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({ tab,
         <GridDropOverlay
           isVisible={showGridOverlay || !!activeId}
           containerWidth={containerWidth}
-          containerHeight={600} // Add reasonable default height
           widgets={tabWidgets}
           draggedWidget={activeId ? tabWidgets.find(w => w.id === activeId) : undefined}
           hoverPosition={hoverPosition}
