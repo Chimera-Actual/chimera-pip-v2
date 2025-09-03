@@ -37,7 +37,7 @@ interface FileItem {
 
 const mockFileSystem: FileItem = {
   id: 'root',
-  name: 'VAULT-TEC System',
+  name: 'CHIMERA-TEC System',
   type: 'folder',
   modified: new Date(),
   expanded: true,
@@ -212,7 +212,7 @@ export const FileExplorerWidget: React.FC<FileExplorerWidgetProps> = memo(({ wid
   );
 
   const [fileSystem, setFileSystem] = useState<FileItem>(mockFileSystem);
-  const [currentPath, setCurrentPath] = useState<string[]>(['VAULT-TEC System']);
+  const [currentPath, setCurrentPath] = useState<string[]>(['CHIMERA-TEC System']);
 
   const toggleFolder = (itemId: string, path: FileItem[] = [fileSystem]): void => {
     for (const item of path) {

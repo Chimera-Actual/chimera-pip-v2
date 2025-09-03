@@ -18,12 +18,12 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">
       <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8 max-w-md w-full mx-4">
         <div className="text-center space-y-6">
-          {/* Vault-Tec Logo */}
+          {/* CHIMERA-TEC Logo */}
           <div className="flex items-center justify-center space-x-3">
             <Zap className="h-12 w-12 text-primary pip-text-glow animate-pip-flicker" />
             <div>
               <h1 className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-                VAULT-TEC
+                CHIMERA-TEC
               </h1>
               <p className="text-xs text-pip-text-secondary font-pip-mono">
                 SYSTEM ERROR

@@ -62,7 +62,7 @@ export const VaultLogin: React.FC = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="your.email@vault-tec.com"
+                placeholder="your.email@chimera-tec.com"
                 className="pip-terminal border-pip-border focus:border-primary focus:ring-primary font-mono"
                 {...register('email', {
                   required: 'Email address is required',
@@ -122,7 +122,7 @@ export const VaultLogin: React.FC = () => {
           {/* Footer Links */}
           <div className="mt-8 text-center space-y-2">
             <p className="text-pip-text-muted font-mono text-sm">
-              New to Vault-Tec?{' '}
+              New to CHIMERA-TEC?{' '}
               <Link
                 to="/auth/register"
                 className="text-primary hover:text-pip-green-glow underline"

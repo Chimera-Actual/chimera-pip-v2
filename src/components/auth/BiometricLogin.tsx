@@ -135,7 +135,7 @@ export const BiometricLogin: React.FC = () => {
       console.log('Authentication response:', authResponse);
 
       // For demo purposes, simulate successful authentication
-      const { error } = await signIn('demo@vault-tec.com', 'biometric-auth');
+      const { error } = await signIn('demo@chimera-tec.com', 'biometric-auth');
       
       if (!error) {
         navigate('/');
@@ -178,12 +178,12 @@ export const BiometricLogin: React.FC = () => {
       const registrationOptions = {
         challenge: Array.from(challenge).map(b => b.toString(16).padStart(2, '0')).join(''),
         rp: {
-          name: 'Vault-Tec Security System',
+          name: 'CHIMERA-TEC Security System',
           id: window.location.hostname,
         },
         user: {
           id: Array.from(userId).map(b => b.toString(16).padStart(2, '0')).join(''),
-          name: 'demo@vault-tec.com',
+          name: 'demo@chimera-tec.com',
           displayName: 'Demo Vault Dweller',
         },
         pubKeyCredParams: [

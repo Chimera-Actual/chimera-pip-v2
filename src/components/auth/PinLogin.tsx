@@ -60,7 +60,7 @@ export const PinLogin: React.FC = () => {
     setIsLoading(true);
     // For demo purposes, we'll use the PIN as password
     // In production, this would be properly hashed and validated
-    const { error } = await signIn('demo@vault-tec.com', pin);
+    const { error } = await signIn('demo@chimera-tec.com', pin);
     
     if (!error) {
       navigate('/');

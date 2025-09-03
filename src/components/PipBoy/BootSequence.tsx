@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 
 const bootMessages = [
-  'INITIALIZING VAULT-TEC SYSTEMS...',
+  'INITIALIZING CHIMERA-TEC SYSTEMS...',
   'LOADING PERSONAL INFORMATION PROCESSOR...',
   'CALIBRATING HOLOGRAPHIC DISPLAY...',
   'ESTABLISHING WASTELAND NETWORK CONNECTION...',
@@ -69,7 +69,7 @@ export const BootSequence: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">
       <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8 max-w-2xl w-full mx-4">
         <div className="text-center space-y-8">
-          {/* Vault-Tec Logo with Animated Vault Door */}
+          {/* CHIMERA-TEC Logo with Animated Vault Door */}
           <div className="flex flex-col items-center justify-center space-y-4 animate-pip-boot">
             <div className="relative w-32 h-32 mb-4">
               {/* Vault Door */}
@@ -99,7 +99,7 @@ export const BootSequence: React.FC = () => {
             
             <div className="text-center">
               <h1 className="text-4xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-                VAULT-TEC
+                CHIMERA-TEC
               </h1>
               <p className="text-lg text-pip-text-secondary font-pip-mono">
                 PREPARE FOR THE FUTURE
@@ -131,7 +131,7 @@ export const BootSequence: React.FC = () => {
           {/* System Info */}
           <div className="space-y-2 text-xs font-pip-mono text-pip-text-muted">
             <p>CHIMERA-PIP 4000 mk2 v2.1.7</p>
-            <p>COPYRIGHT 2287 VAULT-TEC CORPORATION</p>
+            <p>COPYRIGHT 2287 CHIMERA-TEC CORPORATION</p>
             <p>ALL RIGHTS RESERVED</p>
           </div>
         </div>

@@ -131,7 +131,7 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = ({ widget }) 
       {
         id: '3',
         type: 'key',
-        title: 'Vault-Tec API',
+        title: 'CHIMERA-TEC API',
         data: {
           apiKey: 'vt_sk_live_51H8Z2K2zBqEa...',
           notes: 'Production API key for vault systems'

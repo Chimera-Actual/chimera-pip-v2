@@ -39,7 +39,7 @@ const mockTracks: Track[] = [
   {
     id: '1',
     title: 'Welcome to Vault 111',
-    artist: 'Vault-Tec Industries',
+    artist: 'CHIMERA-TEC Industries',
     album: 'Orientation Package',
     duration: 180,
     source: 'holotape'
@@ -78,7 +78,7 @@ const mockTracks: Track[] = [
   {
     id: '6',
     title: 'Emergency Broadcast System',
-    artist: 'Vault-Tec Emergency',
+    artist: 'CHIMERA-TEC Emergency',
     duration: 300,
     source: 'system'
   },

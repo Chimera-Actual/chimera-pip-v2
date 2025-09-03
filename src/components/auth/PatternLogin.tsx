@@ -162,7 +162,7 @@ export const PatternLogin: React.FC = () => {
     
     // For demo purposes, we'll use the pattern as password
     // In production, this would be properly hashed and validated
-    const { error } = await signIn('demo@vault-tec.com', patternString);
+    const { error } = await signIn('demo@chimera-tec.com', patternString);
     
     if (!error) {
       navigate('/');

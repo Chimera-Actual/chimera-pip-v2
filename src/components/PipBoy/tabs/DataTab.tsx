@@ -13,7 +13,7 @@ const weatherData = {
 };
 
 const newsItems = [
-  { title: 'New Vault-Tec Technology Breakthrough', source: 'Tech News', time: '2h ago' },
+  { title: 'New CHIMERA-TEC Technology Breakthrough', source: 'Tech News', time: '2h ago' },
   { title: 'Wasteland Weather Patterns Analysis', source: 'Science Journal', time: '4h ago' },
   { title: 'Communication Network Expansion', source: 'Network News', time: '6h ago' },
 ];

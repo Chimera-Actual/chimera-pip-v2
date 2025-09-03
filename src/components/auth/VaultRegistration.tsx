@@ -78,7 +78,7 @@ export const VaultRegistration: React.FC = () => {
               <Shield className="h-12 w-12 text-primary pip-text-glow" />
             </div>
             <h1 className="text-2xl font-display font-bold text-pip-text-bright pip-text-glow">
-              VAULT-TEC REGISTRATION
+              CHIMERA-TEC REGISTRATION
             </h1>
             <p className="text-pip-text-secondary mt-2 font-mono text-sm">
               Join the Vault Program for a brighter tomorrow
@@ -94,7 +94,7 @@ export const VaultRegistration: React.FC = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="your.email@vault-tec.com"
+                placeholder="your.email@chimera-tec.com"
                 className="pip-terminal border-pip-border focus:border-primary focus:ring-primary font-mono"
                 {...register('email', {
                   required: 'Email address is required',

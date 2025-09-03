@@ -123,7 +123,7 @@ export class WidgetFactory {
     'file-explorer': {
       type: 'file-explorer',
       title: 'File Explorer',
-      description: 'Browse Vault-Tec file system and personal files',
+      description: 'Browse CHIMERA-TEC file system and personal files',
       category: 'productivity',
       defaultWidgetWidth: 'full',
       resizable: false,

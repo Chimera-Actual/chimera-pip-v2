@@ -24,7 +24,7 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
 
   return (
     <div className="flex items-center justify-between p-4 border-b border-pip-border">
-      {/* Left: Vault-Tec Branding */}
+      {/* Left: CHIMERA-TEC Branding */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
           <Zap className="h-8 w-8 text-primary pip-text-glow" />
@@ -33,7 +33,7 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
               CHIMERA-PIP 4000 mk2
             </h1>
             <p className="text-xs text-pip-text-secondary font-pip-mono">
-              VAULT-TEC PERSONAL INFORMATION PROCESSOR
+              CHIMERA-TEC PERSONAL INFORMATION PROCESSOR
             </p>
           </div>
         </div>

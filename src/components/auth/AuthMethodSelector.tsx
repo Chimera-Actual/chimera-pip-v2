@@ -114,7 +114,7 @@ export const AuthMethodSelector: React.FC = () => {
           <div className="text-center space-y-4">
             <div className="border-t border-pip-border pt-6">
               <p className="text-pip-text-muted font-mono text-sm mb-4">
-                New to Vault-Tec?
+                New to CHIMERA-TEC?
               </p>
               <Link to="/auth/register">
                 <Button 

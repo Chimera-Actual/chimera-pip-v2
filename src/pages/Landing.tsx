@@ -17,7 +17,7 @@ export const Landing: React.FC = () => {
                 CHIMERA-PIP 4000 mk2
               </h1>
               <p className="text-xl text-pip-text-secondary font-mono mt-2">
-                VAULT-TEC PERSONAL INFORMATION PROCESSOR
+                CHIMERA-TEC PERSONAL INFORMATION PROCESSOR
               </p>
             </div>
           </div>

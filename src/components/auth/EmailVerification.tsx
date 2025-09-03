@@ -18,7 +18,7 @@ export const EmailVerification: React.FC = () => {
               VERIFICATION REQUIRED
             </h1>
             <p className="text-pip-text-secondary mt-2 font-mono text-sm">
-              Vault-Tec Confirmation Protocol Initiated
+              CHIMERA-TEC Confirmation Protocol Initiated
             </p>
           </div>
 
