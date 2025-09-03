@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { RefreshCw, Plus, Move, Settings, X, Minimize, Maximize } from 'lucide-react';
+import { RefreshCw, Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowRight } from 'lucide-react';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
 
 interface SimpleWidgetGridProps {
@@ -91,7 +91,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                 className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
                 onClick={() => handleToggleWidth(widget)}
               >
-                {widget.widgetWidth === 'half' ? <Maximize className="h-3 w-3" /> : <Minimize className="h-3 w-3" />}
+                {widget.widgetWidth === 'half' ? <ArrowLeftRight className="h-3 w-3" /> : <ArrowRight className="h-3 w-3" />}
               </Button>
             )}
             
@@ -102,7 +102,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
               className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
               onClick={() => handleUpdateWidget(widget.id, { collapsed: !widget.collapsed })}
             >
-              <Minimize className="h-3 w-3" />
+              {widget.collapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
             </Button>
 
             {/* Settings */}
