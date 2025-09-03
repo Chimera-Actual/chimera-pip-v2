@@ -4,6 +4,9 @@ import { CharacterProfileWidget } from './CharacterProfileWidget';
 import { SpecialStatsWidget } from './SpecialStatsWidget';
 import { SystemMonitorWidget } from './SystemMonitorWidget';
 import { WeatherStationWidget } from './WeatherStationWidget';
+import { NewsTerminalWidget } from './NewsTerminalWidget';
+import { FileExplorerWidget } from './FileExplorerWidget';
+import { AudioPlayerWidget } from './AudioPlayerWidget';
 import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -13,6 +16,9 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: 
   'special-stats': SpecialStatsWidget,
   'system-monitor': SystemMonitorWidget,
   'weather-station': WeatherStationWidget,
+  'news-terminal': NewsTerminalWidget,
+  'file-explorer': FileExplorerWidget,
+  'audio-player': AudioPlayerWidget,
   // Placeholder components for widgets not yet implemented
   'achievement-gallery': ({ widget }) => (
     <div className="pip-special-stat p-4 text-center">
@@ -23,37 +29,10 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: 
       </div>
     </div>
   ),
-  'file-explorer': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        File Explorer Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
   'secure-vault': ({ widget }) => (
     <div className="pip-special-stat p-4 text-center">
       <div className="text-pip-text-muted font-pip-mono">
         Secure Vault Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
-  'news-terminal': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        News Terminal Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
-  'audio-player': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        Audio Player Widget
         <br />
         Coming Soon
       </div>

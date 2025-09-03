@@ -106,7 +106,6 @@ export interface AiOracleSettings {
   showStatus: boolean;
 }
 
-// Union type for all widget settings
 export type WidgetSettings = 
   | CharacterProfileSettings
   | SpecialStatsSettings
@@ -114,4 +113,5 @@ export type WidgetSettings =
   | WeatherStationSettings
   | NewsTerminalSettings
   | CalendarMissionSettings
-  | AiOracleSettings;
+  | AiOracleSettings
+  | Record<string, any>; // For widgets without specific settings

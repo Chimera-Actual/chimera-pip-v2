@@ -67,7 +67,7 @@ export class WidgetFactory {
     'news-terminal': {
       type: 'news-terminal',
       title: 'News Terminal',
-      description: 'Stay updated with the latest wasteland news and bulletins',
+      description: 'Real-time vault and wasteland news updates',
       category: 'data',
       defaultWidgetWidth: 'full',
       resizable: false,
@@ -75,8 +75,8 @@ export class WidgetFactory {
       defaultSettings: {
         maxItems: 10,
         autoRefresh: true,
-        refreshInterval: 600000,
-        categories: ['general', 'settlements', 'trade'],
+        refreshInterval: 60,
+        categories: ['security', 'system', 'vault', 'wasteland'],
         showTimestamps: true
       }
     },
@@ -123,7 +123,7 @@ export class WidgetFactory {
     'file-explorer': {
       type: 'file-explorer',
       title: 'File Explorer',
-      description: 'Browse and manage your Pip-Boy file system',
+      description: 'Browse Vault-Tec file system and personal files',
       category: 'productivity',
       defaultWidgetWidth: 'full',
       resizable: false,
@@ -143,9 +143,9 @@ export class WidgetFactory {
     'audio-player': {
       type: 'audio-player',
       title: 'Audio Player',
-      description: 'Play music and audio files from the wasteland radio stations',
+      description: 'Play holotapes, radio, and ambient sounds',
       category: 'entertainment',
-      defaultWidgetWidth: 'full',
+      defaultWidgetWidth: 'half',
       resizable: false,
       defaultTab: 'RADIO',
       defaultSettings: {}
