@@ -309,9 +309,16 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSave = async () => {
+    console.log('Save button clicked');
+    console.log('Settings to save:', settings);
+    console.log('Is dirty:', isDirty);
+    
     if (await saveSettings()) {
+      console.log('Settings saved successfully');
       onSettingsChange?.(settings);
       onClose();
+    } else {
+      console.log('Settings save failed');
     }
   };
 
@@ -352,6 +359,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
   // Handle size changes
   const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
+    console.log(`Size change: ${dimension} = ${value}`);
     const newSize = { ...localSize, [dimension]: value };
     setLocalSize(newSize);
     onResize?.(newSize);
@@ -524,16 +532,17 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
                       />
                     </div>
 
-                    <button
-                      className="px-4 py-2 bg-pip-bg-tertiary text-pip-text-secondary border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide"
-                      onClick={() => {
-                        const defaultSize = { width: 300, height: 200 };
-                        setLocalSize(defaultSize);
-                        onResize?.(defaultSize);
-                      }}
-                    >
-                      Reset to Default Size
-                    </button>
+                      <button
+                        className="px-4 py-2 bg-pip-bg-tertiary text-pip-text-secondary border border-pip-border rounded hover:bg-pip-bg-secondary transition-colors font-pip-mono uppercase tracking-wide"
+                        onClick={() => {
+                          console.log('Reset size clicked');
+                          const defaultSize = { width: 300, height: 200 };
+                          setLocalSize(defaultSize);
+                          onResize?.(defaultSize);
+                        }}
+                      >
+                        Reset to Default Size
+                      </button>
                   </div>
                 </div>
               )}

@@ -288,33 +288,33 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         </div>
       </div>
 
-      {/* Widget Grid */}
-      <div className="widget-grid-container relative min-h-[600px]">
-        <DndContext {...dndContextProps}>
-          <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-            <div 
-              className="widgets-responsive-grid relative" 
-              style={viewMode === 'grid' ? { minHeight: '600px' } : gridStyles}
-            >
-              {widgets.map(widget => (
-                <div key={widget.id} className="widget-slot">
-                  {renderWidget(widget)}
-                </div>
-              ))}
-            </div>
-          </SortableContext>
+        {/* Widget Grid */}
+        <div className="widget-grid-container relative min-h-[600px]">
+          <DndContext {...dndContextProps}>
+            <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
+              <div 
+                className="widgets-responsive-grid grid" 
+                style={gridStyles}
+              >
+                {widgets.map(widget => (
+                  <div key={widget.id} className="widget-slot">
+                    {renderWidget(widget)}
+                  </div>
+                ))}
+              </div>
+            </SortableContext>
 
-          {/* Drag Overlay */}
-          <DragOverlay>
-            {dragState.activeId ? (
-              renderWidget(
-                widgets.find(w => w.id === dragState.activeId)!,
-                true
-              )
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {dragState.activeId ? (
+                renderWidget(
+                  widgets.find(w => w.id === dragState.activeId)!,
+                  true
+                )
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
 
       {/* Add Widget Button */}
       <Button

@@ -62,10 +62,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 1000 : 'auto',
-    // Apply widget position for absolute positioning
-    position: 'absolute' as const,
-    left: widget.position?.x || 0,
-    top: widget.position?.y || 0,
+    // Use relative positioning for proper dnd-kit behavior
     width: widget.size?.width || 300,
     height: widget.size?.height || 200,
   };
@@ -146,10 +143,16 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           widgetTitle={widget.title}
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
-          onSettingsChange={(settings) => onUpdate(widget.id, { settings: settings as any })}
+          onSettingsChange={(newSettings) => {
+            console.log('Settings changed:', newSettings);
+            onUpdate(widget.id, { settings: newSettings as any });
+          }}
           onDelete={() => onDelete(widget.id)}
           onDuplicate={onDuplicate ? () => onDuplicate(widget) : undefined}
-          onResize={handleResize}
+          onResize={(newSize) => {
+            console.log('Resize requested:', newSize);
+            onUpdate(widget.id, { size: newSize });
+          }}
           currentSize={widget.size}
         />
       )}
