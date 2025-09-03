@@ -149,6 +149,26 @@ export class WidgetFactory {
       resizable: false,
       defaultTab: 'RADIO',
       defaultSettings: {}
+    },
+    'cryptocurrency': {
+      type: 'cryptocurrency',
+      title: 'Cryptocurrency Tracker',
+      description: 'Track cryptocurrency prices and market data',
+      category: 'data',
+      defaultWidgetWidth: 'half',
+      resizable: false,
+      defaultTab: 'DATA',
+      defaultSettings: {}
+    },
+    'terminal': {
+      type: 'terminal',
+      title: 'Terminal',
+      description: 'Command-line interface for advanced system operations',
+      category: 'system',
+      defaultWidgetWidth: 'full',
+      resizable: false,
+      defaultTab: 'DATA',
+      defaultSettings: {}
     }
   };
 

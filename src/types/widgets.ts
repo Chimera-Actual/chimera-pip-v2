@@ -11,7 +11,9 @@ export type WidgetType =
   | 'news-terminal'
   | 'audio-player'
   | 'calendar-mission'
-  | 'ai-oracle';
+  | 'ai-oracle'
+  | 'cryptocurrency'
+  | 'terminal';
 
 export type WidgetWidth = 'half' | 'full';
 

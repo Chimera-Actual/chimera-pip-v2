@@ -13,6 +13,8 @@ import { AchievementGalleryWidget } from './AchievementGalleryWidget';
 import { SecureVaultWidget } from './SecureVaultWidget';
 import { MissionCalendarWidget } from './MissionCalendarWidget';
 import { AiOracleWidget } from './AiOracleWidget';
+import { CryptocurrencyWidget } from './CryptocurrencyWidget';
+import { TerminalWidget } from './TerminalWidget';
 
 // Widget component registry
 export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: BaseWidget }>> = {
@@ -27,6 +29,8 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: 
   'secure-vault': SecureVaultWidget, 
   'calendar-mission': MissionCalendarWidget,
   'ai-oracle': AiOracleWidget,
+  'cryptocurrency': CryptocurrencyWidget,
+  'terminal': TerminalWidget,
 };
 
 // Widget renderer component

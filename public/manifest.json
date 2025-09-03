@@ -1,0 +1,64 @@
+{
+  "name": "Chimera-PIP 4000 mk 2",
+  "short_name": "Chimera-PIP",
+  "description": "Advanced Personal Information Processor with Fallout-inspired design",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ff00",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "entertainment", "games"],
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/chimera-tec-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/chimera-tec-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/pip-boy-hero.jpg",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "STAT Tab",
+      "short_name": "STAT",
+      "description": "View character statistics",
+      "url": "/?tab=STAT",
+      "icons": [
+        {
+          "src": "/chimera-tec-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "DATA Tab",
+      "short_name": "DATA",
+      "description": "Access data and information",
+      "url": "/?tab=DATA",
+      "icons": [
+        {
+          "src": "/chimera-tec-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "id": "chimera-pip-4000-mk2"
+}

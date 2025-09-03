@@ -29,3 +29,15 @@ verify_jwt = false
 
 [functions.news-aggregator]
 verify_jwt = false
+
+[functions.security-monitor]
+verify_jwt = true
+
+[functions.analytics-tracker]
+verify_jwt = true
+
+[functions.presence-manager]
+verify_jwt = true
+
+[functions.backup-generator]
+verify_jwt = true
