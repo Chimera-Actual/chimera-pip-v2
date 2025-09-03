@@ -5,7 +5,8 @@ import {
   MoreVertical, 
   Move, 
   ChevronUp, 
-  ChevronDown
+  ChevronDown,
+  CornerDownRight
 } from 'lucide-react';
 import { BaseWidget } from '@/types/widgets';
 import { WidgetSettingsModal } from './WidgetSettingsModalPortal';
@@ -33,7 +34,9 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   style: externalStyle,
 }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{ width: number; height: number; mouseX: number; mouseY: number } | null>(null);
 
   const {
     attributes,
@@ -55,6 +58,54 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   const handleToggleCollapse = () => {
     onUpdate({ collapsed: !widget.collapsed });
   };
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    resizeStartRef.current = {
+      width: widget.gridPosition.width,
+      height: widget.gridPosition.height,
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizeStartRef.current) return;
+
+      const deltaX = e.clientX - resizeStartRef.current.mouseX;
+      const deltaY = e.clientY - resizeStartRef.current.mouseY;
+      
+      // Convert pixel delta to grid cells (60px per cell + 16px gap)
+      const cellSize = 60 + 16;
+      const widthDelta = Math.round(deltaX / cellSize);
+      const heightDelta = Math.round(deltaY / cellSize);
+      
+      const newWidth = Math.max(1, Math.min(8, resizeStartRef.current.width + widthDelta));
+      const newHeight = Math.max(1, Math.min(6, resizeStartRef.current.height + heightDelta));
+
+      if (newWidth !== widget.gridPosition.width || newHeight !== widget.gridPosition.height) {
+        onUpdate({
+          gridPosition: {
+            ...widget.gridPosition,
+            width: newWidth,
+            height: newHeight,
+          }
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      resizeStartRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [widget.gridPosition, onUpdate]);
 
   const style: React.CSSProperties = {
     ...externalStyle,
@@ -163,6 +214,25 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <div className="px-4 py-2 text-center text-xs text-pip-text-muted bg-pip-bg-secondary/10 border-t border-pip-border/50 cursor-pointer"
              onClick={handleToggleCollapse}>
           Click to expand widget
+        </div>
+      )}
+
+      {/* Resize Handle */}
+      {!widget.collapsed && !isDragOverlay && (
+        <div
+          className={cn(
+            "absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-10",
+            "bg-pip-bg-tertiary border border-pip-border rounded-tl-lg",
+            "hover:bg-primary/20 hover:border-primary/50 transition-all duration-200",
+            "flex items-center justify-center group",
+            isResizing && "bg-primary/30 border-primary"
+          )}
+          onMouseDown={handleResizeStart}
+        >
+          <CornerDownRight className={cn(
+            "w-3 h-3 text-pip-text-muted group-hover:text-primary transition-colors",
+            isResizing && "text-primary"
+          )} />
         </div>
       )}
 
