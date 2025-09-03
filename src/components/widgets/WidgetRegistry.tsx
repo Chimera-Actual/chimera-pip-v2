@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AchievementGalleryWidget } from './AchievementGalleryWidget';
 import { SecureVaultWidget } from './SecureVaultWidget';
 import { MissionCalendarWidget } from './MissionCalendarWidget';
+import { AiOracleWidget } from './AiOracleWidget';
 
 // Widget component registry
 export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: BaseWidget }>> = {
@@ -25,15 +26,7 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: 
   'achievement-gallery': AchievementGalleryWidget,
   'secure-vault': SecureVaultWidget, 
   'calendar-mission': MissionCalendarWidget,
-  'ai-oracle': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        AI Oracle Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
+  'ai-oracle': AiOracleWidget,
 };
 
 // Widget renderer component

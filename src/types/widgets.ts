@@ -100,10 +100,10 @@ export interface CalendarMissionSettings {
 }
 
 export interface AiOracleSettings {
-  personality: 'codsworth' | 'nick-valentine' | 'curie' | 'dogmeat';
-  autoGreet: boolean;
-  responseSpeed: 'fast' | 'normal' | 'slow';
-  showStatus: boolean;
+  personality: 'codsworth' | 'modus' | 'eden' | 'nick_valentine';
+  responseLength: 'short' | 'medium' | 'long';
+  contextAware: boolean;
+  saveHistory: boolean;
 }
 
 export type WidgetSettings = 
