@@ -35,25 +35,21 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 }) => {
   const [showSettings, setShowSettings] = useState(false);
 
-  console.log('🔧 DraggableWidget render:', widget.id, { isDragOverlay });
-
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging
+    isDragging,
+    isOver
   } = useSortable({
     id: widget.id,
-    disabled: isDragOverlay
-  });
-
-  console.log('🔧 Sortable state:', { 
-    id: widget.id, 
-    isDragging, 
-    transform, 
-    disabled: isDragOverlay 
+    disabled: isDragOverlay,
+    transition: {
+      duration: 250,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
+    }
   });
 
   const handleToggleCollapse = () => {
@@ -66,55 +62,66 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 1000 : 'auto',
-    // Use relative positioning for proper dnd-kit behavior
+    transition: isDragOverlay ? 'none' : transition,
+    zIndex: isDragging ? 1000 : isOver ? 100 : 'auto',
     width: widget.size?.width || 300,
     height: widget.size?.height || 200,
+    touchAction: 'none'
   };
-
-  console.log('🎨 Widget style:', { 
-    id: widget.id, 
-    transform: CSS.Transform.toString(transform), 
-    isDragging,
-    rawTransform: transform 
-  });
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "pip-widget relative rounded-lg overflow-hidden transition-all duration-200",
-        isDragging && "shadow-2xl scale-105 rotate-1 z-50 opacity-50",
-        isDragOverlay && "shadow-3xl scale-110 rotate-2 z-[1000]",
+        // Base styles
+        "pip-widget relative rounded-lg overflow-hidden",
+        "transform-gpu will-change-transform",
+        "transition-all duration-300 ease-out",
+        
+        // Drop zone visual feedback
+        isOver && !isDragging && "ring-2 ring-primary/50 shadow-lg shadow-primary/20 scale-[1.02]",
+        
+        // Dragging states
+        isDragging && [
+          "shadow-2xl shadow-primary/30",
+          "scale-105 rotate-1 z-50",
+          "opacity-60 blur-[1px]"
+        ],
+        
+        // Drag overlay specific
+        isDragOverlay && [
+          "shadow-3xl shadow-primary/40", 
+          "scale-110 rotate-3 z-[1000]",
+          "opacity-95"
+        ],
+        
+        // View mode adjustments
         viewMode === 'masonry' && "break-inside-avoid mb-4",
+        
         className
       )}
-      onMouseDown={(e) => {
-        console.log('🖱️ Widget container mouse down:', widget.id);
-      }}
       {...attributes}
     >
       {/* Widget Header */}
       <div className="widget-header flex items-center justify-between p-3 bg-pip-bg-secondary/50 border-b border-pip-border">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {/* Drag Handle */}
+          {/* Smooth Drag Handle */}
           <div
-            className="drag-handle flex-shrink-0 p-2 cursor-grab active:cursor-grabbing hover:bg-pip-bg-tertiary rounded transition-colors touch-target select-none"
+            className={cn(
+              "drag-handle flex-shrink-0 p-2 rounded transition-all duration-200",
+              "cursor-grab active:cursor-grabbing select-none touch-target",
+              "hover:bg-pip-bg-tertiary hover:scale-110",
+              "active:scale-95 active:bg-primary/20",
+              isDragging && "bg-primary/30 scale-110"
+            )}
             {...listeners}
-            {...attributes}
             style={{ touchAction: 'none' }}
-            onMouseDown={(e) => {
-              console.log('🖱️ Mouse down on drag handle:', widget.id);
-              e.stopPropagation();
-            }}
-            onTouchStart={(e) => {
-              console.log('👆 Touch start on drag handle:', widget.id);
-              e.stopPropagation();
-            }}
           >
-            <Move className="w-4 h-4 text-pip-text-secondary pointer-events-none" />
+            <Move className={cn(
+              "w-4 h-4 pointer-events-none transition-colors duration-200",
+              isDragging ? "text-primary" : "text-pip-text-secondary"
+            )} />
           </div>
           
           <h3 className="text-sm font-semibold text-pip-text-bright uppercase tracking-wide truncate">

@@ -73,7 +73,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const [containerWidth, setContainerWidth] = useState(1200);
   const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
 
-  // Make sure widgets are sorted by position for consistent display
+  // Sort widgets by position for consistent display
   const widgets = getWidgetsByTab(tab as any);
   const sortedWidgets = useMemo(() => {
     return [...widgets].sort((a, b) => {
@@ -83,11 +83,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     });
   }, [widgets]);
 
-  console.log('📊 Widget order:', sortedWidgets.map((w, i) => `${i}: ${w.title} (pos: ${w.position?.x})`));
-
-  // Simple sensors like the working test
+  // Smooth drag sensors with better activation
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -105,83 +107,40 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     containerWidth
   }), [deviceType, gridDensity, containerWidth]);
 
-  // Simple drag handler like the working test
+  // Smooth drag start handler
   const handleDragStart = useCallback((event: DragEndEvent) => {
-    console.log('🚀 WIDGET DRAG START:', event.active.id);
-    console.log('🎯 Available drop targets:', sortedWidgets.map(w => w.id));
     const widget = sortedWidgets.find(w => w.id === event.active.id);
     setDraggedWidget(widget || null);
   }, [sortedWidgets]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('🚀 WIDGET DRAG END DETAILED:', { 
-      activeId: active.id, 
-      overId: over?.id,
-      hasOver: !!over,
-      activeEqualsOver: active.id === over?.id,
-      availableTargets: sortedWidgets.map(w => w.id)
-    });
 
     setDraggedWidget(null);
 
-    // More detailed drop validation
-    if (!over) {
-      console.log('❌ No over target detected');
+    if (!over || active.id === over.id) {
       return;
     }
-
-    if (active.id === over.id) {
-      console.log('❌ Dropped on same widget');
-      return;
-    }
-
-    console.log('✅ Valid drop detected, processing reorder...');
 
     const oldIndex = sortedWidgets.findIndex((widget) => widget.id === active.id);
     const newIndex = sortedWidgets.findIndex((widget) => widget.id === over.id);
     
-    console.log('🔄 WIDGET REORDERING DETAILS:', { 
-      oldIndex, 
-      newIndex,
-      activeWidget: sortedWidgets[oldIndex]?.title,
-      targetWidget: sortedWidgets[newIndex]?.title,
-      totalWidgets: sortedWidgets.length
-    });
-    
-    if (oldIndex === -1) {
-      console.log('❌ Active widget not found in array');
-      return;
-    }
-
-    if (newIndex === -1) {
-      console.log('❌ Target widget not found in array');
+    if (oldIndex === -1 || newIndex === -1) {
       return;
     }
 
     try {
-      console.log('🔄 Creating reordered array...');
       const reorderedWidgets = arrayMove(sortedWidgets, oldIndex, newIndex);
       
-      console.log('🔄 New order:', reorderedWidgets.map((w, i) => `${i}: ${w.title}`));
-      
-      // Update each widget's position.x to reflect new order
-      console.log('💾 Updating widget positions in database...');
+      // Update positions smoothly
       for (let i = 0; i < reorderedWidgets.length; i++) {
         const widget = reorderedWidgets[i];
-        console.log(`💾 Updating ${widget.title} to position ${i}`);
-        
         await updateWidget(widget.id, { 
-          position: { x: i, y: 0 } // Use x as sort order
+          position: { x: i, y: 0 }
         });
-        
-        console.log(`✅ Updated ${widget.title} position`);
       }
-      
-      console.log('✅ All widget positions updated successfully');
-      
     } catch (error) {
-      console.error('❌ Error during reordering:', error);
+      console.error('Error during reordering:', error);
     }
   }, [sortedWidgets, updateWidget]);
 
@@ -263,8 +222,9 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         onDelete={removeWidget}
         onDuplicate={handleDuplicateWidget}
         className={cn(
-          "transition-all duration-200 ease-out",
-          isDragOverlay && "rotate-2 shadow-2xl z-50"
+          "transition-all duration-300 ease-in-out",
+          "hover:shadow-lg hover:scale-[1.02]",
+          isDragOverlay && "rotate-3 shadow-2xl scale-105 z-50"
         )}
       >
         <WidgetRenderer widget={widget} />
@@ -385,30 +345,41 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                 className="widgets-responsive-grid grid" 
                 style={gridStyles}
               >
-                {sortedWidgets.map((widget, index) => {
-                  console.log('🏗️ Rendering widget as sortable:', widget.id, index, `pos: ${widget.position?.x}`);
-                  return (
-                    <DraggableWidget
-                      key={widget.id}
-                      widget={widget}
-                      isDragOverlay={false}
-                      viewMode={viewMode}
-                      onUpdate={updateWidget}
-                      onDelete={removeWidget}
-                      onDuplicate={handleDuplicateWidget}
-                      className="transition-all duration-200 ease-out"
-                    >
-                      <WidgetRenderer widget={widget} />
-                    </DraggableWidget>
-                  );
-                })}
+                {sortedWidgets.map((widget, index) => (
+                  <DraggableWidget
+                    key={widget.id}
+                    widget={widget}
+                    isDragOverlay={false}
+                    viewMode={viewMode}
+                    onUpdate={updateWidget}
+                    onDelete={removeWidget}
+                    onDuplicate={handleDuplicateWidget}
+                    className={cn(
+                      "transition-all duration-300 ease-in-out",
+                      "hover:shadow-lg hover:scale-[1.02] hover:z-10"
+                    )}
+                  >
+                    <WidgetRenderer widget={widget} />
+                  </DraggableWidget>
+                ))}
               </div>
             </SortableContext>
 
-            {/* Drag Overlay */}
-            <DragOverlay>
+            {/* Smooth Drag Overlay */}
+            <DragOverlay
+              adjustScale={false}
+              style={{
+                cursor: 'grabbing',
+              }}
+            >
               {draggedWidget ? (
-                <div className="opacity-95 rotate-3 scale-105">
+                <div className={cn(
+                  "transform-gpu",
+                  "opacity-95 rotate-3 scale-110",
+                  "shadow-2xl shadow-primary/20",
+                  "transition-all duration-200 ease-out",
+                  "animate-pulse"
+                )}>
                   <DraggableWidget
                     widget={draggedWidget}
                     isDragOverlay={true}
@@ -416,6 +387,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                     onUpdate={updateWidget}
                     onDelete={removeWidget}
                     onDuplicate={handleDuplicateWidget}
+                    className="pointer-events-none"
                   >
                     <WidgetRenderer widget={draggedWidget} />
                   </DraggableWidget>
