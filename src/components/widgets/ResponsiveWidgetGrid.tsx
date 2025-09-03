@@ -98,13 +98,19 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   // Simple drag handler like the working test
   const handleDragStart = useCallback((event: DragEndEvent) => {
     console.log('🚀 WIDGET DRAG START:', event.active.id);
+    console.log('🎯 Available drop targets:', widgets.map(w => w.id));
     const widget = widgets.find(w => w.id === event.active.id);
     setDraggedWidget(widget || null);
   }, [widgets]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('🚀 WIDGET DRAG END:', { activeId: active.id, overId: over?.id });
+    console.log('🚀 WIDGET DRAG END:', { 
+      activeId: active.id, 
+      overId: over?.id,
+      overData: over?.data,
+      availableTargets: widgets.map(w => w.id)
+    });
 
     setDraggedWidget(null);
 
@@ -112,7 +118,12 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       const oldIndex = widgets.findIndex((widget) => widget.id === active.id);
       const newIndex = widgets.findIndex((widget) => widget.id === over.id);
       
-      console.log('🔄 WIDGET REORDERING:', { oldIndex, newIndex });
+      console.log('🔄 WIDGET REORDERING:', { 
+        oldIndex, 
+        newIndex,
+        activeWidget: widgets[oldIndex]?.title,
+        targetWidget: widgets[newIndex]?.title
+      });
       
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
@@ -124,6 +135,8 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
           });
         }
       }
+    } else {
+      console.log('❌ No valid drop target found');
     }
   }, [widgets, updateWidget]);
 
@@ -328,11 +341,20 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                 style={gridStyles}
               >
                 {widgets.map((widget, index) => {
-                  console.log('🏗️ Rendering widget:', widget.id, index);
+                  console.log('🏗️ Rendering widget as sortable:', widget.id, index);
                   return (
-                    <div key={widget.id} className="widget-slot">
-                      {renderWidget(widget)}
-                    </div>
+                    <DraggableWidget
+                      key={widget.id}
+                      widget={widget}
+                      isDragOverlay={false}
+                      viewMode={viewMode}
+                      onUpdate={updateWidget}
+                      onDelete={removeWidget}
+                      onDuplicate={handleDuplicateWidget}
+                      className="transition-all duration-200 ease-out"
+                    >
+                      <WidgetRenderer widget={widget} />
+                    </DraggableWidget>
                   );
                 })}
               </div>
@@ -342,7 +364,16 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             <DragOverlay>
               {draggedWidget ? (
                 <div className="opacity-95 rotate-3 scale-105">
-                  {renderWidget(draggedWidget, true)}
+                  <DraggableWidget
+                    widget={draggedWidget}
+                    isDragOverlay={true}
+                    viewMode={viewMode}
+                    onUpdate={updateWidget}
+                    onDelete={removeWidget}
+                    onDuplicate={handleDuplicateWidget}
+                  >
+                    <WidgetRenderer widget={draggedWidget} />
+                  </DraggableWidget>
                 </div>
               ) : null}
             </DragOverlay>

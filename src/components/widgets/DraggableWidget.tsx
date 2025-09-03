@@ -94,6 +94,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       onMouseDown={(e) => {
         console.log('🖱️ Widget container mouse down:', widget.id);
       }}
+      {...attributes}
     >
       {/* Widget Header */}
       <div className="widget-header flex items-center justify-between p-3 bg-pip-bg-secondary/50 border-b border-pip-border">
