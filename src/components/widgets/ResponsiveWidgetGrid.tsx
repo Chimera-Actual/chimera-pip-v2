@@ -73,7 +73,17 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const [containerWidth, setContainerWidth] = useState(1200);
   const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
 
+  // Make sure widgets are sorted by position for consistent display
   const widgets = getWidgetsByTab(tab as any);
+  const sortedWidgets = useMemo(() => {
+    return [...widgets].sort((a, b) => {
+      const aPos = a.position?.x ?? 999;
+      const bPos = b.position?.x ?? 999;
+      return aPos - bPos;
+    });
+  }, [widgets]);
+
+  console.log('📊 Widget order:', sortedWidgets.map((w, i) => `${i}: ${w.title} (pos: ${w.position?.x})`));
 
   // Simple sensors like the working test
   const sensors = useSensors(
@@ -98,47 +108,82 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   // Simple drag handler like the working test
   const handleDragStart = useCallback((event: DragEndEvent) => {
     console.log('🚀 WIDGET DRAG START:', event.active.id);
-    console.log('🎯 Available drop targets:', widgets.map(w => w.id));
-    const widget = widgets.find(w => w.id === event.active.id);
+    console.log('🎯 Available drop targets:', sortedWidgets.map(w => w.id));
+    const widget = sortedWidgets.find(w => w.id === event.active.id);
     setDraggedWidget(widget || null);
-  }, [widgets]);
+  }, [sortedWidgets]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('🚀 WIDGET DRAG END:', { 
+    console.log('🚀 WIDGET DRAG END DETAILED:', { 
       activeId: active.id, 
       overId: over?.id,
-      overData: over?.data,
-      availableTargets: widgets.map(w => w.id)
+      hasOver: !!over,
+      activeEqualsOver: active.id === over?.id,
+      availableTargets: sortedWidgets.map(w => w.id)
     });
 
     setDraggedWidget(null);
 
-    if (over && active.id !== over.id) {
-      const oldIndex = widgets.findIndex((widget) => widget.id === active.id);
-      const newIndex = widgets.findIndex((widget) => widget.id === over.id);
-      
-      console.log('🔄 WIDGET REORDERING:', { 
-        oldIndex, 
-        newIndex,
-        activeWidget: widgets[oldIndex]?.title,
-        targetWidget: widgets[newIndex]?.title
-      });
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
-        
-        // Update each widget's position.x to reflect new order
-        for (let i = 0; i < reorderedWidgets.length; i++) {
-          await updateWidget(reorderedWidgets[i].id, { 
-            position: { x: i, y: 0 } // Use x as sort order
-          });
-        }
-      }
-    } else {
-      console.log('❌ No valid drop target found');
+    // More detailed drop validation
+    if (!over) {
+      console.log('❌ No over target detected');
+      return;
     }
-  }, [widgets, updateWidget]);
+
+    if (active.id === over.id) {
+      console.log('❌ Dropped on same widget');
+      return;
+    }
+
+    console.log('✅ Valid drop detected, processing reorder...');
+
+    const oldIndex = sortedWidgets.findIndex((widget) => widget.id === active.id);
+    const newIndex = sortedWidgets.findIndex((widget) => widget.id === over.id);
+    
+    console.log('🔄 WIDGET REORDERING DETAILS:', { 
+      oldIndex, 
+      newIndex,
+      activeWidget: sortedWidgets[oldIndex]?.title,
+      targetWidget: sortedWidgets[newIndex]?.title,
+      totalWidgets: sortedWidgets.length
+    });
+    
+    if (oldIndex === -1) {
+      console.log('❌ Active widget not found in array');
+      return;
+    }
+
+    if (newIndex === -1) {
+      console.log('❌ Target widget not found in array');
+      return;
+    }
+
+    try {
+      console.log('🔄 Creating reordered array...');
+      const reorderedWidgets = arrayMove(sortedWidgets, oldIndex, newIndex);
+      
+      console.log('🔄 New order:', reorderedWidgets.map((w, i) => `${i}: ${w.title}`));
+      
+      // Update each widget's position.x to reflect new order
+      console.log('💾 Updating widget positions in database...');
+      for (let i = 0; i < reorderedWidgets.length; i++) {
+        const widget = reorderedWidgets[i];
+        console.log(`💾 Updating ${widget.title} to position ${i}`);
+        
+        await updateWidget(widget.id, { 
+          position: { x: i, y: 0 } // Use x as sort order
+        });
+        
+        console.log(`✅ Updated ${widget.title} position`);
+      }
+      
+      console.log('✅ All widget positions updated successfully');
+      
+    } catch (error) {
+      console.error('❌ Error during reordering:', error);
+    }
+  }, [sortedWidgets, updateWidget]);
 
   const handleDuplicateWidget = useCallback(async (widget: BaseWidget) => {
     const newWidget = await addWidget(widget.type, widget.tabAssignment);
@@ -304,7 +349,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             size="sm"
             variant="outline"
             onClick={handleAutoArrange}
-            disabled={isLoading || widgets.length === 0}
+            disabled={isLoading || sortedWidgets.length === 0}
             className="pip-button-glow border-border text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Shuffle className="w-4 h-4 mr-2" />
@@ -333,15 +378,15 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             onDragEnd={handleDragEnd}
           >
             <SortableContext 
-              items={widgets.map(w => w.id)} 
+              items={sortedWidgets.map(w => w.id)} 
               strategy={rectSortingStrategy}
             >
               <div 
                 className="widgets-responsive-grid grid" 
                 style={gridStyles}
               >
-                {widgets.map((widget, index) => {
-                  console.log('🏗️ Rendering widget as sortable:', widget.id, index);
+                {sortedWidgets.map((widget, index) => {
+                  console.log('🏗️ Rendering widget as sortable:', widget.id, index, `pos: ${widget.position?.x}`);
                   return (
                     <DraggableWidget
                       key={widget.id}
@@ -404,7 +449,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       )}
 
       {/* Empty State */}
-      {widgets.length === 0 && (
+      {sortedWidgets.length === 0 && (
         <div className="text-center py-12">
           <div className="p-8 max-w-md mx-auto border border-border rounded-lg bg-secondary/20 pip-glow">
             <div className="text-muted-foreground font-mono mb-4 pip-text-glow">
