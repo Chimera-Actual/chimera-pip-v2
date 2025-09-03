@@ -144,6 +144,84 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     }
   }, [sortedWidgets, updateWidget]);
 
+  // Auto-arrange widgets to optimize space usage  
+  const handleAutoArrange = useCallback(async () => {
+    if (sortedWidgets.length === 0) return;
+    
+    console.log('🔄 Auto-arranging widgets...');
+    
+    try {
+      // Simple grid packing algorithm
+      const { columns } = gridConfig;
+      const positions: { [key: string]: { x: number; y: number } } = {};
+      
+      // Sort widgets by area (larger first for better packing)
+      const sortedBySize = [...sortedWidgets].sort((a, b) => {
+        const aArea = (a.size?.width || 300) * (a.size?.height || 200);
+        const bArea = (b.size?.width || 300) * (b.size?.height || 200);
+        return bArea - aArea;
+      });
+      
+      let currentRow = 0;
+      let currentCol = 0;
+      let rowHeight = 0;
+      
+      for (const widget of sortedBySize) {
+        const widgetWidth = widget.size?.width || 300;
+        const widgetHeight = widget.size?.height || 200;
+        
+        // Calculate grid cells occupied
+        const cellsWide = Math.ceil(widgetWidth / (gridConfig.cellSize.width + gridConfig.gap));
+        const cellsHigh = Math.ceil(widgetHeight / (gridConfig.cellSize.height + gridConfig.gap));
+        
+        // Check if widget fits in current row
+        if (currentCol + cellsWide > columns) {
+          // Move to next row
+          currentRow += Math.max(1, rowHeight);
+          currentCol = 0;
+          rowHeight = 0;
+        }
+        
+        // Place widget
+        positions[widget.id] = { x: currentCol, y: currentRow };
+        
+        // Update position for next widget
+        currentCol += cellsWide;
+        rowHeight = Math.max(rowHeight, cellsHigh);
+      }
+      
+      // Update all widget positions
+      for (const widget of sortedWidgets) {
+        const newPosition = positions[widget.id];
+        if (newPosition) {
+          await updateWidget(widget.id, { position: newPosition });
+        }
+      }
+      
+      console.log('✅ Auto-arrangement complete');
+      
+    } catch (error) {
+      console.error('❌ Error during auto-arrangement:', error);
+    }
+  }, [sortedWidgets, gridConfig, updateWidget]);
+
+  // Enhanced widget update with auto-reflow
+  const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
+    const oldWidget = sortedWidgets.find(w => w.id === widgetId);
+    const sizeChanged = updates.size && oldWidget?.size && 
+      (updates.size.width !== oldWidget.size.width || updates.size.height !== oldWidget.size.height);
+    
+    // Update the widget first
+    await updateWidget(widgetId, updates);
+    
+    // If size changed, trigger auto-arrangement after a short delay
+    if (sizeChanged) {
+      setTimeout(() => {
+        handleAutoArrange();
+      }, 300);
+    }
+  }, [sortedWidgets, updateWidget, handleAutoArrange]);
+
   const handleDuplicateWidget = useCallback(async (widget: BaseWidget) => {
     const newWidget = await addWidget(widget.type, widget.tabAssignment);
     if (newWidget) {
@@ -169,11 +247,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const handleRefresh = useCallback(async () => {
     await refreshWidgets();
   }, [refreshWidgets]);
-
-  // Remove complex drag and drop setup - use simple approach
-  const handleAutoArrange = useCallback(async () => {
-    console.log('Auto-arrange not implemented yet');
-  }, []);
 
   // Measure container width
   useEffect(() => {
@@ -202,7 +275,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             <p className="text-sm text-muted-foreground">{widget.type}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => updateWidget(widget.id, { collapsed: !widget.collapsed })}>
+            <Button size="sm" variant="ghost" onClick={() => handleWidgetUpdate(widget.id, { collapsed: !widget.collapsed })}>
               {widget.collapsed ? 'Expand' : 'Collapse'}
             </Button>
             <Button size="sm" variant="destructive" onClick={() => removeWidget(widget.id)}>
@@ -218,7 +291,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         widget={widget}
         isDragOverlay={isDragOverlay}
         viewMode={viewMode}
-        onUpdate={updateWidget}
+        onUpdate={handleWidgetUpdate}
         onDelete={removeWidget}
         onDuplicate={handleDuplicateWidget}
         className={cn(
@@ -230,7 +303,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, updateWidget, removeWidget, handleDuplicateWidget]);
+  }, [viewMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
 
   // Grid styles based on configuration
   const gridStyles = useMemo(() => {
@@ -351,7 +424,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                     widget={widget}
                     isDragOverlay={false}
                     viewMode={viewMode}
-                    onUpdate={updateWidget}
+                    onUpdate={handleWidgetUpdate}
                     onDelete={removeWidget}
                     onDuplicate={handleDuplicateWidget}
                     className={cn(
@@ -384,7 +457,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
                     widget={draggedWidget}
                     isDragOverlay={true}
                     viewMode={viewMode}
-                    onUpdate={updateWidget}
+                    onUpdate={handleWidgetUpdate}
                     onDelete={removeWidget}
                     onDuplicate={handleDuplicateWidget}
                     className="pointer-events-none"
