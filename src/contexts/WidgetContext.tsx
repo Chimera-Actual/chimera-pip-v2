@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, PositionDB, SizeDB } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, OrderDB, SizeDB } from '@/types/widgets';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
@@ -63,7 +63,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
         try {
           const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
-          const position = widget.position as unknown as PositionDB;
+          const order = widget.widget_order || 0;
           const size = widget.size as unknown as SizeDB;
           const widgetType = widget.widget_type as WidgetType;
           
@@ -75,7 +75,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             type: widgetType,
             title: widgetConfig?.title || definition.title,
             collapsed: widget.is_collapsed || false,
-            position: position || { x: 0, y: 0 },
+            order: order,
             size: size || { width: 300, height: 200 },
             tabAssignment: widget.tab_assignment as TabAssignment,
             settings: widgetConfig?.settings || definition.defaultSettings,
@@ -144,7 +144,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             title: widget.title,
             settings: widget.settings
           } as any,
-          position: widget.position,
+          widget_order: widget.order,
           size: widget.size,
           is_collapsed: widget.collapsed,
         })
@@ -242,7 +242,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         }
       }
 
-      if (updates.position !== undefined) dbUpdates.position = updates.position;
+      if (updates.order !== undefined) dbUpdates.widget_order = updates.order;
       if (updates.size !== undefined) dbUpdates.size = updates.size;
       if (updates.collapsed !== undefined) dbUpdates.is_collapsed = updates.collapsed;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;

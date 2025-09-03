@@ -9,13 +9,11 @@ import {
 } from 'lucide-react';
 import { BaseWidget } from '@/types/widgets';
 import { WidgetSettingsModal } from './WidgetSettingsModalPortal';
-import { useGestureHandler } from '@/hooks/useGestureHandler';
 import { cn } from '@/lib/utils';
 
 interface DraggableWidgetProps {
   widget: BaseWidget;
   isDragOverlay?: boolean;
-  layoutMode?: 'free' | 'grid';
   children: React.ReactNode;
   onUpdate: (widgetId: string, updates: Partial<BaseWidget>) => void;
   onDelete: (widgetId: string) => void;
@@ -26,7 +24,6 @@ interface DraggableWidgetProps {
 export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   widget,
   isDragOverlay = false,
-  layoutMode = 'free',
   children,
   onUpdate,
   onDelete,
@@ -36,13 +33,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
-  const resizeStartRef = useRef<{
-    startX: number;
-    startY: number;
-    startWidth: number;
-    startHeight: number;
-    direction: string;
-  } | null>(null);
 
   const {
     attributes,
@@ -65,10 +55,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     onUpdate(widget.id, { collapsed: !widget.collapsed });
   };
 
-  const handleResize = (size: { width: number; height: number }) => {
-    onUpdate(widget.id, { size });
-  };
-
   // Resize functionality
   const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
     if (isDragOverlay) return;
@@ -80,7 +66,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     if (!rect) return;
 
     setIsResizing(true);
-    resizeStartRef.current = {
+    const startData = {
       startX: e.clientX,
       startY: e.clientY,
       startWidth: rect.width,
@@ -88,53 +74,50 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       direction
     };
 
+    const handleResizeMove = (e: MouseEvent) => {
+      if (!widgetRef.current) return;
+
+      let newWidth = startData.startWidth;
+      let newHeight = startData.startHeight;
+
+      if (direction.includes('e')) {
+        newWidth = Math.max(280, startData.startWidth + (e.clientX - startData.startX));
+      }
+      if (direction.includes('s')) {
+        newHeight = Math.max(200, startData.startHeight + (e.clientY - startData.startY));
+      }
+
+      // Apply size immediately for smooth resizing
+      widgetRef.current.style.width = `${newWidth}px`;
+      widgetRef.current.style.height = `${newHeight}px`;
+    };
+
+    const handleResizeEnd = () => {
+      if (!widgetRef.current) return;
+
+      const rect = widgetRef.current.getBoundingClientRect();
+      const newSize = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height)
+      };
+
+      // Update the widget size in the parent
+      onUpdate(widget.id, { size: newSize });
+
+      // Cleanup
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
     document.body.style.cursor = direction.includes('e') && direction.includes('s') ? 'se-resize' : 
                                  direction.includes('e') ? 'e-resize' : 's-resize';
     document.body.style.userSelect = 'none';
-  }, [isDragOverlay]);
-
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!resizeStartRef.current || !widgetRef.current) return;
-
-    const { startX, startY, startWidth, startHeight, direction } = resizeStartRef.current;
-    
-    let newWidth = startWidth;
-    let newHeight = startHeight;
-
-    if (direction.includes('e')) {
-      newWidth = Math.max(200, startWidth + (e.clientX - startX));
-    }
-    if (direction.includes('s')) {
-      newHeight = Math.max(150, startHeight + (e.clientY - startY));
-    }
-
-    // Apply size immediately for smooth resizing
-    widgetRef.current.style.width = `${newWidth}px`;
-    widgetRef.current.style.height = `${newHeight}px`;
-  }, []);
-
-  const handleResizeEnd = useCallback(() => {
-    if (!resizeStartRef.current || !widgetRef.current) return;
-
-    const rect = widgetRef.current.getBoundingClientRect();
-    const newSize = {
-      width: Math.round(rect.width),
-      height: Math.round(rect.height)
-    };
-
-    // Update the widget size in the parent
-    onUpdate(widget.id, { size: newSize });
-
-    // Cleanup
-    setIsResizing(false);
-    resizeStartRef.current = null;
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }, [onUpdate, widget.id]);
+  }, [isDragOverlay, onUpdate, widget.id]);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -185,9 +168,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         
         // Resizing state
         isResizing && "transition-none select-none",
-        
-        // Layout mode adjustments
-        layoutMode === 'grid' && "flex flex-col",
         
         className
       )}
@@ -240,7 +220,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         </div>
       </div>
 
-
       {/* Widget Content */}
       {!widget.collapsed && (
         <div className="widget-content flex-1 overflow-hidden flex flex-col min-h-0">
@@ -260,8 +239,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         </div>
       )}
 
-
-      {/* Comprehensive Settings Modal */}
+      {/* Settings Modal */}
       {showSettings && (
         <WidgetSettingsModal
           widgetId={widget.id}
@@ -270,13 +248,11 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           onSettingsChange={(newSettings) => {
-            console.log('Settings changed:', newSettings);
             onUpdate(widget.id, { settings: newSettings as any });
           }}
           onDelete={() => onDelete(widget.id)}
           onDuplicate={onDuplicate ? () => onDuplicate(widget) : undefined}
           onResize={(newSize) => {
-            console.log('Resize requested:', newSize);
             onUpdate(widget.id, { size: newSize });
           }}
           currentSize={widget.size}
@@ -288,21 +264,21 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <>
           {/* Right Edge Handle */}
           <div
-            className="absolute right-0 top-8 bottom-8 w-1 cursor-e-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
+            className="absolute right-0 top-8 bottom-8 w-2 cursor-e-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
             onMouseDown={(e) => handleResizeStart(e, 'e')}
             style={{ touchAction: 'none' }}
           />
           
           {/* Bottom Edge Handle */}
           <div
-            className="absolute bottom-0 left-8 right-8 h-1 cursor-s-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
+            className="absolute bottom-0 left-8 right-8 h-2 cursor-s-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
             onMouseDown={(e) => handleResizeStart(e, 's')}
             style={{ touchAction: 'none' }}
           />
           
-          {/* Corner Handle (most important for user experience) */}
+          {/* Corner Handle */}
           <div
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize opacity-0 hover:opacity-100 transition-all duration-200 bg-primary/50 hover:bg-primary/80 hover:scale-110"
+            className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize opacity-0 hover:opacity-100 transition-all duration-200 bg-primary/50 hover:bg-primary/80 hover:scale-110"
             onMouseDown={(e) => handleResizeStart(e, 'se')}
             style={{ 
               touchAction: 'none',
@@ -311,13 +287,12 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           />
           
           {/* Corner Visual Indicator */}
-          <div className="absolute bottom-1 right-1 w-2 h-2 pointer-events-none opacity-30">
+          <div className="absolute bottom-1 right-1 w-3 h-3 pointer-events-none opacity-30">
             <div className="w-full h-px bg-pip-text-secondary mb-px"></div>
             <div className="w-full h-px bg-pip-text-secondary"></div>
           </div>
         </>
       )}
-
     </div>
   );
 };

@@ -134,6 +134,7 @@ export type Database = {
           updated_at: string | null
           user_id: string
           widget_config: Json
+          widget_order: number | null
           widget_type: string
         }
         Insert: {
@@ -146,6 +147,7 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           widget_config: Json
+          widget_order?: number | null
           widget_type: string
         }
         Update: {
@@ -158,6 +160,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           widget_config?: Json
+          widget_order?: number | null
           widget_type?: string
         }
         Relationships: [

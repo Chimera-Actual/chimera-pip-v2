@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   DndContext, 
   DragOverlay, 
@@ -11,11 +11,11 @@ import {
 } from '@dnd-kit/core';
 import { 
   SortableContext, 
-  rectSortingStrategy,
+  verticalListSortingStrategy,
   sortableKeyboardCoordinates,
   arrayMove
 } from '@dnd-kit/sortable';
-import { Plus, Grid, List, Shuffle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, List, Grid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -31,23 +31,7 @@ interface ResponsiveWidgetGridProps {
   className?: string;
 }
 
-type ViewMode = 'free' | 'grid' | 'list';
-type LayoutMode = 'free' | 'grid';
-
-const LAYOUT_CONFIGS = {
-  mobile: {
-    free: { gap: 16, minWidth: 280, maxCols: 1, cellWidth: 320, cellHeight: 240, columns: 1 },
-    grid: { gap: 16, cellWidth: 320, cellHeight: 240, columns: 1, minWidth: 320, maxCols: 1 }
-  },
-  tablet: {
-    free: { gap: 20, minWidth: 300, maxCols: 2, cellWidth: 300, cellHeight: 240, columns: 2 },
-    grid: { gap: 20, cellWidth: 300, cellHeight: 240, columns: 2, minWidth: 300, maxCols: 2 }
-  },
-  desktop: {
-    free: { gap: 24, minWidth: 320, maxCols: 3, cellWidth: 320, cellHeight: 240, columns: 3 },
-    grid: { gap: 24, cellWidth: 320, cellHeight: 240, columns: 3, minWidth: 320, maxCols: 3 }
-  }
-};
+type ViewMode = 'grid' | 'list';
 
 export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({ 
   tab, 
@@ -64,13 +48,11 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   
   const isMobile = useIsMobile();
   const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('free');
-  const [viewMode, setViewMode] = useState<ViewMode>('free');
-  const [containerWidth, setContainerWidth] = useState(1200);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
 
-  // Get widgets for current tab
-  const widgets = getWidgetsByTab(tab as any);
+  // Get widgets for current tab, sorted by order
+  const widgets = getWidgetsByTab(tab as any).sort((a, b) => a.order - b.order);
   
   // Smooth drag sensors
   const sensors = useSensors(
@@ -81,16 +63,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       coordinateGetter: sortableKeyboardCoordinates
     })
   );
-
-  // Determine current device type
-  const deviceType = useMemo(() => {
-    if (isMobile) return 'mobile';
-    if (containerWidth < 1024) return 'tablet';
-    return 'desktop';
-  }, [isMobile, containerWidth]);
-
-  // Get layout configuration
-  const layoutConfig = LAYOUT_CONFIGS[deviceType][layoutMode];
 
   // Simple drag and drop handlers
   const handleDragStart = useCallback((event: DragEndEvent) => {
@@ -108,34 +80,15 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
-        // Update positions for reordered widgets
+        // Update order for reordered widgets
         for (let i = 0; i < reorderedWidgets.length; i++) {
           await updateWidget(reorderedWidgets[i].id, { 
-            position: { x: i * 20, y: 0 } 
+            order: i 
           });
         }
       }
     }
   }, [widgets, updateWidget]);
-
-  // Auto-arrange widgets in clean rows
-  const handleAutoArrange = useCallback(async () => {
-    if (widgets.length === 0) return;
-    
-    const widgetsPerRow = layoutMode === 'grid' ? layoutConfig.columns : Math.floor(containerWidth / (layoutConfig.minWidth || 300));
-    
-    for (let i = 0; i < widgets.length; i++) {
-      const row = Math.floor(i / widgetsPerRow);
-      const col = i % widgetsPerRow;
-      
-      await updateWidget(widgets[i].id, {
-        position: {
-          x: col * ((layoutConfig.cellWidth || 300) + layoutConfig.gap),
-          y: row * ((layoutConfig.cellHeight || 240) + layoutConfig.gap)
-        }
-      });
-    }
-  }, [widgets, layoutMode, layoutConfig, containerWidth, updateWidget]);
 
   // Widget update handler
   const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
@@ -162,20 +115,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const handleRefresh = useCallback(async () => {
     await refreshWidgets();
   }, [refreshWidgets]);
-
-  // Measure container width
-  useEffect(() => {
-    const updateWidth = () => {
-      const container = document.querySelector('.widget-grid-container');
-      if (container) {
-        setContainerWidth(container.clientWidth);
-      }
-    };
-
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
 
   // Render widget based on view mode
   const renderWidget = useCallback((widget: BaseWidget, isDragOverlay = false) => {
@@ -205,7 +144,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       <DraggableWidget
         widget={widget}
         isDragOverlay={isDragOverlay}
-        layoutMode={layoutMode}
         onUpdate={handleWidgetUpdate}
         onDelete={removeWidget}
         onDuplicate={handleDuplicateWidget}
@@ -217,87 +155,51 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, layoutMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
+  }, [viewMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
 
-  // Container styles based on layout mode
+  // Container styles based on view mode
   const containerStyles = useMemo(() => {
     if (viewMode === 'list') {
       return {
         display: 'flex',
         flexDirection: 'column' as const,
-        gap: `${layoutConfig.gap}px`
+        gap: '16px'
       };
     }
 
-    if (layoutMode === 'grid') {
-      return {
-        display: 'grid',
-        gridTemplateColumns: `repeat(${layoutConfig.columns}, 1fr)`,
-        gap: `${layoutConfig.gap}px`,
-        alignItems: 'start'
-      };
-    }
-
-    // Free layout (flexbox wrapping)
+    // Grid layout (flexbox wrapping)
     return {
       display: 'flex',
       flexWrap: 'wrap' as const,
-      gap: `${layoutConfig.gap}px`,
+      gap: '24px',
       alignItems: 'flex-start'
     };
-  }, [viewMode, layoutMode, layoutConfig]);
+  }, [viewMode]);
 
   const gridContent = (
     <div className={cn('space-y-6', className)}>
       {/* Layout Controls */}
       <div className="flex items-center justify-between gap-4 p-4 bg-secondary/30 rounded-lg border border-border pip-glow">
         <div className="flex items-center gap-4">
-          {/* Layout Mode Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
-              Layout:
-            </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setLayoutMode(layoutMode === 'free' ? 'grid' : 'free');
-                setViewMode(layoutMode === 'free' ? 'grid' : 'free');
-              }}
-              className="flex items-center gap-2 hover:bg-primary/20"
-            >
-              {layoutMode === 'free' ? (
-                <>
-                  <ToggleLeft className="h-4 w-4" />
-                  Free
-                </>
-              ) : (
-                <>
-                  <ToggleRight className="h-4 w-4" />
-                  Grid
-                </>
-              )}
-            </Button>
-          </div>
-
+          <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
+            View:
+          </span>
+          
           {/* View Mode Buttons */}
           <div className="flex items-center gap-1 border border-border rounded-md bg-secondary/20">
             <Button
               size="sm"
-              variant={viewMode === 'free' ? 'default' : 'ghost'}
-              onClick={() => {
-                setViewMode('free');
-                setLayoutMode('free');
-              }}
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('grid')}
               className={cn(
                 "rounded-none border-0 pip-button-glow transition-colors",
-                viewMode === 'free' 
+                viewMode === 'grid' 
                   ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
                   : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
               )}
             >
               <Grid className="w-4 h-4" />
-              Free
+              Grid
             </Button>
             <Button
               size="sm"
@@ -315,18 +217,6 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
             </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline" 
-            size="sm"
-            onClick={handleAutoArrange}
-            className="flex items-center gap-2 hover:bg-pip-green-primary/20"
-          >
-            <Shuffle className="h-4 w-4" />
-            Auto Arrange
-          </Button>
-        </div>
       </div>
 
       {/* Widget Container */}
@@ -343,7 +233,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
           >
             <SortableContext 
               items={widgets.map(w => w.id)}
-              strategy={rectSortingStrategy}
+              strategy={verticalListSortingStrategy}
             >
               {widgets.map((widget) => renderWidget(widget))}
             </SortableContext>

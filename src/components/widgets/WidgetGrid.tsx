@@ -49,7 +49,7 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
                 onToggleCollapse={() => updateWidget(widget.id, { collapsed: !widget.collapsed })}
                 onSettingsChange={(settings) => updateWidget(widget.id, { settings })}
                 onDelete={() => removeWidget(widget.id)}
-                onMove={(position) => updateWidget(widget.id, { position })}
+                onMove={() => {}} // Remove complex positioning for simplified system
               >
                 <WidgetRenderer widget={widget} />
               </MobileWidgetContainer>

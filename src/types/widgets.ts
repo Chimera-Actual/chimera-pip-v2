@@ -20,7 +20,7 @@ export interface BaseWidget {
   type: WidgetType;
   title: string;
   collapsed: boolean;
-  position: { x: number; y: number };
+  order: number;
   size: { width: number; height: number };
   tabAssignment: TabAssignment;
   settings: WidgetSettings;
@@ -35,9 +35,8 @@ export interface WidgetConfigDB {
   settings?: Record<string, any>;
 }
 
-export interface PositionDB {
-  x: number;
-  y: number;
+export interface OrderDB {
+  order: number;
 }
 
 export interface SizeDB {

@@ -821,3 +821,61 @@
 .focus-ring:focus-visible {
   box-shadow: 0 0 0 2px hsl(var(--pip-green-primary) / 0.8);
 }
+
+/* Enhanced Widget System Styles for Simplified Grid */
+.widget-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.widget-content > div:first-child {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Improved Widget Grid Layout */
+.widgets-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .widgets-layout {
+    gap: 16px;
+  }
+}
+
+/* Enhanced Touch Targets */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  position: relative;
+}
+
+.drag-handle:active {
+  transform: scale(0.95);
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+/* Improved Collapse Animation */
+.widget-content {
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+/* Better scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary) / 0.3);
+  border-radius: 3px;
+  border: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary) / 0.5);
+}

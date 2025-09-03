@@ -15,7 +15,7 @@ interface MobileWidgetContainerProps {
   onToggleCollapse?: () => void;
   onSettingsChange?: (settings: any) => void;
   onDelete?: () => void;
-  onMove?: (position: { x: number; y: number }) => void;
+  onMove?: (order: number) => void;
   className?: string;
 }
 
