@@ -18,7 +18,6 @@ export const BootSequence: React.FC = () => {
   const [currentMessage, setCurrentMessage] = useState(0);
   const [progress, setProgress] = useState(0);
   const [displayText, setDisplayText] = useState('');
-  const [doorRotation, setDoorRotation] = useState(0);
   
   const vaultNumber = profile?.vault_number || 111;
 
@@ -36,14 +35,9 @@ export const BootSequence: React.FC = () => {
       });
     }, 75);
 
-    const doorInterval = setInterval(() => {
-      setDoorRotation(prev => (prev + 10) % 360);
-    }, 100);
-
     return () => {
       clearInterval(messageInterval);
       clearInterval(progressInterval);
-      clearInterval(doorInterval);
     };
   }, [currentMessage]);
 
@@ -71,12 +65,12 @@ export const BootSequence: React.FC = () => {
         <div className="text-center space-y-8">
           {/* CHIMERA-TEC Industries Logo */}
           <div className="flex flex-col items-center justify-center space-y-6 animate-pip-boot">
-            <div className="relative mb-4">
+            <div className="relative">
               {/* Logo Image */}
               <img 
                 src="/lovable-uploads/c0058fa9-21ea-47dd-a1f1-53697176a3cd.png" 
                 alt="CHIMERA-TEC Industries Logo"
-                className="w-40 h-40 object-contain pip-glow animate-pip-flicker"
+                className="w-56 h-auto object-scale-down pip-glow animate-pip-flicker"
               />
             </div>
             
