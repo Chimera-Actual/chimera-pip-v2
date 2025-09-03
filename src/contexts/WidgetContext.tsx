@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, OrderDB, SizeDB } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, GridPositionDB, SizeDB } from '@/types/widgets';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
@@ -63,7 +63,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
         try {
           const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
-          const order = widget.widget_order || 0;
+          const gridPosition = widget.grid_position as unknown as GridPositionDB;
           const size = widget.size as unknown as SizeDB;
           const widgetType = widget.widget_type as WidgetType;
           
@@ -75,7 +75,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             type: widgetType,
             title: widgetConfig?.title || definition.title,
             collapsed: widget.is_collapsed || false,
-            order: order,
+            gridPosition: gridPosition || { row: 0, col: 0, width: 2, height: 2 },
             size: size || { width: 300, height: 200 },
             tabAssignment: widget.tab_assignment as TabAssignment,
             settings: widgetConfig?.settings || definition.defaultSettings,
@@ -144,7 +144,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             title: widget.title,
             settings: widget.settings
           } as any,
-          widget_order: widget.order,
+          grid_position: widget.gridPosition as any,
           size: widget.size,
           is_collapsed: widget.collapsed,
         })
@@ -242,7 +242,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         }
       }
 
-      if (updates.order !== undefined) dbUpdates.widget_order = updates.order;
+      if (updates.gridPosition !== undefined) dbUpdates.grid_position = updates.gridPosition;
       if (updates.size !== undefined) dbUpdates.size = updates.size;
       if (updates.collapsed !== undefined) dbUpdates.is_collapsed = updates.collapsed;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;

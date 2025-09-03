@@ -271,33 +271,72 @@
     display: none;
   }
   
-  /* Enhanced Touch Targets - Platform-Specific */
-  @media (max-width: 768px) {
-    .pip-button-glow,
-    .touch-target {
-      min-height: 44px; /* iOS minimum */
-      min-width: 44px;
-    }
-    
-    .touch-target-large {
-      min-height: 48px; /* Android minimum */
-      min-width: 48px;
-    }
-    
-    .touch-target-xl {
-      min-height: 56px; /* High-frequency actions */
-      min-width: 56px;
-    }
-    
-    /* Enhanced spacing for touch */
-    .touch-spacing {
-      gap: 8px;
-    }
-    
-    .touch-spacing-lg {
-      gap: 12px;
-    }
-  }
+/* Widget Grid Styles */
+.widget-grid-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+}
+
+.widget-container {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.widget-container:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid Drop Overlay */
+.grid-drop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.grid-drop-cell {
+  border: 2px dashed transparent;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  background: transparent;
+}
+
+.grid-drop-cell.valid-drop {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+}
+
+.grid-drop-cell.invalid-drop {
+  border-color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.1);
+}
+
+.grid-drop-cell.occupied {
+  background: hsl(var(--muted) / 0.3);
+  border-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Widget Drag Ghost */
+.widget-drag-ghost {
+  transform: rotate(5deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 2px solid hsl(var(--primary));
+}
+
+.widget-drag-ghost .widget-container {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--card) / 0.9);
+}
   
   /* Loading and Animation Classes */
   @keyframes pip-boot-flicker {

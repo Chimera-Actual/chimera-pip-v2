@@ -15,10 +15,11 @@ interface DraggableWidgetProps {
   widget: BaseWidget;
   isDragOverlay?: boolean;
   children: React.ReactNode;
-  onUpdate: (widgetId: string, updates: Partial<BaseWidget>) => void;
+  onUpdate: (updates: Partial<BaseWidget>) => void;
   onDelete: (widgetId: string) => void;
   onDuplicate?: (widget: BaseWidget) => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
@@ -28,7 +29,8 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   onUpdate,
   onDelete,
   onDuplicate,
-  className
+  className,
+  style: externalStyle,
 }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -52,7 +54,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   });
 
   const handleToggleCollapse = () => {
-    onUpdate(widget.id, { collapsed: !widget.collapsed });
+    onUpdate({ collapsed: !widget.collapsed });
   };
 
   // Resize functionality
@@ -102,7 +104,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       };
 
       // Update the widget size in the parent
-      onUpdate(widget.id, { size: newSize });
+      onUpdate({ size: newSize });
 
       // Cleanup
       setIsResizing(false);
@@ -120,6 +122,7 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   }, [isDragOverlay, onUpdate, widget.id]);
 
   const style: React.CSSProperties = {
+    ...externalStyle,
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : 'transform 200ms ease',
     opacity: isDragging ? 0.8 : 1,
@@ -248,12 +251,12 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           onSettingsChange={(newSettings) => {
-            onUpdate(widget.id, { settings: newSettings as any });
+            onUpdate({ settings: newSettings as any });
           }}
           onDelete={() => onDelete(widget.id)}
           onDuplicate={onDuplicate ? () => onDuplicate(widget) : undefined}
           onResize={(newSize) => {
-            onUpdate(widget.id, { size: newSize });
+            onUpdate({ size: newSize });
           }}
           currentSize={widget.size}
         />

@@ -196,7 +196,7 @@ export class WidgetFactory {
       type,
       title: definition.title,
       collapsed: false,
-      order: 0,
+      gridPosition: { row: 0, col: 0, width: 2, height: 2 },
       size: definition.defaultSize,
       tabAssignment: tabAssignment || definition.defaultTab,
       settings: { ...definition.defaultSettings } as WidgetSettings,

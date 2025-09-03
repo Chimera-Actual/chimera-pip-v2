@@ -15,12 +15,19 @@ export type WidgetType =
 
 export type TabAssignment = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
 
+export interface GridPosition {
+  row: number;
+  col: number;
+  width: number;
+  height: number;
+}
+
 export interface BaseWidget {
   id: string;
   type: WidgetType;
   title: string;
   collapsed: boolean;
-  order: number;
+  gridPosition: GridPosition;
   size: { width: number; height: number };
   tabAssignment: TabAssignment;
   settings: WidgetSettings;
@@ -35,8 +42,11 @@ export interface WidgetConfigDB {
   settings?: Record<string, any>;
 }
 
-export interface OrderDB {
-  order: number;
+export interface GridPositionDB {
+  row: number;
+  col: number;
+  width: number;
+  height: number;
 }
 
 export interface SizeDB {

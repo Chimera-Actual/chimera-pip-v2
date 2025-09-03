@@ -1,42 +1,24 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { 
-  DndContext, 
-  DragOverlay, 
-  closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core';
-import { 
-  SortableContext, 
-  verticalListSortingStrategy,
-  sortableKeyboardCoordinates,
-  arrayMove
-} from '@dnd-kit/sortable';
-import { Plus, List, Grid } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { DndContext, DragOverlay, DragStartEvent, DragEndEvent, DragMoveEvent, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { Plus, RefreshCw, Grid3X3 } from 'lucide-react';
+import { BaseWidget, GridPosition } from '@/types/widgets';
 import { useWidgets } from '@/contexts/WidgetContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { DraggableWidget } from './DraggableWidget';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { PullToRefresh } from '@/components/common/PullToRefresh';
-import { DraggableWidget } from './DraggableWidget';
+import { useGridLayout } from '@/hooks/useGridLayout';
+import { GridDropOverlay } from './GridDropOverlay';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { WidgetRenderer } from './WidgetRegistry';
-import { WidgetType, BaseWidget } from '@/types/widgets';
-import { cn } from '@/lib/utils';
+import { WidgetType } from '@/types/widgets';
 
 interface ResponsiveWidgetGridProps {
   tab: string;
   className?: string;
 }
 
-type ViewMode = 'grid' | 'list';
-
-export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({ 
-  tab, 
-  className 
-}) => {
+export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({ tab, className = '' }) => {
   const { 
     getWidgetsByTab, 
     addWidget, 
@@ -47,48 +29,90 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   } = useWidgets();
   
   const isMobile = useIsMobile();
-  const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
-
-  // Get widgets for current tab, sorted by order
-  const widgets = getWidgetsByTab(tab as any).sort((a, b) => a.order - b.order);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [showGridOverlay, setShowGridOverlay] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(1200);
+  const [hoverPosition, setHoverPosition] = useState<GridPosition | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  // Smooth drag sensors
+  const gridLayout = useGridLayout(containerWidth);
+
+  // Get widgets for this tab
+  const tabWidgets = useMemo(() => {
+    return getWidgetsByTab(tab as any);
+  }, [getWidgetsByTab, tab]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 }
+      activationConstraint: {
+        distance: 8,
+      },
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates
-    })
+    useSensor(KeyboardSensor)
   );
 
-  // Simple drag and drop handlers
-  const handleDragStart = useCallback((event: DragEndEvent) => {
-    const widget = widgets.find(w => w.id === event.active.id);
-    setDraggedWidget(widget || null);
-  }, [widgets]);
+  // Track container width for responsive grid
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    setShowGridOverlay(true);
+  }, []);
+
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    if (!event.delta) return;
+    
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = event.active.rect.current.translated?.left || 0;
+    const y = event.active.rect.current.translated?.top || 0;
+    
+    const relativeX = x - rect.left - gridLayout.gap;
+    const relativeY = y - rect.top - gridLayout.gap;
+    
+    const gridPos = gridLayout.snapToGrid(relativeX, relativeY);
+    const draggedWidget = tabWidgets.find(w => w.id === activeId);
+    const fullGridPos: GridPosition = {
+      ...gridPos,
+      width: draggedWidget?.gridPosition.width || 2,
+      height: draggedWidget?.gridPosition.height || 2,
+    };
+    setHoverPosition(fullGridPos);
+  }, [gridLayout]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setDraggedWidget(null);
+    setActiveId(null);
+    setShowGridOverlay(false);
+    setHoverPosition(null);
 
-    if (active && over && active.id !== over.id) {
-      const oldIndex = widgets.findIndex(w => w.id === active.id);
-      const newIndex = widgets.findIndex(w => w.id === over.id);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
-        // Update order for reordered widgets
-        for (let i = 0; i < reorderedWidgets.length; i++) {
-          await updateWidget(reorderedWidgets[i].id, { 
-            order: i 
-          });
-        }
-      }
+    if (!hoverPosition) return;
+
+    const activeWidget = tabWidgets.find((widget) => widget.id === event.active.id);
+    if (!activeWidget) return;
+
+    const newPosition: GridPosition = {
+      ...activeWidget.gridPosition,
+      row: hoverPosition.row,
+      col: hoverPosition.col,
+    };
+
+    // Check if the new position is valid
+    if (gridLayout.isValidPosition(newPosition, tabWidgets, activeWidget.id)) {
+      await updateWidget(activeWidget.id, { gridPosition: newPosition });
     }
-  }, [widgets, updateWidget]);
+  }, [tabWidgets, updateWidget, hoverPosition, gridLayout]);
 
   // Widget update handler
   const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
@@ -108,176 +132,140 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const handleAddWidget = useCallback(async (type: WidgetType) => {
     const widget = await addWidget(type, tab as any);
     if (widget) {
-      setShowAdvancedCatalog(false);
+      setShowCatalog(false);
     }
   }, [addWidget, tab]);
+
+  const handleDeleteWidget = useCallback(async (widgetId: string) => {
+    await removeWidget(widgetId);
+  }, [removeWidget]);
 
   const handleRefresh = useCallback(async () => {
     await refreshWidgets();
   }, [refreshWidgets]);
 
-  // Render widget based on view mode
-  const renderWidget = useCallback((widget: BaseWidget, isDragOverlay = false) => {
-    if (viewMode === 'list') {
-      return (
-        <div className="flex items-center gap-4 p-4 bg-secondary rounded-lg border border-border">
-          <div className="w-12 h-12 bg-secondary/50 rounded-lg flex items-center justify-center">
-            <div className="w-6 h-6 bg-primary rounded" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">{widget.title}</h3>
-            <p className="text-sm text-muted-foreground">{widget.type}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => handleWidgetUpdate(widget.id, { collapsed: !widget.collapsed })}>
-              {widget.collapsed ? 'Expand' : 'Collapse'}
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => removeWidget(widget.id)}>
-              Remove
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
+  const renderWidget = useCallback((widget: BaseWidget) => {
+    const isDragging = activeId === widget.id;
+    
     return (
       <DraggableWidget
+        key={widget.id}
         widget={widget}
-        isDragOverlay={isDragOverlay}
-        onUpdate={handleWidgetUpdate}
-        onDelete={removeWidget}
-        onDuplicate={handleDuplicateWidget}
-        className={cn(
-          "transition-all duration-300 ease-in-out",
-          isDragOverlay && "rotate-3 shadow-2xl scale-105 z-50"
-        )}
+        isDragOverlay={false}
+        onUpdate={(updates) => handleWidgetUpdate(widget.id, updates)}
+        onDuplicate={() => handleDuplicateWidget(widget)}
+        onDelete={() => handleDeleteWidget(widget.id)}
+        style={{
+          ...gridLayout.getWidgetStyle(widget.gridPosition),
+          opacity: isDragging ? 0.3 : 1,
+        }}
       >
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
-
-  // Container styles based on view mode
-  const containerStyles = useMemo(() => {
-    if (viewMode === 'list') {
-      return {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        gap: '16px'
-      };
-    }
-
-    // Grid layout (flexbox wrapping)
-    return {
-      display: 'flex',
-      flexWrap: 'wrap' as const,
-      gap: '24px',
-      alignItems: 'flex-start'
-    };
-  }, [viewMode]);
+  }, [activeId, handleWidgetUpdate, handleDuplicateWidget, handleDeleteWidget, gridLayout]);
 
   const gridContent = (
-    <div className={cn('space-y-6', className)}>
+    <div className="space-y-4">
       {/* Layout Controls */}
-      <div className="flex items-center justify-between gap-4 p-4 bg-secondary/30 rounded-lg border border-border pip-glow">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
-            View:
-          </span>
-          
-          {/* View Mode Buttons */}
-          <div className="flex items-center gap-1 border border-border rounded-md bg-secondary/20">
-            <Button
-              size="sm"
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('grid')}
-              className={cn(
-                "rounded-none border-0 pip-button-glow transition-colors",
-                viewMode === 'grid' 
-                  ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
-                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-              )}
-            >
-              <Grid className="w-4 h-4" />
-              Grid
-            </Button>
-            <Button
-              size="sm"
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('list')}
-              className={cn(
-                "rounded-none border-0 pip-button-glow transition-colors",
-                viewMode === 'list' 
-                  ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
-                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-              )}
-            >
-              <List className="w-4 h-4" />
-              List
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showGridOverlay ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowGridOverlay(!showGridOverlay)}
+            className="flex items-center gap-2"
+          >
+            <Grid3X3 className="h-4 w-4" />
+            Grid Guide
+          </Button>
         </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Widget Container */}
-      <div className="widget-container min-h-[400px]">
+      {/* Widget Grid Container */}
+      <div className="relative">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
         >
-          <div
-            className="widgets-layout"
-            style={containerStyles}
+          <div 
+            ref={containerRef}
+            className="widget-grid-container relative"
+            style={gridLayout.getGridStyle()}
           >
-            <SortableContext 
-              items={widgets.map(w => w.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {widgets.map((widget) => renderWidget(widget))}
-            </SortableContext>
+            {tabWidgets.map(renderWidget)}
           </div>
 
-          {/* Drag Overlay */}
-          <DragOverlay adjustScale={false}>
-            {draggedWidget && renderWidget(draggedWidget, true)}
+          <DragOverlay>
+            {activeId ? (
+              <div className="widget-drag-ghost">
+                <DraggableWidget
+                  widget={tabWidgets.find(w => w.id === activeId)!}
+                  isDragOverlay={true}
+                  onUpdate={() => {}}
+                  onDuplicate={() => {}}
+                  onDelete={() => {}}
+                  style={{ opacity: 0.8 }}
+                >
+                  <WidgetRenderer widget={tabWidgets.find(w => w.id === activeId)!} />
+                </DraggableWidget>
+              </div>
+            ) : null}
           </DragOverlay>
         </DndContext>
+
+        {/* Grid Drop Overlay */}
+        <GridDropOverlay
+          isVisible={showGridOverlay || !!activeId}
+          containerWidth={containerWidth}
+          widgets={tabWidgets}
+          draggedWidget={activeId ? tabWidgets.find(w => w.id === activeId) : undefined}
+          hoverPosition={hoverPosition}
+        />
       </div>
 
       {/* Add Widget Button */}
-      <Button
-        variant="outline"
-        size={isMobile ? "touch-large" : "default"}
-        className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 bg-transparent hover:bg-secondary/30 transition-all duration-200 group pip-glow"
-        disabled={isLoading}
-        onClick={() => setShowAdvancedCatalog(true)}
-      >
-        <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
-          <Plus className="h-8 w-8" />
-          <span className="font-mono text-sm pip-text-glow">ADD WIDGET</span>
-        </div>
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          onClick={() => setShowCatalog(true)}
+          className="flex items-center gap-2"
+          variant="outline"
+        >
+          <Plus className="h-4 w-4" />
+          Add Widget
+        </Button>
+      </div>
 
       {/* Advanced Widget Catalog */}
-      {showAdvancedCatalog && (
+      {showCatalog && (
         <AdvancedWidgetCatalog
           currentTab={tab}
           onAddWidget={handleAddWidget}
-          onClose={() => setShowAdvancedCatalog(false)}
+          onClose={() => setShowCatalog(false)}
         />
       )}
 
       {/* Empty State */}
-      {widgets.length === 0 && (
+      {tabWidgets.length === 0 && (
         <div className="text-center py-12">
-          <div className="p-8 max-w-md mx-auto border border-border rounded-lg bg-secondary/20 pip-glow">
-            <div className="text-muted-foreground font-mono mb-4 pip-text-glow">
+          <div className="p-8 max-w-md mx-auto border border-border rounded-lg bg-secondary/20">
+            <div className="text-muted-foreground font-mono mb-4">
               No widgets in this tab yet
             </div>
             <div className="text-xs text-muted-foreground font-mono">
-              Click "ADD WIDGET" above to get started
+              Click "Add Widget" above to get started
             </div>
           </div>
         </div>
