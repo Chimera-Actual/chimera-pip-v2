@@ -56,16 +56,13 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     disabled: isDragOverlay 
   });
 
-  const { gestureProps } = useGestureHandler({
-    onLongPress: () => {
-      if (!isDragOverlay) {
-        // Haptic feedback if available
-        if ('vibrate' in navigator) {
-          navigator.vibrate(50);
-        }
-      }
-    }
-  });
+  const handleToggleCollapse = () => {
+    onUpdate(widget.id, { collapsed: !widget.collapsed });
+  };
+
+  const handleResize = (size: { width: number; height: number }) => {
+    onUpdate(widget.id, { size });
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -83,14 +80,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     rawTransform: transform 
   });
 
-  const handleToggleCollapse = () => {
-    onUpdate(widget.id, { collapsed: !widget.collapsed });
-  };
-
-  const handleResize = (size: { width: number; height: number }) => {
-    onUpdate(widget.id, { size });
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -102,7 +91,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         viewMode === 'masonry' && "break-inside-avoid mb-4",
         className
       )}
-      {...gestureProps}
       onMouseDown={(e) => {
         console.log('🖱️ Widget container mouse down:', widget.id);
       }}

@@ -1,10 +1,23 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { DndContext, DragOverlay } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+import { 
+  DndContext, 
+  DragOverlay, 
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import { 
+  SortableContext, 
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  arrayMove
+} from '@dnd-kit/sortable';
 import { Plus, Grid, List, Shuffle, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWidgets } from '@/contexts/WidgetContext';
-import { useAdvancedDragDrop } from '@/hooks/useAdvancedDragDrop';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { PullToRefresh } from '@/components/common/PullToRefresh';
@@ -58,8 +71,17 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [gridDensity, setGridDensity] = useState<GridDensity>('comfortable');
   const [containerWidth, setContainerWidth] = useState(1200);
+  const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
 
   const widgets = getWidgetsByTab(tab as any);
+
+  // Simple sensors like the working test
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Determine current device and grid config
   const deviceType = useMemo(() => {
@@ -73,22 +95,37 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     containerWidth
   }), [deviceType, gridDensity, containerWidth]);
 
-  // Handle widget operations - simplified for sortable behavior
-  const handleWidgetsReorder = useCallback(async (reorderedWidgets: BaseWidget[]) => {
-    console.log('Reordering widgets:', reorderedWidgets.map(w => w.id));
-    // For CSS Grid, we just need to update the order, not positions
-    for (let i = 0; i < reorderedWidgets.length; i++) {
-      const widget = reorderedWidgets[i];
-      await updateWidget(widget.id, { 
-        // Update a sort order field instead of position
-        position: { x: i, y: 0 } // Use x as sort order
-      });
-    }
-  }, [updateWidget]);
+  // Simple drag handler like the working test
+  const handleDragStart = useCallback((event: DragEndEvent) => {
+    console.log('🚀 WIDGET DRAG START:', event.active.id);
+    const widget = widgets.find(w => w.id === event.active.id);
+    setDraggedWidget(widget || null);
+  }, [widgets]);
 
-  const handleWidgetMove = useCallback(async (widgetId: string, position: { x: number; y: number }) => {
-    await updateWidget(widgetId, { position });
-  }, [updateWidget]);
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    console.log('🚀 WIDGET DRAG END:', { activeId: active.id, overId: over?.id });
+
+    setDraggedWidget(null);
+
+    if (over && active.id !== over.id) {
+      const oldIndex = widgets.findIndex((widget) => widget.id === active.id);
+      const newIndex = widgets.findIndex((widget) => widget.id === over.id);
+      
+      console.log('🔄 WIDGET REORDERING:', { oldIndex, newIndex });
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+        
+        // Update each widget's position.x to reflect new order
+        for (let i = 0; i < reorderedWidgets.length; i++) {
+          await updateWidget(reorderedWidgets[i].id, { 
+            position: { x: i, y: 0 } // Use x as sort order
+          });
+        }
+      }
+    }
+  }, [widgets, updateWidget]);
 
   const handleDuplicateWidget = useCallback(async (widget: BaseWidget) => {
     const newWidget = await addWidget(widget.type, widget.tabAssignment);
@@ -116,22 +153,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     await refreshWidgets();
   }, [refreshWidgets]);
 
-  // Simplified drag and drop for grid-based layout  
-  const {
-    dragState,
-    dndContextProps
-  } = useAdvancedDragDrop(
-    // Sort widgets by their position.x value for consistent ordering
-    widgets.sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0)),
-    handleWidgetsReorder,
-    handleWidgetMove,
-    gridConfig
-  );
-
-  console.log('🎯 Grid DndContext props:', dndContextProps);
-  console.log('🎯 Current drag state:', dragState);
-
-  // Auto-arrange widgets function - removed since not used
+  // Remove complex drag and drop setup - use simple approach
   const handleAutoArrange = useCallback(async () => {
     console.log('Auto-arrange not implemented yet');
   }, []);
@@ -184,14 +206,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         onDuplicate={handleDuplicateWidget}
         className={cn(
           "transition-all duration-200 ease-out",
-          dragState.isDragging && dragState.activeId === widget.id && "opacity-50 scale-95",
           isDragOverlay && "rotate-2 shadow-2xl z-50"
         )}
       >
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, dragState, updateWidget, removeWidget, handleDuplicateWidget]);
+  }, [viewMode, updateWidget, removeWidget, handleDuplicateWidget]);
 
   // Grid styles based on configuration
   const gridStyles = useMemo(() => {
@@ -290,23 +311,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         </div>
       </div>
 
-        {/* Widget Grid */}
+        {/* Widget Grid - Simplified like working test */}
         <div className="widget-grid-container relative min-h-[600px]">
           <DndContext 
-            collisionDetection={dndContextProps.collisionDetection}
-            modifiers={dndContextProps.modifiers}
-            onDragStart={(event) => {
-              console.log('🚀 DndContext onDragStart called:', event);
-              dndContextProps.onDragStart(event);
-            }}
-            onDragOver={(event) => {
-              console.log('🚀 DndContext onDragOver called:', event);  
-              dndContextProps.onDragOver(event);
-            }}
-            onDragEnd={(event) => {
-              console.log('🚀 DndContext onDragEnd called:', event);
-              dndContextProps.onDragEnd(event);
-            }}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
           >
             <SortableContext 
               items={widgets.map(w => w.id)} 
@@ -329,11 +340,11 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
 
             {/* Drag Overlay */}
             <DragOverlay>
-              {dragState.activeId ? (() => {
-                console.log('🎭 Rendering drag overlay for:', dragState.activeId);
-                const activeWidget = widgets.find(w => w.id === dragState.activeId);
-                return activeWidget ? renderWidget(activeWidget, true) : null;
-              })() : null}
+              {draggedWidget ? (
+                <div className="opacity-95 rotate-3 scale-105">
+                  {renderWidget(draggedWidget, true)}
+                </div>
+              ) : null}
             </DragOverlay>
           </DndContext>
         </div>
