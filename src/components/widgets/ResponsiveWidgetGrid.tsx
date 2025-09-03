@@ -287,27 +287,32 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
         {/* Widget Grid */}
         <div className="widget-grid-container relative min-h-[600px]">
           <DndContext {...dndContextProps}>
-            <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
+            <SortableContext 
+              items={widgets.map(w => w.id)} 
+              strategy={rectSortingStrategy}
+            >
               <div 
                 className="widgets-responsive-grid grid" 
                 style={gridStyles}
               >
-                {widgets.map(widget => (
-                  <div key={widget.id} className="widget-slot">
-                    {renderWidget(widget)}
-                  </div>
-                ))}
+                {widgets.map((widget, index) => {
+                  console.log('🏗️ Rendering widget:', widget.id, index);
+                  return (
+                    <div key={widget.id} className="widget-slot">
+                      {renderWidget(widget)}
+                    </div>
+                  );
+                })}
               </div>
             </SortableContext>
 
             {/* Drag Overlay */}
             <DragOverlay>
-              {dragState.activeId ? (
-                renderWidget(
-                  widgets.find(w => w.id === dragState.activeId)!,
-                  true
-                )
-              ) : null}
+              {dragState.activeId ? (() => {
+                console.log('🎭 Rendering drag overlay for:', dragState.activeId);
+                const activeWidget = widgets.find(w => w.id === dragState.activeId);
+                return activeWidget ? renderWidget(activeWidget, true) : null;
+              })() : null}
             </DragOverlay>
           </DndContext>
         </div>

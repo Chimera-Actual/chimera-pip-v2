@@ -35,6 +35,8 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 }) => {
   const [showSettings, setShowSettings] = useState(false);
 
+  console.log('🔧 DraggableWidget render:', widget.id, { isDragOverlay });
+
   const {
     attributes,
     listeners,
@@ -45,6 +47,13 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   } = useSortable({
     id: widget.id,
     disabled: isDragOverlay
+  });
+
+  console.log('🔧 Sortable state:', { 
+    id: widget.id, 
+    isDragging, 
+    transform, 
+    disabled: isDragOverlay 
   });
 
   const { gestureProps } = useGestureHandler({
@@ -81,13 +90,15 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       style={style}
       className={cn(
         "pip-widget relative rounded-lg overflow-hidden transition-all duration-200",
-        isDragging && "shadow-2xl scale-105 rotate-1 z-50",
+        isDragging && "shadow-2xl scale-105 rotate-1 z-50 opacity-50",
         isDragOverlay && "shadow-3xl scale-110 rotate-2 z-[1000]",
         viewMode === 'masonry' && "break-inside-avoid mb-4",
         className
       )}
       {...gestureProps}
-      {...attributes}
+      onMouseDown={(e) => {
+        console.log('🖱️ Widget container mouse down:', widget.id);
+      }}
     >
       {/* Widget Header */}
       <div className="widget-header flex items-center justify-between p-3 bg-pip-bg-secondary/50 border-b border-pip-border">
@@ -96,9 +107,18 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           <div
             className="drag-handle flex-shrink-0 p-2 cursor-grab active:cursor-grabbing hover:bg-pip-bg-tertiary rounded transition-colors touch-target select-none"
             {...listeners}
+            {...attributes}
             style={{ touchAction: 'none' }}
+            onMouseDown={(e) => {
+              console.log('🖱️ Mouse down on drag handle:', widget.id);
+              e.stopPropagation();
+            }}
+            onTouchStart={(e) => {
+              console.log('👆 Touch start on drag handle:', widget.id);
+              e.stopPropagation();
+            }}
           >
-            <Move className="w-4 h-4 text-pip-text-secondary" />
+            <Move className="w-4 h-4 text-pip-text-secondary pointer-events-none" />
           </div>
           
           <h3 className="text-sm font-semibold text-pip-text-bright uppercase tracking-wide truncate">

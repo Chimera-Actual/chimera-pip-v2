@@ -169,6 +169,7 @@ export const useAdvancedDragDrop = (
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
+    console.log('🎯 DRAG START:', active.id);
     setDragState(prev => ({
       ...prev,
       activeId: active.id as string,
@@ -178,6 +179,7 @@ export const useAdvancedDragDrop = (
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { over } = event;
+    console.log('🎯 DRAG OVER:', over?.id);
     setDragState(prev => ({
       ...prev,
       overId: over?.id as string || null
