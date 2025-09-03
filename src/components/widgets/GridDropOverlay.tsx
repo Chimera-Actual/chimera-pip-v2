@@ -17,62 +17,63 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
   containerWidth,
   widgets,
   draggedWidget,
-  hoverPosition,
+  hoverPosition
 }) => {
-  const { columns, getGridStyle, isValidPosition } = useGridLayout(containerWidth);
+  const gridLayout = useGridLayout(containerWidth);
 
-  if (!isVisible) return null;
+  if (!isVisible || !draggedWidget) return null;
 
-  const gridCells = [];
-  const maxRows = Math.min(20, Math.max(8, Math.max(...widgets.map(w => w.gridPosition.row + w.gridPosition.height)) + 2));
-
-  for (let row = 0; row < maxRows; row++) {
-    for (let col = 0; col < columns; col++) {
-      const cellPosition: GridPosition = {
-        row,
-        col,
-        width: draggedWidget?.gridPosition.width || 2,
-        height: draggedWidget?.gridPosition.height || 2,
-      };
-
-      const isHovered = hoverPosition && 
-        hoverPosition.row === row && 
-        hoverPosition.col === col;
-
-      const isValid = isValidPosition(cellPosition, widgets, draggedWidget?.id);
-      const isOccupied = widgets.some(w => 
-        w.id !== draggedWidget?.id &&
-        row >= w.gridPosition.row && 
-        row < w.gridPosition.row + w.gridPosition.height &&
-        col >= w.gridPosition.col && 
-        col < w.gridPosition.col + w.gridPosition.width
-      );
-
-      gridCells.push(
-        <div
-          key={`${row}-${col}`}
-          className={cn(
-            "border transition-all duration-150",
-            isHovered && isValid && "bg-accent/30 border-accent border-2",
-            isHovered && !isValid && "bg-destructive/20 border-destructive border-2",
-            !isHovered && isOccupied && "bg-muted/30 border-muted-foreground/40",
-            !isHovered && !isOccupied && "border-border/20 border-dashed"
-          )}
-          style={{
-            gridColumn: `${col + 1}`,
-            gridRow: `${row + 1}`,
-          }}
-        />
-      );
-    }
-  }
+  // Check if hover position is valid
+  const isValidDrop = hoverPosition && draggedWidget && 
+    gridLayout.isValidPosition(
+      { 
+        col: hoverPosition.col, 
+        row: hoverPosition.row,
+        width: draggedWidget.gridPosition.width,
+        height: draggedWidget.gridPosition.height
+      }, 
+      widgets, 
+      draggedWidget.id
+    );
 
   return (
     <div 
       className="absolute inset-0 pointer-events-none z-10"
-      style={getGridStyle()}
+      style={{
+        ...gridLayout.getGridStyle(),
+        backgroundImage: `
+          linear-gradient(to right, hsl(var(--border) / 0.3) 1px, transparent 1px),
+          linear-gradient(to bottom, hsl(var(--border) / 0.3) 1px, transparent 1px)
+        `,
+        backgroundSize: `${gridLayout.cellSize + gridLayout.gap}px ${gridLayout.cellSize + gridLayout.gap}px`,
+        backgroundPosition: '16px 16px', // Match container padding
+      }}
     >
-      {gridCells}
+      {/* Show hover preview */}
+      {hoverPosition && draggedWidget && (
+        <div
+          className={cn(
+            "border-2 transition-colors duration-150 rounded-md z-20",
+            isValidDrop ? 'bg-primary/20 border-primary' : 'bg-destructive/20 border-destructive'
+          )}
+          style={{
+            gridColumn: `${hoverPosition.col + 1} / span ${draggedWidget.gridPosition.width}`,
+            gridRow: `${hoverPosition.row + 1} / span ${draggedWidget.gridPosition.height}`,
+          }}
+        />
+      )}
+      
+      {/* Show occupied areas */}
+      {widgets.filter(w => w.id !== draggedWidget?.id).map(widget => (
+        <div
+          key={widget.id}
+          className="bg-muted/40 border border-border/30 rounded-md z-10"
+          style={{
+            gridColumn: `${widget.gridPosition.col + 1} / span ${widget.gridPosition.width}`,
+            gridRow: `${widget.gridPosition.row + 1} / span ${widget.gridPosition.height}`,
+          }}
+        />
+      ))}
     </div>
   );
 };

@@ -7,9 +7,9 @@ export class WidgetFactory {
       title: 'Character Profile',
       description: 'Display vault dweller information, level, and basic stats',
       category: 'system',
-      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells
+      defaultSize: { width: 3, height: 3 }, // 3×3 grid cells
       minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      maxSize: { width: 4, height: 4 },
       resizable: true,
       defaultTab: 'STAT',
       defaultSettings: {
@@ -25,9 +25,9 @@ export class WidgetFactory {
       title: 'S.P.E.C.I.A.L. Stats',
       description: 'Interactive display of your character\'s S.P.E.C.I.A.L. attributes',
       category: 'system',
-      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for all 7 stats
-      minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      defaultSize: { width: 4, height: 3 }, // 4×3 grid cells - wide for all 7 stats
+      minSize: { width: 3, height: 2 },
+      maxSize: { width: 5, height: 4 },
       resizable: true,
       defaultTab: 'STAT',
       defaultSettings: {
@@ -42,9 +42,9 @@ export class WidgetFactory {
       title: 'System Monitor',
       description: 'Real-time monitoring of Pip-Boy system performance and diagnostics',
       category: 'system',
-      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - good for charts
-      minSize: { width: 2, height: 1 },
-      maxSize: { width: 4, height: 3 },
+      defaultSize: { width: 4, height: 3 }, // 4×3 grid cells - good for charts
+      minSize: { width: 3, height: 2 },
+      maxSize: { width: 5, height: 4 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
@@ -59,9 +59,9 @@ export class WidgetFactory {
       title: 'Weather Station',
       description: 'Environmental monitoring including temperature, radiation, and air quality',
       category: 'data',
-      defaultSize: { width: 2, height: 1 }, // 2×1 grid cells - compact weather display
-      minSize: { width: 2, height: 1 },
-      maxSize: { width: 3, height: 2 },
+      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - compact weather display
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
@@ -77,9 +77,9 @@ export class WidgetFactory {
       title: 'News Terminal',
       description: 'Stay updated with the latest wasteland news and bulletins',
       category: 'data',
-      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for news list
-      minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      defaultSize: { width: 4, height: 4 }, // 4×4 grid cells - wide for news list
+      minSize: { width: 3, height: 3 },
+      maxSize: { width: 5, height: 5 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
@@ -95,9 +95,9 @@ export class WidgetFactory {
       title: 'Mission Calendar',
       description: 'Track missions, appointments, and important wasteland events',
       category: 'productivity',
-      defaultSize: { width: 2, height: 3 }, // 2×3 grid cells - tall for calendar
-      minSize: { width: 2, height: 2 },
-      maxSize: { width: 3, height: 4 },
+      defaultSize: { width: 4, height: 3 }, // 4×3 grid cells - wide for calendar
+      minSize: { width: 3, height: 2 },
+      maxSize: { width: 5, height: 4 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
@@ -112,9 +112,9 @@ export class WidgetFactory {
       title: 'A.I. Oracle',
       description: 'Advanced artificial intelligence assistant for wasteland guidance',
       category: 'productivity',
-      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for chat
-      minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      defaultSize: { width: 4, height: 4 }, // 4×4 grid cells - wide for chat
+      minSize: { width: 3, height: 3 },
+      maxSize: { width: 5, height: 5 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
@@ -129,9 +129,9 @@ export class WidgetFactory {
       title: 'Achievement Gallery',
       description: 'Showcase your wasteland accomplishments and trophies',
       category: 'entertainment',
-      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - standard
+      defaultSize: { width: 3, height: 3 }, // 3×3 grid cells - standard
       minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      maxSize: { width: 4, height: 4 },
       resizable: true,
       defaultTab: 'STAT',
       defaultSettings: {}
@@ -141,9 +141,9 @@ export class WidgetFactory {
       title: 'File Explorer',
       description: 'Browse and manage your Pip-Boy file system',
       category: 'productivity',
-      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for file list
-      minSize: { width: 2, height: 2 },
-      maxSize: { width: 4, height: 3 },
+      defaultSize: { width: 4, height: 4 }, // 4×4 grid cells - wide for file list
+      minSize: { width: 3, height: 3 },
+      maxSize: { width: 5, height: 5 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {}
@@ -153,9 +153,9 @@ export class WidgetFactory {
       title: 'Secure Vault',
       description: 'Protected storage for sensitive information and credentials',
       category: 'productivity',
-      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - secure and compact
+      defaultSize: { width: 3, height: 3 }, // 3×3 grid cells - secure and compact
       minSize: { width: 2, height: 2 },
-      maxSize: { width: 3, height: 3 },
+      maxSize: { width: 4, height: 4 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {}
@@ -165,9 +165,9 @@ export class WidgetFactory {
       title: 'Audio Player',
       description: 'Play music and audio files from the wasteland radio stations',
       category: 'entertainment',
-      defaultSize: { width: 4, height: 1 }, // 4×1 grid cells - wide player controls
-      minSize: { width: 3, height: 1 },
-      maxSize: { width: 4, height: 2 },
+      defaultSize: { width: 5, height: 2 }, // 5×2 grid cells - wide player controls
+      minSize: { width: 4, height: 1 },
+      maxSize: { width: 6, height: 3 },
       resizable: true,
       defaultTab: 'RADIO',
       defaultSettings: {}
