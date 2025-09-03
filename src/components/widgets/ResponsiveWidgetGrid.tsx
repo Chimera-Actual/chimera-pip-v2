@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
   arrayMove
 } from '@dnd-kit/sortable';
-import { Plus, Grid, List, Shuffle, Settings2 } from 'lucide-react';
+import { Plus, Grid, List, Shuffle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -24,33 +24,28 @@ import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { DraggableWidget } from './DraggableWidget';
 import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetType, BaseWidget } from '@/types/widgets';
-import { SimpleDragTest } from './SimpleDragTest';
 import { cn } from '@/lib/utils';
-import { useAdvancedDragDrop } from '@/hooks/useAdvancedDragDrop';
 
 interface ResponsiveWidgetGridProps {
   tab: string;
   className?: string;
 }
 
-type ViewMode = 'grid' | 'list' | 'masonry';
-type GridDensity = 'comfortable' | 'compact' | 'dense';
+type ViewMode = 'free' | 'grid' | 'list';
+type LayoutMode = 'free' | 'grid';
 
-const GRID_CONFIGS = {
+const LAYOUT_CONFIGS = {
   mobile: {
-    comfortable: { columns: 1, gap: 16, cellSize: 320 },
-    compact: { columns: 1, gap: 12, cellSize: 300 },
-    dense: { columns: 1, gap: 8, cellSize: 280 }
+    free: { gap: 16, minWidth: 280, maxCols: 1, cellWidth: 320, cellHeight: 240, columns: 1 },
+    grid: { gap: 16, cellWidth: 320, cellHeight: 240, columns: 1, minWidth: 320, maxCols: 1 }
   },
   tablet: {
-    comfortable: { columns: 2, gap: 20, cellSize: 280 },
-    compact: { columns: 2, gap: 16, cellSize: 260 },
-    dense: { columns: 3, gap: 12, cellSize: 240 }
+    free: { gap: 20, minWidth: 300, maxCols: 2, cellWidth: 300, cellHeight: 240, columns: 2 },
+    grid: { gap: 20, cellWidth: 300, cellHeight: 240, columns: 2, minWidth: 300, maxCols: 2 }
   },
   desktop: {
-    comfortable: { columns: 3, gap: 24, cellSize: 300 },
-    compact: { columns: 4, gap: 20, cellSize: 280 },
-    dense: { columns: 5, gap: 16, cellSize: 260 }
+    free: { gap: 24, minWidth: 320, maxCols: 3, cellWidth: 320, cellHeight: 240, columns: 3 },
+    grid: { gap: 24, cellWidth: 320, cellHeight: 240, columns: 3, minWidth: 320, maxCols: 3 }
   }
 };
 
@@ -69,147 +64,88 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
   
   const isMobile = useIsMobile();
   const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [gridDensity, setGridDensity] = useState<GridDensity>('comfortable');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('free');
+  const [viewMode, setViewMode] = useState<ViewMode>('free');
   const [containerWidth, setContainerWidth] = useState(1200);
   const [draggedWidget, setDraggedWidget] = useState<BaseWidget | null>(null);
 
-  // Sort widgets by position for consistent display
+  // Get widgets for current tab
   const widgets = getWidgetsByTab(tab as any);
-  const sortedWidgets = useMemo(() => {
-    return [...widgets].sort((a, b) => {
-      const aPos = a.position?.x ?? 999;
-      const bPos = b.position?.x ?? 999;
-      return aPos - bPos;
-    });
-  }, [widgets]);
-
-  // Smooth drag sensors with better activation
+  
+  // Smooth drag sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 }
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
-  // Determine current device and grid config
+  // Determine current device type
   const deviceType = useMemo(() => {
     if (isMobile) return 'mobile';
     if (containerWidth < 1024) return 'tablet';
     return 'desktop';
   }, [isMobile, containerWidth]);
 
-  const baseConfig = GRID_CONFIGS[deviceType][gridDensity];
-  const gridConfig = useMemo(() => ({
-    ...baseConfig,
-    containerWidth,
-    rows: Math.ceil(sortedWidgets.length / baseConfig.columns) + 5
-  }), [baseConfig, containerWidth, sortedWidgets.length]);
+  // Get layout configuration
+  const layoutConfig = LAYOUT_CONFIGS[deviceType][layoutMode];
 
-  // Grid-based drag and drop system
-  const onWidgetsReorder = useCallback(async (widgets: BaseWidget[]) => {
-    try {
-      for (let i = 0; i < widgets.length; i++) {
-        const widget = widgets[i];
-        await updateWidget(widget.id, { 
-          position: { x: i * 50, y: 0 } // Simple positioning for now
-        });
-      }
-    } catch (error) {
-      console.error('Error during reordering:', error);
-    }
-  }, [updateWidget]);
-
-  const onWidgetMove = useCallback(async (widgetId: string, position: { x: number; y: number }) => {
-    try {
-      await updateWidget(widgetId, { position });
-    } catch (error) {
-      console.error('Error during widget move:', error);
-    }
-  }, [updateWidget]);
-
-  const {
-    dragState,
-    handleDragStart,
-    handleDragEnd,
-    autoArrangeWidgets,
-    gridSystem,
-    dndContextProps
-  } = useAdvancedDragDrop(
-    sortedWidgets,
-    onWidgetsReorder,
-    onWidgetMove,
-    gridConfig
-  );
-
-  // Set dragged widget for overlay
-  const handleDragStartProxy = useCallback((event: DragEndEvent) => {
-    const widget = sortedWidgets.find(w => w.id === event.active.id);
+  // Simple drag and drop handlers
+  const handleDragStart = useCallback((event: DragEndEvent) => {
+    const widget = widgets.find(w => w.id === event.active.id);
     setDraggedWidget(widget || null);
-    handleDragStart(event);
-  }, [sortedWidgets, handleDragStart]);
+  }, [widgets]);
 
-  const handleDragEndProxy = useCallback(async (event: DragEndEvent) => {
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
     setDraggedWidget(null);
-    handleDragEnd(event);
-  }, [handleDragEnd]);
 
-  // Auto-arrange using grid system
-  const handleAutoArrange = useCallback(async () => {
-    if (sortedWidgets.length === 0) return;
-    
-    console.log('🔄 Auto-arranging widgets with grid system...');
-    
-    try {
-      const arrangedWidgets = autoArrangeWidgets(sortedWidgets);
+    if (active && over && active.id !== over.id) {
+      const oldIndex = widgets.findIndex(w => w.id === active.id);
+      const newIndex = widgets.findIndex(w => w.id === over.id);
       
-      // Update all widget positions
-      for (const widget of arrangedWidgets) {
-        if (widget.position) {
-          await updateWidget(widget.id, { 
-            position: widget.position,
-            size: widget.size 
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+        // Update positions for reordered widgets
+        for (let i = 0; i < reorderedWidgets.length; i++) {
+          await updateWidget(reorderedWidgets[i].id, { 
+            position: { x: i * 20, y: 0 } 
           });
         }
       }
-      
-      console.log('✅ Auto-arrangement complete');
-      
-    } catch (error) {
-      console.error('❌ Error during auto-arrangement:', error);
     }
-  }, [sortedWidgets, autoArrangeWidgets, updateWidget]);
+  }, [widgets, updateWidget]);
 
-  // Enhanced widget update with auto-reflow
-  const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
-    const oldWidget = sortedWidgets.find(w => w.id === widgetId);
-    const sizeChanged = updates.size && oldWidget?.size && 
-      (updates.size.width !== oldWidget.size.width || updates.size.height !== oldWidget.size.height);
+  // Auto-arrange widgets in clean rows
+  const handleAutoArrange = useCallback(async () => {
+    if (widgets.length === 0) return;
     
-    // Update the widget first
-    await updateWidget(widgetId, updates);
+    const widgetsPerRow = layoutMode === 'grid' ? layoutConfig.columns : Math.floor(containerWidth / (layoutConfig.minWidth || 300));
     
-    // If size changed, trigger auto-arrangement after a short delay
-    if (sizeChanged) {
-      setTimeout(() => {
-        handleAutoArrange();
-      }, 300);
+    for (let i = 0; i < widgets.length; i++) {
+      const row = Math.floor(i / widgetsPerRow);
+      const col = i % widgetsPerRow;
+      
+      await updateWidget(widgets[i].id, {
+        position: {
+          x: col * ((layoutConfig.cellWidth || 300) + layoutConfig.gap),
+          y: row * ((layoutConfig.cellHeight || 240) + layoutConfig.gap)
+        }
+      });
     }
-  }, [sortedWidgets, updateWidget, handleAutoArrange]);
+  }, [widgets, layoutMode, layoutConfig, containerWidth, updateWidget]);
+
+  // Widget update handler
+  const handleWidgetUpdate = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
+    await updateWidget(widgetId, updates);
+  }, [updateWidget]);
 
   const handleDuplicateWidget = useCallback(async (widget: BaseWidget) => {
     const newWidget = await addWidget(widget.type, widget.tabAssignment);
     if (newWidget) {
-      const newPosition = {
-        x: (widget.position?.x || 0) + 20,
-        y: (widget.position?.y || 0) + 20
-      };
       await updateWidget(newWidget.id, { 
-        position: newPosition,
         settings: widget.settings,
         size: widget.size
       });
@@ -269,67 +205,99 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       <DraggableWidget
         widget={widget}
         isDragOverlay={isDragOverlay}
-        viewMode={viewMode}
+        layoutMode={layoutMode}
         onUpdate={handleWidgetUpdate}
         onDelete={removeWidget}
         onDuplicate={handleDuplicateWidget}
         className={cn(
           "transition-all duration-300 ease-in-out",
-          "hover:shadow-lg hover:scale-[1.02]",
           isDragOverlay && "rotate-3 shadow-2xl scale-105 z-50"
         )}
       >
         <WidgetRenderer widget={widget} />
       </DraggableWidget>
     );
-  }, [viewMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
+  }, [viewMode, layoutMode, handleWidgetUpdate, removeWidget, handleDuplicateWidget]);
 
-  // Grid styles for absolute positioning system
-  const gridStyles = useMemo(() => {
+  // Container styles based on layout mode
+  const containerStyles = useMemo(() => {
     if (viewMode === 'list') {
       return {
         display: 'flex',
         flexDirection: 'column' as const,
-        gap: `${gridConfig.gap}px`
+        gap: `${layoutConfig.gap}px`
       };
     }
 
+    if (layoutMode === 'grid') {
+      return {
+        display: 'grid',
+        gridTemplateColumns: `repeat(${layoutConfig.columns}, 1fr)`,
+        gap: `${layoutConfig.gap}px`,
+        alignItems: 'start'
+      };
+    }
+
+    // Free layout (flexbox wrapping)
     return {
-      position: 'relative' as const,
-      width: '100%',
-      minHeight: `${(gridConfig.rows * gridConfig.cellSize) + ((gridConfig.rows - 1) * gridConfig.gap)}px`
+      display: 'flex',
+      flexWrap: 'wrap' as const,
+      gap: `${layoutConfig.gap}px`,
+      alignItems: 'flex-start'
     };
-  }, [viewMode, gridConfig]);
+  }, [viewMode, layoutMode, layoutConfig]);
 
   const gridContent = (
     <div className={cn('space-y-6', className)}>
-      {/* Simple Drag Test - Temporary */}
-      <div className="p-4 bg-pip-bg-secondary/30 rounded-lg border border-pip-border">
-        <h3 className="text-sm font-semibold text-primary uppercase tracking-wide pip-text-glow mb-4">
-          🧪 DRAG TEST - If this works, the issue is in our widget setup
-        </h3>
-        <SimpleDragTest />
-      </div>
-
-      {/* Grid Controls */}
+      {/* Layout Controls */}
       <div className="flex items-center justify-between gap-4 p-4 bg-secondary/30 rounded-lg border border-border pip-glow">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
-            View Mode:
-          </span>
+        <div className="flex items-center gap-4">
+          {/* Layout Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-foreground uppercase tracking-wide pip-text-glow">
+              Layout:
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setLayoutMode(layoutMode === 'free' ? 'grid' : 'free');
+                setViewMode(layoutMode === 'free' ? 'grid' : 'free');
+              }}
+              className="flex items-center gap-2 hover:bg-primary/20"
+            >
+              {layoutMode === 'free' ? (
+                <>
+                  <ToggleLeft className="h-4 w-4" />
+                  Free
+                </>
+              ) : (
+                <>
+                  <ToggleRight className="h-4 w-4" />
+                  Grid
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* View Mode Buttons */}
           <div className="flex items-center gap-1 border border-border rounded-md bg-secondary/20">
             <Button
               size="sm"
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('grid')}
+              variant={viewMode === 'free' ? 'default' : 'ghost'}
+              onClick={() => {
+                setViewMode('free');
+                setLayoutMode('free');
+              }}
               className={cn(
                 "rounded-none border-0 pip-button-glow transition-colors",
-                viewMode === 'grid' 
+                viewMode === 'free' 
                   ? 'bg-primary/20 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]' 
                   : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
               )}
             >
               <Grid className="w-4 h-4" />
+              Free
             </Button>
             <Button
               size="sm"
@@ -343,126 +311,50 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
               )}
             >
               <List className="w-4 h-4" />
+              List
             </Button>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline" 
-              size="sm"
-              onClick={handleAutoArrange}
-              className="flex items-center gap-2 hover:bg-pip-green-primary/20"
-            >
-              <Shuffle className="h-4 w-4" />
-              Auto Arrange
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => gridSystem.setShowGrid(!gridSystem.showGrid)}
-              className={`flex items-center gap-2 ${gridSystem.showGrid ? 'bg-pip-green-primary/20' : ''}`}
-            >
-              <Grid className="h-4 w-4" />
-              Grid
-            </Button>
-          </div>
-          
-          <select
-            className="px-3 py-1 text-sm bg-secondary border border-border rounded text-foreground pip-glow focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={gridDensity}
-            onChange={(e) => setGridDensity(e.target.value as GridDensity)}
-            disabled={viewMode === 'list'}
+          <Button
+            variant="outline" 
+            size="sm"
+            onClick={handleAutoArrange}
+            className="flex items-center gap-2 hover:bg-pip-green-primary/20"
           >
-            <option value="comfortable">Comfortable</option>
-            <option value="compact">Compact</option>
-            <option value="dense">Dense</option>
-          </select>
+            <Shuffle className="h-4 w-4" />
+            Auto Arrange
+          </Button>
         </div>
       </div>
 
-        {/* Grid-Based Widget System */}
-        <div className="widget-grid-container relative min-h-[600px]">
-          <DndContext {...dndContextProps}>
-            <div
-              className="widgets-responsive-grid relative"
-              style={gridStyles}
+      {/* Widget Container */}
+      <div className="widget-container min-h-[400px]">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div
+            className="widgets-layout"
+            style={containerStyles}
+          >
+            <SortableContext 
+              items={widgets.map(w => w.id)}
+              strategy={rectSortingStrategy}
             >
-              {/* Grid Overlay */}
-              {gridSystem.showGrid && viewMode !== 'list' && (
-                <div className="absolute inset-0 pointer-events-none z-0">
-                  {/* Vertical Grid Lines */}
-                  {gridSystem.getGridLines.vertical.map((x, index) => (
-                    <div
-                      key={`v-${index}`}
-                      className="absolute h-full border-l border-pip-border/30"
-                      style={{ left: `${x}px` }}
-                    />
-                  ))}
-                  {/* Horizontal Grid Lines */}
-                  {gridSystem.getGridLines.horizontal.map((y, index) => (
-                    <div
-                      key={`h-${index}`}
-                      className="absolute w-full border-t border-pip-border/30"
-                      style={{ top: `${y}px` }}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              <SortableContext 
-                items={sortedWidgets.map(w => w.id)}
-                strategy={rectSortingStrategy}
-              >
-                {sortedWidgets.map((widget) => (
-                  <DraggableWidget
-                    key={widget.id}
-                    widget={widget}
-                    isDragOverlay={false}
-                    viewMode={viewMode}
-                    onUpdate={handleWidgetUpdate}
-                    onDelete={removeWidget}
-                    onDuplicate={handleDuplicateWidget}
-                    className={cn(
-                      "transition-all duration-300 ease-in-out",
-                      "hover:shadow-lg hover:scale-[1.02] hover:z-10"
-                    )}
-                  >
-                    <WidgetRenderer widget={widget} />
-                  </DraggableWidget>
-                ))}
-              </SortableContext>
-            </div>
+              {widgets.map((widget) => renderWidget(widget))}
+            </SortableContext>
+          </div>
 
-            {/* Drag Overlay */}
-            <DragOverlay
-              adjustScale={false}
-              style={{ cursor: 'grabbing' }}
-            >
-              {draggedWidget && (
-                <div className={cn(
-                  "transform-gpu opacity-95 rotate-3 scale-110",
-                  "shadow-2xl shadow-primary/20",
-                  "transition-all duration-200 ease-out"
-                )}>
-                  <DraggableWidget
-                    widget={draggedWidget}
-                    isDragOverlay={true}
-                    viewMode={viewMode}
-                    onUpdate={handleWidgetUpdate}
-                    onDelete={removeWidget}
-                    onDuplicate={handleDuplicateWidget}
-                    className="pointer-events-none"
-                  >
-                    <WidgetRenderer widget={draggedWidget} />
-                  </DraggableWidget>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        </div>
+          {/* Drag Overlay */}
+          <DragOverlay adjustScale={false}>
+            {draggedWidget && renderWidget(draggedWidget, true)}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       {/* Add Widget Button */}
       <Button
@@ -488,7 +380,7 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
       )}
 
       {/* Empty State */}
-      {sortedWidgets.length === 0 && (
+      {widgets.length === 0 && (
         <div className="text-center py-12">
           <div className="p-8 max-w-md mx-auto border border-border rounded-lg bg-secondary/20 pip-glow">
             <div className="text-muted-foreground font-mono mb-4 pip-text-glow">

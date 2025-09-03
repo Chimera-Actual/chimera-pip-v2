@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 interface DraggableWidgetProps {
   widget: BaseWidget;
   isDragOverlay?: boolean;
-  viewMode: 'grid' | 'list' | 'masonry';
+  layoutMode?: 'free' | 'grid';
   children: React.ReactNode;
   onUpdate: (widgetId: string, updates: Partial<BaseWidget>) => void;
   onDelete: (widgetId: string) => void;
@@ -26,7 +26,7 @@ interface DraggableWidgetProps {
 export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   widget,
   isDragOverlay = false,
-  viewMode,
+  layoutMode = 'free',
   children,
   onUpdate,
   onDelete,
@@ -141,21 +141,13 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     transition: isDragging ? 'none' : 'transform 200ms ease',
     opacity: isDragging ? 0.8 : 1,
     zIndex: isDragging ? 1000 : isResizing ? 999 : 1,
-    ...(viewMode === 'grid' ? {
-      position: 'absolute',
-      left: widget.position?.x || 0,
-      top: widget.position?.y || 0,
-      width: widget.size?.width || 300,
-      height: widget.size?.height || 200,
-    } : {
-      width: widget.size?.width || 300,
-      height: widget.size?.height || 200,
-    }),
-    touchAction: 'none',
-    // Add subtle border when in grid mode for better visual feedback
-    ...(viewMode === 'grid' ? {
-      border: '1px solid hsl(var(--pip-border) / 0.3)',
-    } : {})
+    width: widget.size?.width || 320,
+    minWidth: 280,
+    maxWidth: '100%',
+    height: widget.collapsed ? 'auto' : (widget.size?.height || 240),
+    minHeight: widget.collapsed ? 'auto' : 200,
+    flexShrink: 0,
+    touchAction: 'none'
   };
 
   return (
@@ -169,8 +161,9 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       style={style}
       className={cn(
         // Base styles
-        "pip-widget relative rounded-lg overflow-hidden",
+        "pip-widget relative rounded-lg overflow-hidden flex flex-col",
         "transform-gpu will-change-transform",
+        "bg-pip-bg-primary border border-pip-border",
         "transition-all duration-300 ease-out",
         
         // Drop zone visual feedback
@@ -193,8 +186,8 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         // Resizing state
         isResizing && "transition-none select-none",
         
-        // View mode adjustments
-        viewMode === 'masonry' && "break-inside-avoid mb-4",
+        // Layout mode adjustments
+        layoutMode === 'grid' && "flex flex-col",
         
         className
       )}
@@ -250,8 +243,20 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 
       {/* Widget Content */}
       {!widget.collapsed && (
-        <div className="widget-content">
-          {children}
+        <div className="widget-content flex-1 overflow-hidden flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <div className="p-4">
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapsed State */}
+      {widget.collapsed && (
+        <div className="px-4 py-2 text-center text-xs text-pip-text-muted bg-pip-bg-secondary/10 border-t border-pip-border/50 cursor-pointer"
+             onClick={handleToggleCollapse}>
+          Click to expand widget
         </div>
       )}
 
@@ -313,12 +318,6 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         </>
       )}
 
-      {/* Loading/Error Overlays */}
-      {widget.collapsed && (
-        <div className="p-2 text-center text-xs text-pip-text-muted">
-          Widget collapsed
-        </div>
-      )}
     </div>
   );
 };
