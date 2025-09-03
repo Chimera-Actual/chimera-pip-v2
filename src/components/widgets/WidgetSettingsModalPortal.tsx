@@ -321,16 +321,24 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   };
 
   useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleEscape);
     } else {
       document.body.style.overflow = 'unset';
     }
 
     return () => {
       document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -366,7 +374,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
       />
       
       {/* Modal - Centered with responsive width */}
-      <div className="relative w-full max-w-[800px] max-h-[85vh] md:w-[800px] rounded-lg bg-pip-bg-primary/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow">
+      <div className="relative w-full max-w-[800px] max-h-[85vh] md:w-[800px] rounded-lg bg-pip-bg-primary/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow animate-in fade-in-0 zoom-in-95 duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-primary/20 bg-primary/5">
           <div className="flex items-center gap-3">
