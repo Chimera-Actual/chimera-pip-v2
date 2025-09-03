@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { WidgetGrid } from '@/components/widgets/WidgetGrid';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, MoveIcon, LayersIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PlusIcon, MoveIcon, LayersIcon, Plus, LayoutGrid } from 'lucide-react';
+import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
+import { useWidgets } from '@/contexts/WidgetContext';
+import { WidgetType } from '@/types/widgets';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -13,6 +17,13 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
   className
 }) => {
   const [isDragMode, setIsDragMode] = useState(false);
+  const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
+  const { addWidget } = useWidgets();
+
+  const handleAddWidget = async (type: WidgetType) => {
+    await addWidget(type, activeTab as any);
+    setShowAdvancedCatalog(false);
+  };
 
   const getTabDescription = (tab: string) => {
     const descriptions: Record<string, string> = {
@@ -39,6 +50,28 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
         </div>
         
         <div className="flex items-center gap-3 group">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAdvancedCatalog(true)}
+                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 font-pip-mono text-xs border border-pip-border hover:border-primary hover:bg-pip-bg-secondary/50"
+                  title="Add Widget"
+                >
+                  <div className="flex items-center justify-center">
+                    <Plus className="h-3 w-3" />
+                    <LayoutGrid className="h-3 w-3 -ml-1" />
+                  </div>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Widget</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
           <Button
             variant="ghost"
             size="sm"
@@ -57,6 +90,15 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
       <div className={`widget-content ${isDragMode ? 'drag-mode' : ''}`}>
         <WidgetGrid tab={activeTab} />
       </div>
+
+      {/* Advanced Widget Catalog Modal */}
+      {showAdvancedCatalog && (
+        <AdvancedWidgetCatalog
+          onClose={() => setShowAdvancedCatalog(false)}
+          onAddWidget={handleAddWidget}
+          currentTab={activeTab as any}
+        />
+      )}
     </main>
   );
 };
