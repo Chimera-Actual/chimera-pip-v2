@@ -6,6 +6,7 @@ import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
+import { enforceSquareConstraint, validateAndConstrainPosition } from '@/lib/gridValidation';
 
 interface WidgetContextType {
   widgets: BaseWidget[];
@@ -133,6 +134,41 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     try {
       const widget = WidgetFactory.createWidget(type, user.id, tabAssignment);
 
+      // Ensure square constraint
+      widget.gridPosition = enforceSquareConstraint(widget.gridPosition);
+
+      // Find a suitable position for the new widget
+      const tabWidgets = getWidgetsByTab(widget.tabAssignment);
+      let position = { 
+        col: 0, 
+        row: 0, 
+        width: widget.gridPosition.width, 
+        height: widget.gridPosition.height 
+      };
+      
+      // Simple positioning: find first available spot (36 columns max for desktop)
+      let placed = false;
+      for (let row = 0; row < 50 && !placed; row++) {
+        for (let col = 0; col <= 36 - position.width && !placed; col++) {
+          const testPosition = { ...position, col, row };
+          const hasCollision = tabWidgets.some(widget => {
+            const wp = widget.gridPosition;
+            return !(
+              testPosition.col >= wp.col + wp.width ||
+              testPosition.col + testPosition.width <= wp.col ||
+              testPosition.row >= wp.row + wp.height ||
+              testPosition.row + testPosition.height <= wp.row
+            );
+          });
+          if (!hasCollision) {
+            position = testPosition;
+            placed = true;
+          }
+        }
+      }
+
+      widget.gridPosition = validateAndConstrainPosition(position, 36);
+
       const { data, error: insertError } = await supabase
         .from('user_widgets')
         .insert({
@@ -228,18 +264,45 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     if (!user?.id) return;
 
     try {
+      const currentWidget = widgets.find(w => w.id === widgetId);
+      if (!currentWidget) {
+        throw new Error('Widget not found');
+      }
+
+      // Validate and constrain gridPosition if provided
+      if (updates.gridPosition) {
+        // Enforce square constraint
+        updates.gridPosition = enforceSquareConstraint(updates.gridPosition);
+        updates.gridPosition = validateAndConstrainPosition(updates.gridPosition, 36);
+        
+        const tabWidgets = getWidgetsByTab(currentWidget.tabAssignment)
+          .filter(w => w.id !== widgetId);
+        
+        const hasCollision = tabWidgets.some(widget => {
+          const wp = widget.gridPosition;
+          const up = updates.gridPosition!;
+          return !(
+            up.col >= wp.col + wp.width ||
+            up.col + up.width <= wp.col ||
+            up.row >= wp.row + wp.height ||
+            up.row + up.height <= wp.row
+          );
+        });
+
+        if (hasCollision) {
+          throw new Error('Widget position would overlap with existing widget');
+        }
+      }
+
       const dbUpdates: any = {
         updated_at: new Date().toISOString(),
       };
 
       if (updates.title !== undefined || updates.settings !== undefined) {
-        const currentWidget = widgets.find(w => w.id === widgetId);
-        if (currentWidget) {
-          dbUpdates.widget_config = {
-            title: updates.title || currentWidget.title,
-            settings: updates.settings || currentWidget.settings,
-          };
-        }
+        dbUpdates.widget_config = {
+          title: updates.title || currentWidget.title,
+          settings: updates.settings || currentWidget.settings,
+        };
       }
 
       if (updates.gridPosition !== undefined) dbUpdates.grid_position = updates.gridPosition;

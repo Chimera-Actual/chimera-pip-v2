@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 import { GridPosition } from '@/types/widgets';
 import { useGridLayout } from '@/hooks/useGridLayout';
 import { BaseWidget } from '@/types/widgets';
@@ -23,15 +24,15 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
   if (!isVisible) return null;
 
   const gridCells = [];
-  const maxRows = Math.max(4, Math.max(...widgets.map(w => w.gridPosition.row + w.gridPosition.height)) + 2);
+  const maxRows = Math.max(8, Math.max(...widgets.map(w => w.gridPosition.row + w.gridPosition.height)) + 4);
 
   for (let row = 0; row < maxRows; row++) {
     for (let col = 0; col < columns; col++) {
       const cellPosition: GridPosition = {
         row,
         col,
-        width: draggedWidget?.gridPosition.width || 2,
-        height: draggedWidget?.gridPosition.height || 2,
+        width: draggedWidget?.gridPosition.width || 10,
+        height: draggedWidget?.gridPosition.height || 10,
       };
 
       const isHovered = hoverPosition && 
@@ -47,15 +48,16 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
         col < w.gridPosition.col + w.gridPosition.width
       );
 
-      let className = 'grid-drop-cell';
-      if (isHovered && isValid) className += ' valid-drop';
-      else if (isHovered && !isValid) className += ' invalid-drop';
-      else if (isOccupied) className += ' occupied';
-
       gridCells.push(
         <div
           key={`${row}-${col}`}
-          className={className}
+          className={cn(
+            "border transition-all duration-150 min-h-[20px]",
+            isHovered && isValid && "bg-accent/30 border-accent border-2",
+            isHovered && !isValid && "bg-destructive/20 border-destructive border-2",
+            !isHovered && isOccupied && "bg-muted/30 border-muted-foreground/40",
+            !isHovered && !isOccupied && "border-border/20 border-dashed"
+          )}
           style={{
             gridColumn: `${col + 1}`,
             gridRow: `${row + 1}`,
@@ -67,7 +69,7 @@ export const GridDropOverlay: React.FC<GridDropOverlayProps> = ({
 
   return (
     <div 
-      className="grid-drop-overlay"
+      className="absolute inset-0 pointer-events-none z-10"
       style={getGridStyle()}
     >
       {gridCells}
