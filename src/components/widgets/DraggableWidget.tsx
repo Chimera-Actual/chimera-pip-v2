@@ -76,6 +76,13 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     height: widget.size?.height || 200,
   };
 
+  console.log('🎨 Widget style:', { 
+    id: widget.id, 
+    transform: CSS.Transform.toString(transform), 
+    isDragging,
+    rawTransform: transform 
+  });
+
   const handleToggleCollapse = () => {
     onUpdate(widget.id, { collapsed: !widget.collapsed });
   };

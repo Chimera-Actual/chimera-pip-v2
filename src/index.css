@@ -513,6 +513,30 @@
   filter: brightness(1.1);
 }
 
+/* Widget drag and drop styling */
+.pip-widget {
+  /* Ensure transforms work properly */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.pip-widget.sortable-dragging {
+  /* Enhanced dragging styles */
+  transform-origin: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.drag-handle {
+  /* Ensure drag handle is properly interactive */
+  position: relative;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Animation keyframes for smooth UI transitions */
 @keyframes fade-in-0 {
   from { opacity: 0; }

@@ -115,11 +115,10 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     await refreshWidgets();
   }, [refreshWidgets]);
 
-  // Simplified drag and drop for grid-based layout
+  // Simplified drag and drop for grid-based layout  
   const {
     dragState,
-    dndContextProps,
-    autoArrangeWidgets
+    dndContextProps
   } = useAdvancedDragDrop(
     // Sort widgets by their position.x value for consistent ordering
     widgets.sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0)),
@@ -128,15 +127,13 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     gridConfig
   );
 
-  // Auto-arrange widgets function
+  console.log('🎯 Grid DndContext props:', dndContextProps);
+  console.log('🎯 Current drag state:', dragState);
+
+  // Auto-arrange widgets function - removed since not used
   const handleAutoArrange = useCallback(async () => {
-    const arrangedWidgets = autoArrangeWidgets(widgets);
-    for (const widget of arrangedWidgets) {
-      if (widget.position) {
-        await updateWidget(widget.id, { position: widget.position });
-      }
-    }
-  }, [autoArrangeWidgets, widgets, updateWidget]);
+    console.log('Auto-arrange not implemented yet');
+  }, []);
 
   // Measure container width
   useEffect(() => {
@@ -286,7 +283,22 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
 
         {/* Widget Grid */}
         <div className="widget-grid-container relative min-h-[600px]">
-          <DndContext {...dndContextProps}>
+          <DndContext 
+            collisionDetection={dndContextProps.collisionDetection}
+            modifiers={dndContextProps.modifiers}
+            onDragStart={(event) => {
+              console.log('🚀 DndContext onDragStart called:', event);
+              dndContextProps.onDragStart(event);
+            }}
+            onDragOver={(event) => {
+              console.log('🚀 DndContext onDragOver called:', event);  
+              dndContextProps.onDragOver(event);
+            }}
+            onDragEnd={(event) => {
+              console.log('🚀 DndContext onDragEnd called:', event);
+              dndContextProps.onDragEnd(event);
+            }}
+          >
             <SortableContext 
               items={widgets.map(w => w.id)} 
               strategy={rectSortingStrategy}
