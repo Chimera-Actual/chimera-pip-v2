@@ -278,6 +278,64 @@ export const useTabManager = () => {
     }
   }, [user?.id]);
 
+  // Archive a tab
+  const archiveTab = useCallback(async (tabId: string): Promise<void> => {
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab?.isDefault) {
+      toast({
+        title: 'Error',
+        description: 'Cannot archive default Pip-Boy tabs.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!user?.id) return;
+
+    try {
+      // Move widgets to default tab before archiving
+      await supabase
+        .from('user_widgets')
+        .update({ tab_assignment: 'INV' })
+        .eq('tab_assignment', tab?.name)
+        .eq('user_id', user.id);
+
+      const { error: updateError } = await supabase
+        .from('user_tabs')
+        .update({ 
+          name: `${tab?.name} (Archived)`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', tabId)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setTabs(prev => prev.filter(t => t.id !== tabId));
+
+      if (activeTab === tab?.name) {
+        const remainingTabs = tabs.filter(t => t.id !== tabId);
+        if (remainingTabs.length > 0) {
+          setActiveTab(remainingTabs[0].name);
+        }
+      }
+
+      toast({
+        title: 'Tab Archived',
+        description: `${tab?.name} tab has been archived. Widgets moved to INV tab.`,
+      });
+    } catch (err) {
+      console.error('Failed to archive tab:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to archive tab. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }, [tabs, user?.id, activeTab]);
+
   // Duplicate a tab
   const duplicateTab = useCallback(async (tabId: string): Promise<TabConfiguration | null> => {
     const originalTab = tabs.find(t => t.id === tabId);
@@ -305,6 +363,7 @@ export const useTabManager = () => {
     createTab,
     updateTab,
     deleteTab,
+    archiveTab,
     reorderTabs,
     duplicateTab,
     refreshTabs: loadTabs,
