@@ -5,10 +5,11 @@ export class WidgetFactory {
     'character-profile': {
       type: 'character-profile',
       title: 'Character Profile',
-      description: 'Display vault dweller information including level, karma, and experience',
-      category: 'productivity',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      description: 'Display vault dweller information, level, and basic stats',
+      category: 'system',
+      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'STAT',
       defaultSettings: {
@@ -21,162 +22,155 @@ export class WidgetFactory {
     },
     'special-stats': {
       type: 'special-stats',
-      title: 'S.P.E.C.I.A.L.',
-      description: 'Interactive display of your character attributes',
-      category: 'productivity',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      title: 'S.P.E.C.I.A.L. Stats',
+      description: 'Interactive display of your character\'s S.P.E.C.I.A.L. attributes',
+      category: 'system',
+      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for all 7 stats
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'STAT',
       defaultSettings: {
         showProgressBars: true,
         showTooltips: true,
         allowStatAdjustment: false,
-        displayStyle: 'detailed'
+        displayStyle: 'detailed' as const
       }
     },
     'system-monitor': {
       type: 'system-monitor',
       title: 'System Monitor',
-      description: 'Real-time system performance metrics and status',
+      description: 'Real-time monitoring of Pip-Boy system performance and diagnostics',
       category: 'system',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - good for charts
+      minSize: { width: 2, height: 1 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
-      defaultTab: 'STAT',
+      defaultTab: 'DATA',
       defaultSettings: {
         refreshRate: 5000,
         showGraphs: true,
-        monitoredMetrics: ['cpu', 'memory', 'network', 'storage'],
-        alertThresholds: { cpu: 80, memory: 85, network: 90, storage: 90 }
+        monitoredMetrics: ['cpu', 'memory', 'network'],
+        alertThresholds: { cpu: 80, memory: 85, network: 90 }
       }
     },
     'weather-station': {
       type: 'weather-station',
-      title: 'Environmental Monitor',
-      description: 'Environmental data including temperature, humidity, and radiation levels',
+      title: 'Weather Station',
+      description: 'Environmental monitoring including temperature, radiation, and air quality',
       category: 'data',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 2, height: 1 }, // 2×1 grid cells - compact weather display
+      minSize: { width: 2, height: 1 },
+      maxSize: { width: 3, height: 2 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
-        temperatureUnit: 'F',
+        temperatureUnit: 'F' as const,
         showRadiation: true,
         showAirQuality: true,
         autoRefresh: true,
-        refreshInterval: 30000
+        refreshInterval: 300000
       }
     },
     'news-terminal': {
       type: 'news-terminal',
       title: 'News Terminal',
-      description: 'Latest news updates and communications feed',
+      description: 'Stay updated with the latest wasteland news and bulletins',
       category: 'data',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for news list
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
-        maxItems: 5,
+        maxItems: 10,
         autoRefresh: true,
-        refreshInterval: 60000,
-        categories: ['tech', 'science', 'general'],
+        refreshInterval: 600000,
+        categories: ['general', 'settlements', 'trade'],
         showTimestamps: true
       }
     },
     'calendar-mission': {
       type: 'calendar-mission',
-      title: 'Mission Control',
-      description: 'Task management and mission scheduling interface',
+      title: 'Mission Calendar',
+      description: 'Track missions, appointments, and important wasteland events',
       category: 'productivity',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 2, height: 3 }, // 2×3 grid cells - tall for calendar
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 3, height: 4 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
         showCompleted: false,
-        maxTasks: 10,
-        priorityFilter: ['high', 'medium', 'low'],
+        maxTasks: 20,
+        priorityFilter: ['high', 'medium'],
         showDueDates: true
       }
     },
     'ai-oracle': {
       type: 'ai-oracle',
-      title: 'AI Oracle',
-      description: 'Intelligent assistant interface and interaction panel',
-      category: 'entertainment',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      title: 'A.I. Oracle',
+      description: 'Advanced artificial intelligence assistant for wasteland guidance',
+      category: 'productivity',
+      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for chat
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'DATA',
       defaultSettings: {
-        personality: 'codsworth',
+        personality: 'codsworth' as const,
         autoGreet: true,
-        responseSpeed: 'normal',
+        responseSpeed: 'normal' as const,
         showStatus: true
       }
     },
     'achievement-gallery': {
       type: 'achievement-gallery',
       title: 'Achievement Gallery',
-      description: 'Display unlocked achievements and progress tracking',
+      description: 'Showcase your wasteland accomplishments and trophies',
       category: 'entertainment',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - standard
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
       defaultTab: 'STAT',
-      defaultSettings: {
-        showProgress: true,
-        displayMode: 'grid',
-        hideUnlocked: false
-      }
+      defaultSettings: {}
     },
     'file-explorer': {
       type: 'file-explorer',
       title: 'File Explorer',
-      description: 'Browse and manage files and documents',
+      description: 'Browse and manage your Pip-Boy file system',
       category: 'productivity',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 3, height: 2 }, // 3×2 grid cells - wide for file list
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 4, height: 3 },
       resizable: true,
-      defaultTab: 'INV',
-      defaultSettings: {
-        viewMode: 'list',
-        showHidden: false,
-        sortBy: 'name'
-      }
+      defaultTab: 'DATA',
+      defaultSettings: {}
     },
     'secure-vault': {
       type: 'secure-vault',
       title: 'Secure Vault',
-      description: 'Encrypted storage for sensitive information',
-      category: 'system',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      description: 'Protected storage for sensitive information and credentials',
+      category: 'productivity',
+      defaultSize: { width: 2, height: 2 }, // 2×2 grid cells - secure and compact
+      minSize: { width: 2, height: 2 },
+      maxSize: { width: 3, height: 3 },
       resizable: true,
-      defaultTab: 'INV',
-      defaultSettings: {
-        autoLock: true,
-        lockTimeout: 300000,
-        showPasswordStrength: true
-      }
+      defaultTab: 'DATA',
+      defaultSettings: {}
     },
     'audio-player': {
       type: 'audio-player',
       title: 'Audio Player',
-      description: 'Music and audio playback interface',
+      description: 'Play music and audio files from the wasteland radio stations',
       category: 'entertainment',
-      defaultSize: { width: 200, height: 200 },
-      minSize: { width: 200, height: 200 },
+      defaultSize: { width: 4, height: 1 }, // 4×1 grid cells - wide player controls
+      minSize: { width: 3, height: 1 },
+      maxSize: { width: 4, height: 2 },
       resizable: true,
       defaultTab: 'RADIO',
-      defaultSettings: {
-        showVisualizer: true,
-        autoplay: false,
-        repeat: false,
-        shuffle: false
-      }
+      defaultSettings: {}
     }
   };
 
@@ -196,8 +190,16 @@ export class WidgetFactory {
       type,
       title: definition.title,
       collapsed: false,
-      gridPosition: { row: 0, col: 0, width: 10, height: 10 }, // 10x10 cells = 200x200px
-      size: definition.defaultSize,
+      gridPosition: {
+        row: 0,
+        col: 0,
+        width: definition.defaultSize.width,
+        height: definition.defaultSize.height
+      },
+      size: {
+        width: definition.defaultSize.width * 20, // Convert grid cells to pixels
+        height: definition.defaultSize.height * 20
+      },
       tabAssignment: tabAssignment || definition.defaultTab,
       settings: { ...definition.defaultSettings } as WidgetSettings,
       userId,

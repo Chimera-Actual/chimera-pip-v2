@@ -6,7 +6,7 @@ import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
-import { enforceSquareConstraint, validateAndConstrainPosition } from '@/lib/gridValidation';
+import { validateAndConstrainPosition, findNextAvailablePosition } from '@/lib/gridValidation';
 
 interface WidgetContextType {
   widgets: BaseWidget[];
@@ -134,40 +134,18 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     try {
       const widget = WidgetFactory.createWidget(type, user.id, tabAssignment);
 
-      // Ensure square constraint
-      widget.gridPosition = enforceSquareConstraint(widget.gridPosition);
-
-      // Find a suitable position for the new widget
-      const tabWidgets = getWidgetsByTab(widget.tabAssignment);
-      let position = { 
-        col: 0, 
-        row: 0, 
-        width: widget.gridPosition.width, 
-        height: widget.gridPosition.height 
-      };
+      // Find next available position for new widget
+      const existingPositions = widgets
+        .filter(w => w.tabAssignment === widget.tabAssignment)
+        .map(w => w.gridPosition);
       
-      // Simple positioning: find first available spot (36 columns max for desktop)
-      let placed = false;
-      for (let row = 0; row < 50 && !placed; row++) {
-        for (let col = 0; col <= 36 - position.width && !placed; col++) {
-          const testPosition = { ...position, col, row };
-          const hasCollision = tabWidgets.some(widget => {
-            const wp = widget.gridPosition;
-            return !(
-              testPosition.col >= wp.col + wp.width ||
-              testPosition.col + testPosition.width <= wp.col ||
-              testPosition.row >= wp.row + wp.height ||
-              testPosition.row + testPosition.height <= wp.row
-            );
-          });
-          if (!hasCollision) {
-            position = testPosition;
-            placed = true;
-          }
-        }
-      }
-
-      widget.gridPosition = validateAndConstrainPosition(position, 36);
+      const optimizedPosition = findNextAvailablePosition(
+        { width: widget.gridPosition.width, height: widget.gridPosition.height },
+        existingPositions,
+        24 // Max columns
+      );
+      
+      widget.gridPosition = optimizedPosition;
 
       const { data, error: insertError } = await supabase
         .from('user_widgets')
@@ -271,9 +249,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
       // Validate and constrain gridPosition if provided
       if (updates.gridPosition) {
-        // Enforce square constraint
-        updates.gridPosition = enforceSquareConstraint(updates.gridPosition);
-        updates.gridPosition = validateAndConstrainPosition(updates.gridPosition, 36);
+        updates.gridPosition = validateAndConstrainPosition(updates.gridPosition, 24);
         
         const tabWidgets = getWidgetsByTab(currentWidget.tabAssignment)
           .filter(w => w.id !== widgetId);
