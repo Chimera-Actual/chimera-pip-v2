@@ -74,7 +74,7 @@ export const BootSequence: React.FC = () => {
             <div className="relative mb-4">
               {/* Logo Image */}
               <img 
-                src="/chimera-tec-logo.png" 
+                src="/lovable-uploads/c0058fa9-21ea-47dd-a1f1-53697176a3cd.png" 
                 alt="CHIMERA-TEC Industries Logo"
                 className="w-40 h-40 object-contain pip-glow animate-pip-flicker"
               />
