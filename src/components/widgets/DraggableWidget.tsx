@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { 
@@ -34,6 +34,15 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   className
 }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const widgetRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+    direction: string;
+  } | null>(null);
 
   const {
     attributes,
@@ -60,6 +69,73 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     onUpdate(widget.id, { size });
   };
 
+  // Resize functionality
+  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
+    if (isDragOverlay) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const rect = widgetRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIsResizing(true);
+    resizeStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: rect.width,
+      startHeight: rect.height,
+      direction
+    };
+
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+    document.body.style.cursor = direction.includes('e') && direction.includes('s') ? 'se-resize' : 
+                                 direction.includes('e') ? 'e-resize' : 's-resize';
+    document.body.style.userSelect = 'none';
+  }, [isDragOverlay]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!resizeStartRef.current || !widgetRef.current) return;
+
+    const { startX, startY, startWidth, startHeight, direction } = resizeStartRef.current;
+    
+    let newWidth = startWidth;
+    let newHeight = startHeight;
+
+    if (direction.includes('e')) {
+      newWidth = Math.max(200, startWidth + (e.clientX - startX));
+    }
+    if (direction.includes('s')) {
+      newHeight = Math.max(150, startHeight + (e.clientY - startY));
+    }
+
+    // Apply size immediately for smooth resizing
+    widgetRef.current.style.width = `${newWidth}px`;
+    widgetRef.current.style.height = `${newHeight}px`;
+  }, []);
+
+  const handleResizeEnd = useCallback(() => {
+    if (!resizeStartRef.current || !widgetRef.current) return;
+
+    const rect = widgetRef.current.getBoundingClientRect();
+    const newSize = {
+      width: Math.round(rect.width),
+      height: Math.round(rect.height)
+    };
+
+    // Update the widget size in the parent
+    onUpdate(widget.id, { size: newSize });
+
+    // Cleanup
+    setIsResizing(false);
+    resizeStartRef.current = null;
+    document.removeEventListener('mousemove', handleResizeMove);
+    document.removeEventListener('mouseup', handleResizeEnd);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }, [onUpdate, widget.id]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragOverlay ? 'none' : transition,
@@ -71,7 +147,12 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node);
+        if (widgetRef) {
+          widgetRef.current = node;
+        }
+      }}
       style={style}
       className={cn(
         // Base styles
@@ -95,6 +176,9 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           "scale-110 rotate-3 z-[1000]",
           "opacity-95"
         ],
+        
+        // Resizing state
+        isResizing && "transition-none select-none",
         
         // View mode adjustments
         viewMode === 'masonry' && "break-inside-avoid mb-4",
@@ -179,6 +263,41 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           }}
           currentSize={widget.size}
         />
+      )}
+
+      {/* Resize Handles */}
+      {!widget.collapsed && !isDragOverlay && !isDragging && (
+        <>
+          {/* Right Edge Handle */}
+          <div
+            className="absolute right-0 top-8 bottom-8 w-1 cursor-e-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
+            onMouseDown={(e) => handleResizeStart(e, 'e')}
+            style={{ touchAction: 'none' }}
+          />
+          
+          {/* Bottom Edge Handle */}
+          <div
+            className="absolute bottom-0 left-8 right-8 h-1 cursor-s-resize opacity-0 hover:opacity-100 transition-opacity bg-primary/30 hover:bg-primary/60"
+            onMouseDown={(e) => handleResizeStart(e, 's')}
+            style={{ touchAction: 'none' }}
+          />
+          
+          {/* Corner Handle (most important for user experience) */}
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize opacity-0 hover:opacity-100 transition-all duration-200 bg-primary/50 hover:bg-primary/80 hover:scale-110"
+            onMouseDown={(e) => handleResizeStart(e, 'se')}
+            style={{ 
+              touchAction: 'none',
+              clipPath: 'polygon(100% 0%, 0% 100%, 100% 100%)'
+            }}
+          />
+          
+          {/* Corner Visual Indicator */}
+          <div className="absolute bottom-1 right-1 w-2 h-2 pointer-events-none opacity-30">
+            <div className="w-full h-px bg-pip-text-secondary mb-px"></div>
+            <div className="w-full h-px bg-pip-text-secondary"></div>
+          </div>
+        </>
       )}
 
       {/* Loading/Error Overlays */}
