@@ -81,8 +81,8 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       style={style}
       className={cn(
         "pip-widget relative rounded-lg overflow-hidden transition-all duration-200",
-        isDragging && "shadow-2xl scale-105 rotate-1",
-        isDragOverlay && "shadow-3xl scale-110 rotate-2 z-50",
+        isDragging && "shadow-2xl scale-105 rotate-1 z-50",
+        isDragOverlay && "shadow-3xl scale-110 rotate-2 z-[1000]",
         viewMode === 'masonry' && "break-inside-avoid mb-4",
         className
       )}
@@ -94,8 +94,9 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Drag Handle */}
           <div
-            className="drag-handle flex-shrink-0 p-1 cursor-grab active:cursor-grabbing hover:bg-pip-bg-tertiary rounded transition-colors touch-target"
+            className="drag-handle flex-shrink-0 p-2 cursor-grab active:cursor-grabbing hover:bg-pip-bg-tertiary rounded transition-colors touch-target select-none"
             {...listeners}
+            style={{ touchAction: 'none' }}
           >
             <Move className="w-4 h-4 text-pip-text-secondary" />
           </div>

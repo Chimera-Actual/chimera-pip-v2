@@ -72,20 +72,18 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     containerWidth
   }), [deviceType, gridDensity, containerWidth]);
 
-  // Handle widget operations
+  // Handle widget operations - simplified for sortable behavior
   const handleWidgetsReorder = useCallback(async (reorderedWidgets: BaseWidget[]) => {
-    // Update positions based on new order
+    console.log('Reordering widgets:', reorderedWidgets.map(w => w.id));
+    // For CSS Grid, we just need to update the order, not positions
     for (let i = 0; i < reorderedWidgets.length; i++) {
       const widget = reorderedWidgets[i];
-      const row = Math.floor(i / gridConfig.columns);
-      const col = i % gridConfig.columns;
-      const newPosition = {
-        x: col * (gridConfig.cellSize.width + gridConfig.gap),
-        y: row * (gridConfig.cellSize.height + gridConfig.gap)
-      };
-      await updateWidget(widget.id, { position: newPosition });
+      await updateWidget(widget.id, { 
+        // Update a sort order field instead of position
+        position: { x: i, y: 0 } // Use x as sort order
+      });
     }
-  }, [updateWidget, gridConfig]);
+  }, [updateWidget]);
 
   const handleWidgetMove = useCallback(async (widgetId: string, position: { x: number; y: number }) => {
     await updateWidget(widgetId, { position });
@@ -117,16 +115,14 @@ export const ResponsiveWidgetGrid: React.FC<ResponsiveWidgetGridProps> = ({
     await refreshWidgets();
   }, [refreshWidgets]);
 
-  // Advanced drag and drop functionality
+  // Simplified drag and drop for grid-based layout
   const {
     dragState,
     dndContextProps,
-    autoArrangeWidgets,
-    snapToGrid,
-    checkCollision,
-    findAvailablePosition
+    autoArrangeWidgets
   } = useAdvancedDragDrop(
-    widgets,
+    // Sort widgets by their position.x value for consistent ordering
+    widgets.sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0)),
     handleWidgetsReorder,
     handleWidgetMove,
     gridConfig

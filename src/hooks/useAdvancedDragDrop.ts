@@ -185,38 +185,20 @@ export const useAdvancedDragDrop = (
   }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over, delta } = event;
+    const { active, over } = event;
+    
+    console.log('Drag ended:', { activeId: active?.id, overId: over?.id });
     
     if (active && over && active.id !== over.id) {
-      // Reorder widgets
+      // Simple reorder - let the sortable context handle the visual changes
       const oldIndex = widgets.findIndex(w => w.id === active.id);
       const newIndex = widgets.findIndex(w => w.id === over.id);
+      
+      console.log('Reordering from index', oldIndex, 'to', newIndex);
       
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
         onWidgetsReorder(reorderedWidgets);
-      }
-    } else if (active && delta.x !== 0 || delta.y !== 0) {
-      // Move widget to new position
-      const widget = widgets.find(w => w.id === active.id);
-      if (widget) {
-        const currentPos = widget.position || { x: 0, y: 0 };
-        const newPosition = {
-          x: currentPos.x + delta.x,
-          y: currentPos.y + delta.y
-        };
-        
-        // Snap to grid
-        const snappedPosition = snapToGrid(newPosition.x, newPosition.y);
-        
-        // Check for collisions
-        if (!checkCollision(widget, snappedPosition, widget.id)) {
-          onWidgetMove(widget.id, snappedPosition);
-        } else {
-          // Find available position nearby
-          const availablePosition = findAvailablePosition(widget);
-          onWidgetMove(widget.id, availablePosition);
-        }
       }
     }
 
@@ -226,7 +208,7 @@ export const useAdvancedDragDrop = (
       isDragging: false,
       dragOffset: { x: 0, y: 0 }
     });
-  }, [widgets, onWidgetsReorder, onWidgetMove, snapToGrid, checkCollision, findAvailablePosition]);
+  }, [widgets, onWidgetsReorder]);
 
   // Modifiers for constraining drag behavior
   const dragModifiers = useMemo(() => [
