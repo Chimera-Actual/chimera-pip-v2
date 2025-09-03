@@ -69,37 +69,20 @@ export const BootSequence: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">
       <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8 max-w-2xl w-full mx-4">
         <div className="text-center space-y-8">
-          {/* CHIMERA-TEC Logo with Animated Vault Door */}
-          <div className="flex flex-col items-center justify-center space-y-4 animate-pip-boot">
-            <div className="relative w-32 h-32 mb-4">
-              {/* Vault Door */}
-              <div className="absolute inset-0 border-4 border-primary rounded-full pip-glow">
-                <div className="relative w-full h-full">
-                  {/* Door Segments */}
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1 h-12 bg-primary origin-bottom left-1/2 top-0"
-                      style={{
-                        transform: `translateX(-50%) rotate(${(i * 45) + doorRotation}deg)`,
-                        opacity: 0.8
-                      }}
-                    />
-                  ))}
-                  
-                  {/* Vault Number */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-pip-display font-bold text-primary pip-text-glow">
-                      {vaultNumber.toString().padStart(3, '0')}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* CHIMERA-TEC Industries Logo */}
+          <div className="flex flex-col items-center justify-center space-y-6 animate-pip-boot">
+            <div className="relative mb-4">
+              {/* Logo Image */}
+              <img 
+                src="/chimera-tec-logo.png" 
+                alt="CHIMERA-TEC Industries Logo"
+                className="w-40 h-40 object-contain pip-glow animate-pip-flicker"
+              />
             </div>
             
             <div className="text-center">
               <h1 className="text-4xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-                CHIMERA-TEC
+                CHIMERA-TEC INDUSTRIES
               </h1>
               <p className="text-lg text-pip-text-secondary font-pip-mono">
                 PREPARE FOR THE FUTURE
