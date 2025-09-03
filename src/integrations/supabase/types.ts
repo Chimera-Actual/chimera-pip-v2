@@ -126,36 +126,39 @@ export type Database = {
       user_widgets: {
         Row: {
           created_at: string | null
-          grid_position: Json
           id: string
           is_collapsed: boolean | null
+          order_position: number
           tab_assignment: string
           updated_at: string | null
           user_id: string
           widget_config: Json
           widget_type: string
+          widget_width: string
         }
         Insert: {
           created_at?: string | null
-          grid_position?: Json
           id?: string
           is_collapsed?: boolean | null
+          order_position?: number
           tab_assignment: string
           updated_at?: string | null
           user_id: string
           widget_config: Json
           widget_type: string
+          widget_width?: string
         }
         Update: {
           created_at?: string | null
-          grid_position?: Json
           id?: string
           is_collapsed?: boolean | null
+          order_position?: number
           tab_assignment?: string
           updated_at?: string | null
           user_id?: string
           widget_config?: Json
           widget_type?: string
+          widget_width?: string
         }
         Relationships: [
           {
