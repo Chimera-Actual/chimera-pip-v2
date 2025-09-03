@@ -13,21 +13,17 @@ export type WidgetType =
   | 'calendar-mission'
   | 'ai-oracle';
 
-export type TabAssignment = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
+export type WidgetWidth = 'half' | 'full';
 
-export interface GridPosition {
-  row: number;
-  col: number;
-  width: number;
-  height: number;
-}
+export type TabAssignment = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
 
 export interface BaseWidget {
   id: string;
   type: WidgetType;
   title: string;
   collapsed: boolean;
-  gridPosition: GridPosition;
+  order: number;
+  widgetWidth: WidgetWidth;
   tabAssignment: TabAssignment;
   settings: WidgetSettings;
   userId: string;
@@ -41,13 +37,6 @@ export interface WidgetConfigDB {
   settings?: Record<string, any>;
 }
 
-export interface GridPositionDB {
-  row: number;
-  col: number;
-  width: number;
-  height: number;
-}
-
 export interface SizeDB {
   width: number;
   height: number;
@@ -58,10 +47,8 @@ export interface WidgetDefinition {
   title: string;
   description: string;
   category: 'productivity' | 'entertainment' | 'system' | 'data';
-  defaultSize: { width: number; height: number };
+  defaultWidgetWidth: WidgetWidth;
   defaultSettings: Record<string, any>;
-  minSize: { width: number; height: number };
-  maxSize?: { width: number; height: number };
   resizable: boolean;
   defaultTab: TabAssignment;
 }

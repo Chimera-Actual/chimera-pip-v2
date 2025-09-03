@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, GridPositionDB } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment, WidgetConfigDB, WidgetWidth } from '@/types/widgets';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
-import { validateAndConstrainPosition, findNextAvailablePosition } from '@/lib/gridValidation';
+// Removed grid validation imports - using simple ordering now
 
 interface WidgetContextType {
   widgets: BaseWidget[];
@@ -55,7 +55,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         .from('user_widgets')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+        .order('order_position', { ascending: true });
 
       if (fetchError) {
         throw fetchError;
@@ -64,7 +64,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
         try {
           const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
-          const gridPosition = widget.grid_position as unknown as GridPositionDB;
           const widgetType = widget.widget_type as WidgetType;
           
           // Validate widget type exists
@@ -75,12 +74,13 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             type: widgetType,
             title: widgetConfig?.title || definition.title,
             collapsed: widget.is_collapsed || false,
-            gridPosition: gridPosition || { row: 0, col: 0, width: 2, height: 2 },
+            order: widget.order_position || 0,
+            widgetWidth: (widget.widget_width as WidgetWidth) || 'half',
             tabAssignment: widget.tab_assignment as TabAssignment,
             settings: widgetConfig?.settings || definition.defaultSettings,
             userId: widget.user_id,
-            createdAt: new Date(widget.created_at),
-            updatedAt: new Date(widget.updated_at),
+            createdAt: new Date(widget.created_at || Date.now()),
+            updatedAt: new Date(widget.updated_at || Date.now()),
           };
         } catch (widgetError) {
           reportWarning(
@@ -132,18 +132,10 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     try {
       const widget = WidgetFactory.createWidget(type, user.id, tabAssignment);
 
-      // Find next available position for new widget
-      const existingPositions = widgets
-        .filter(w => w.tabAssignment === widget.tabAssignment)
-        .map(w => w.gridPosition);
-      
-      const optimizedPosition = findNextAvailablePosition(
-        { width: widget.gridPosition.width, height: widget.gridPosition.height },
-        existingPositions,
-        24 // Max columns
-      );
-      
-      widget.gridPosition = optimizedPosition;
+      // Find next order position for new widget in this tab
+      const existingWidgets = widgets.filter(w => w.tabAssignment === widget.tabAssignment);
+      const nextOrder = Math.max(...existingWidgets.map(w => w.order), -1) + 1;
+      widget.order = nextOrder;
 
       const { data, error: insertError } = await supabase
         .from('user_widgets')
@@ -156,7 +148,8 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             title: widget.title,
             settings: widget.settings
           } as any,
-          grid_position: widget.gridPosition as any,
+          order_position: widget.order,
+          widget_width: widget.widgetWidth,
           is_collapsed: widget.collapsed,
         })
         .select()
@@ -192,7 +185,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       });
       return null;
     }
-  }, [user?.id]);
+  }, [user?.id, widgets]);
 
   // Remove a widget
   const removeWidget = useCallback(async (widgetId: string): Promise<void> => {
@@ -244,29 +237,6 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         throw new Error('Widget not found');
       }
 
-      // Validate and constrain gridPosition if provided
-      if (updates.gridPosition) {
-        updates.gridPosition = validateAndConstrainPosition(updates.gridPosition, 24);
-        
-        const tabWidgets = getWidgetsByTab(currentWidget.tabAssignment)
-          .filter(w => w.id !== widgetId);
-        
-        const hasCollision = tabWidgets.some(widget => {
-          const wp = widget.gridPosition;
-          const up = updates.gridPosition!;
-          return !(
-            up.col >= wp.col + wp.width ||
-            up.col + up.width <= wp.col ||
-            up.row >= wp.row + wp.height ||
-            up.row + up.height <= wp.row
-          );
-        });
-
-        if (hasCollision) {
-          throw new Error('Widget position would overlap with existing widget');
-        }
-      }
-
       const dbUpdates: any = {
         updated_at: new Date().toISOString(),
       };
@@ -278,7 +248,8 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         };
       }
 
-      if (updates.gridPosition !== undefined) dbUpdates.grid_position = updates.gridPosition;
+      if (updates.order !== undefined) dbUpdates.order_position = updates.order;
+      if (updates.widgetWidth !== undefined) dbUpdates.widget_width = updates.widgetWidth;
       if (updates.collapsed !== undefined) dbUpdates.is_collapsed = updates.collapsed;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;
 
