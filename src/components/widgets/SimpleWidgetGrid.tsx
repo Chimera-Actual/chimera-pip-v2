@@ -5,9 +5,8 @@ import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetType, BaseWidget, WidgetWidth } from '@/types/widgets';
 import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
-import { PullToRefresh } from '@/components/common/PullToRefresh';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { RefreshCw, Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowRight, LayoutGrid } from 'lucide-react';
+import { Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowRight, LayoutGrid } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
 
@@ -21,9 +20,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     getWidgetsByTab, 
     addWidget, 
     removeWidget, 
-    updateWidget, 
-    refreshWidgets, 
-    isLoading 
+    updateWidget
   } = useWidgets();
   
   const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
@@ -146,19 +143,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   const gridContent = (
     <div className="space-y-4">
-      {/* Header Controls */}
-      <div className="flex items-center justify-end gap-2 mb-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refreshWidgets()}
-          disabled={isLoading}
-          className="text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10"
-        >
-          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-          Refresh
-        </Button>
-      </div>
 
       {/* Widget Grid */}
       {widgets.length > 0 ? (
@@ -230,14 +214,12 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     </div>
   );
 
-  // Wrap with pull-to-refresh on mobile
+  // Mobile view
   if (isMobile) {
     return (
-      <PullToRefresh onRefresh={refreshWidgets}>
-        <div className={cn("p-4", className)}>
-          {gridContent}
-        </div>
-      </PullToRefresh>
+      <div className={cn("p-4", className)}>
+        {gridContent}
+      </div>
     );
   }
 
