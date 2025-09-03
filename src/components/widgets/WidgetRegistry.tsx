@@ -9,6 +9,9 @@ import { FileExplorerWidget } from './FileExplorerWidget';
 import { AudioPlayerWidget } from './AudioPlayerWidget';
 import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
+import { AchievementGalleryWidget } from './AchievementGalleryWidget';
+import { SecureVaultWidget } from './SecureVaultWidget';
+import { MissionCalendarWidget } from './MissionCalendarWidget';
 
 // Widget component registry
 export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: BaseWidget }>> = {
@@ -19,34 +22,9 @@ export const WidgetComponents: Record<WidgetType, React.ComponentType<{ widget: 
   'news-terminal': NewsTerminalWidget,
   'file-explorer': FileExplorerWidget,
   'audio-player': AudioPlayerWidget,
-  // Placeholder components for widgets not yet implemented
-  'achievement-gallery': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        Achievement Gallery Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
-  'secure-vault': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        Secure Vault Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
-  'calendar-mission': ({ widget }) => (
-    <div className="pip-special-stat p-4 text-center">
-      <div className="text-pip-text-muted font-pip-mono">
-        Mission Control Widget
-        <br />
-        Coming Soon
-      </div>
-    </div>
-  ),
+  'achievement-gallery': AchievementGalleryWidget,
+  'secure-vault': SecureVaultWidget, 
+  'calendar-mission': MissionCalendarWidget,
   'ai-oracle': ({ widget }) => (
     <div className="pip-special-stat p-4 text-center">
       <div className="text-pip-text-muted font-pip-mono">
