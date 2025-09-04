@@ -125,6 +125,8 @@ export const useAiAgents = (): UseAiAgentsReturn => {
 
   const updateAgent = useCallback(async (id: string, updates: Partial<AiAgent>): Promise<boolean> => {
     try {
+      console.log('updateAgent called with:', { id, updates });
+      
       const updateData: Record<string, any> = {};
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
@@ -135,6 +137,8 @@ export const useAiAgents = (): UseAiAgentsReturn => {
       if (updates.isDefault !== undefined) updateData.is_default = updates.isDefault;
       if (updates.isShared !== undefined) updateData.is_shared = updates.isShared;
       if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+
+      console.log('Sending update data to Supabase:', updateData);
 
       const { error } = await supabase
         .from('ai_agents')
