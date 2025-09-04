@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -79,75 +78,59 @@ export const CryptocurrencyWidget: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="h-full bg-background/95 border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <DollarSign className="w-5 h-5" />
-            Cryptocurrency Tracker
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-4 bg-primary/20 rounded mb-2"></div>
-                <div className="h-3 bg-primary/10 rounded w-3/4"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="h-full flex flex-col p-4">
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-4 bg-pip-border/50 rounded mb-2"></div>
+              <div className="h-3 bg-pip-border/30 rounded w-3/4"></div>
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="h-full bg-background/95 border-primary/20">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <DollarSign className="w-5 h-5" />
-          Cryptocurrency Tracker
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {cryptoData.map((crypto) => (
-            <div
-              key={crypto.symbol}
-              className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors cursor-pointer"
-              onClick={() => trackWidgetAction('cryptocurrency', 'crypto_selected', { symbol: crypto.symbol })}
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-primary">{crypto.symbol}</span>
-                  <span className="text-sm text-muted-foreground">{crypto.name}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Market Cap: {formatMarketCap(crypto.marketCap)}
-                </div>
+    <div className="h-full flex flex-col">
+      <div className="flex-1 p-4 space-y-4">
+        {cryptoData.map((crypto) => (
+          <div
+            key={crypto.symbol}
+            className="flex items-center justify-between p-3 rounded-lg bg-pip-bg-secondary/50 border border-pip-border/50 hover:bg-pip-bg-secondary/80 transition-colors cursor-pointer pip-special-stat"
+            onClick={() => trackWidgetAction('cryptocurrency', 'crypto_selected', { symbol: crypto.symbol })}
+          >
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-bold text-primary font-pip-display">{crypto.symbol}</span>
+                <span className="text-sm text-pip-text-secondary font-pip-mono">{crypto.name}</span>
               </div>
-              <div className="text-right">
-                <div className="font-mono text-sm font-semibold text-foreground">
-                  {formatPrice(crypto.price)}
-                </div>
-                <Badge
-                  variant={crypto.change24h >= 0 ? "default" : "destructive"}
-                  className="text-xs"
-                >
-                  {crypto.change24h >= 0 ? (
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3 mr-1" />
-                  )}
-                  {crypto.change24h >= 0 ? '+' : ''}{crypto.change24h.toFixed(1)}%
-                </Badge>
+              <div className="text-xs text-pip-text-muted font-pip-mono">
+                Market Cap: {formatMarketCap(crypto.marketCap)}
               </div>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 text-xs text-muted-foreground text-center">
-          Last updated: {new Date().toLocaleTimeString()}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="text-right">
+              <div className="font-pip-mono text-sm font-semibold text-primary">
+                {formatPrice(crypto.price)}
+              </div>
+              <Badge
+                variant={crypto.change24h >= 0 ? "default" : "destructive"}
+                className="text-xs font-pip-mono"
+              >
+                {crypto.change24h >= 0 ? (
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                ) : (
+                  <TrendingDown className="w-3 h-3 mr-1" />
+                )}
+                {crypto.change24h >= 0 ? '+' : ''}{crypto.change24h.toFixed(1)}%
+              </Badge>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-auto p-4 text-xs text-pip-text-muted text-center font-pip-mono border-t border-pip-border/30">
+        Last updated: {new Date().toLocaleTimeString()}
+      </div>
+    </div>
   );
 };

@@ -94,3 +94,9 @@ export const SUCCESS_MESSAGES = {
   WIDGET_UPDATED: 'Widget updated successfully',
   SETTINGS_SAVED: 'Settings saved successfully',
 } as const;
+
+// Modal Sizing Constants
+export const MODAL_SIZES = {
+  SETTINGS_MODAL: 'max-w-4xl h-[80vh]',
+  WIDGET_SETTINGS_MODAL: 'max-w-4xl h-[80vh]',
+} as const;

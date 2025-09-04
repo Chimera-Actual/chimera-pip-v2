@@ -2,7 +2,7 @@ import { memo, useState, useEffect } from 'react';
 import { BaseWidget, NewsTerminalSettings } from '@/types/widgets';
 import { WidgetContainer } from './WidgetContainer';
 import { useWidgetState } from '@/hooks/useWidgetState';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Clock, Radio, AlertTriangle } from 'lucide-react';
@@ -169,17 +169,17 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
           )}
         </div>
 
-        <ScrollArea className="h-64">
+        <ScrollArea className="h-64 custom-scrollbar">
           <div className="space-y-3">
             {newsItems.map((item) => (
-              <Card key={item.id} className="border-pip-border bg-pip-bg-secondary/50">
-                <CardContent className="p-3">
+              <div key={item.id} className="border border-pip-border bg-pip-bg-secondary/50 rounded-lg pip-special-stat">
+                <div className="p-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       {getPriorityIcon(item.priority)}
                       <Badge 
                         variant="outline" 
-                        className={`${getCategoryColor(item.category)} text-xs font-mono`}
+                        className={`${getCategoryColor(item.category)} text-xs font-pip-mono`}
                       >
                         {item.category.toUpperCase()}
                       </Badge>
@@ -192,19 +192,19 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
                     )}
                   </div>
                   
-                  <h4 className="text-sm font-semibold text-pip-text mb-1 font-mono">
+                  <h4 className="text-sm font-semibold text-pip-text-bright mb-1 font-pip-mono">
                     {item.headline}
                   </h4>
                   
-                  <p className="text-xs text-pip-text-secondary leading-relaxed mb-2">
+                  <p className="text-xs text-pip-text-secondary leading-relaxed mb-2 font-pip-mono">
                     {item.content}
                   </p>
                   
-                  <div className="text-xs text-pip-text-muted font-mono">
+                  <div className="text-xs text-pip-text-muted font-pip-mono">
                     SOURCE: {item.source}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </ScrollArea>
