@@ -206,7 +206,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       {/* Widget Content */}
       <div className={cn(
         'widget-content transition-all duration-200 overflow-hidden pip-scrollbar',
-        collapsed ? 'h-0 p-0' : 'p-4 h-auto max-h-96 overflow-y-auto'
+        collapsed ? 'h-0 p-0' : 'p-2 h-auto max-h-96 overflow-y-auto'
       )}>
         {!collapsed && (
           <>
