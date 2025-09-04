@@ -65,11 +65,14 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
     >
       <WidgetContainer
         widgetId={widget.id}
-        onUpdate={onUpdate}
+        widgetType={widget.type}
+        title={widget.title}
+        collapsed={widget.collapsed}
+        onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
+        onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
         onDelete={() => onDelete(widget.id)}
         onArchive={() => onArchive(widget.id)}
-        onToggleWidth={() => onToggleWidth(widget)}
-        isMobile={isMobile}
+        onMove={undefined}
       >
         <WidgetRenderer widget={widget} />
       </WidgetContainer>
@@ -249,11 +252,14 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             )}>
               <WidgetContainer
                 widgetId={activeWidget.id}
-                onUpdate={handleUpdate}
+                widgetType={activeWidget.type}
+                title={activeWidget.title}
+                collapsed={activeWidget.collapsed}
+                onToggleCollapse={() => handleUpdate(activeWidget.id, { collapsed: !activeWidget.collapsed })}
+                onSettingsChange={(settings) => handleUpdate(activeWidget.id, { settings })}
                 onDelete={() => handleDelete(activeWidget.id)}
                 onArchive={() => handleArchive(activeWidget.id)}
-                onToggleWidth={() => handleToggleWidth(activeWidget)}
-                isMobile={isMobile}
+                onMove={undefined}
               >
                 <WidgetRenderer widget={activeWidget} />
               </WidgetContainer>
