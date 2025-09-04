@@ -304,16 +304,6 @@ export const FileExplorerWidget: React.FC<FileExplorerWidgetProps> = memo(({ wid
       error={error}
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-pip-text-muted flex items-center gap-1">
-            <HardDrive className="h-3 w-3" />
-            FILE SYSTEM
-          </span>
-          <span className="text-pip-accent font-mono">
-            {currentPath.join(' / ')}
-          </span>
-        </div>
-
         <Card className="border-pip-border bg-pip-bg-secondary/30">
           <CardContent className="p-0">
             <ScrollArea className="h-64">
@@ -325,11 +315,16 @@ export const FileExplorerWidget: React.FC<FileExplorerWidgetProps> = memo(({ wid
         </Card>
 
         <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
-          <span>
-            {fileSystem.children?.reduce((count, item) => 
-              count + (item.children?.length || 0) + 1, 0
-            )} items
-          </span>
+          <div className="flex items-center gap-4">
+            <span>
+              {fileSystem.children?.reduce((count, item) => 
+                count + (item.children?.length || 0) + 1, 0
+              )} items
+            </span>
+            <span className="text-pip-accent font-mono">
+              {currentPath.join(' / ')}
+            </span>
+          </div>
           <span className="animate-pulse">● CONNECTED</span>
         </div>
       </div>

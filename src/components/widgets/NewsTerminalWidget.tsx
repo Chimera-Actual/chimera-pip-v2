@@ -157,18 +157,6 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
       error={error || hookError}
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-pip-text-muted flex items-center gap-1">
-            <Radio className="h-3 w-3" />
-            TERMINAL ACTIVE
-          </span>
-          {settings?.autoRefresh && (
-            <span className="text-pip-accent animate-pulse">
-              AUTO-REFRESH: {settings.refreshInterval}s
-            </span>
-          )}
-        </div>
-
         <ScrollArea className="h-64 custom-scrollbar">
           <div className="space-y-3">
             {newsItems.map((item) => (
@@ -210,7 +198,14 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
         </ScrollArea>
 
         <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
-          <span>{newsItems.length} messages</span>
+          <div className="flex items-center gap-4">
+            <span>{newsItems.length} messages</span>
+            {settings?.autoRefresh && (
+              <span className="text-pip-accent animate-pulse">
+                AUTO-REFRESH: {settings.refreshInterval}s
+              </span>
+            )}
+          </div>
           <span className="animate-pulse">● LIVE</span>
         </div>
       </div>

@@ -1,9 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Terminal, User } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
+import { BaseWidget } from '@/types/widgets';
+import { WidgetContainer } from './WidgetContainer';
+import { useWidgetState } from '@/hooks/useWidgetState';
+
+interface TerminalWidgetProps {
+  widget: BaseWidget;
+}
 
 interface TerminalLine {
   id: string;
@@ -12,7 +18,11 @@ interface TerminalLine {
   timestamp: Date;
 }
 
-export const TerminalWidget: React.FC = () => {
+export const TerminalWidget: React.FC<TerminalWidgetProps> = memo(({ widget }) => {
+  const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
+    widget.id,
+    widget.settings
+  );
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
@@ -149,26 +159,46 @@ export const TerminalWidget: React.FC = () => {
   const getLineColor = (type: TerminalLine['type']) => {
     switch (type) {
       case 'command':
-        return 'text-primary font-bold';
+        return 'text-pip-accent font-bold';
       case 'error':
         return 'text-destructive';
       default:
-        return 'text-foreground';
+        return 'text-pip-text';
     }
   };
 
+  if (isLoading) {
+    return (
+      <WidgetContainer
+        widgetId={widget.id}
+        widgetType={widget.type}
+        title={widget.title}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+        onSettingsChange={() => {}}
+        onDelete={() => {}}
+        isLoading={true}
+      >
+        <div />
+      </WidgetContainer>
+    );
+  }
+
   return (
-    <Card className="h-full bg-background/95 border-primary/20">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Terminal className="w-5 h-5" />
-          Terminal
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="h-full flex flex-col">
+    <WidgetContainer
+      widgetId={widget.id}
+      widgetType={widget.type}
+      title={widget.title}
+      collapsed={collapsed}
+      onToggleCollapse={() => setCollapsed(!collapsed)}
+      onSettingsChange={() => {}}
+      onDelete={() => {}}
+      error={error}
+    >
+      <div className="space-y-3">
         <div
           ref={terminalRef}
-          className="flex-1 bg-black/90 rounded-lg p-4 font-mono text-sm overflow-y-auto max-h-64 border border-primary/20"
+          className="flex-1 bg-pip-bg-tertiary/90 rounded-lg p-4 font-pip-mono text-sm overflow-y-auto max-h-64 border border-pip-border"
           onClick={() => inputRef.current?.focus()}
         >
           {lines.map((line) => (
@@ -176,27 +206,29 @@ export const TerminalWidget: React.FC = () => {
               {line.content}
             </div>
           ))}
-          <div className="flex items-center text-primary">
+          <div className="flex items-center text-pip-accent">
             <User className="w-4 h-4 mr-2" />
             <span>dweller@pip-boy:~$</span>
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="mt-4">
+        <form onSubmit={handleSubmit}>
           <div className="flex items-center gap-2">
-            <span className="text-primary font-mono text-sm">{'>'}</span>
+            <span className="text-pip-accent font-pip-mono text-sm">{'>'}</span>
             <Input
               ref={inputRef}
               value={currentCommand}
               onChange={(e) => setCurrentCommand(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter command..."
-              className="font-mono bg-background/50 border-primary/20 focus:border-primary"
+              className="font-pip-mono bg-pip-bg-secondary/50 border-pip-border focus:border-pip-accent"
               autoFocus
             />
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </WidgetContainer>
   );
-};
+});
+
+TerminalWidget.displayName = 'TerminalWidget';
