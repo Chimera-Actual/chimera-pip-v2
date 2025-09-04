@@ -16,6 +16,10 @@ interface VirtualizedWidgetGridProps {
   itemHeight?: number;
 }
 
+interface WidgetSettingsUpdate {
+  [key: string]: string | number | boolean | string[];
+}
+
 // Simple virtualization without external dependencies
 export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = ({
   widgets,
@@ -89,10 +93,13 @@ export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = ({
               widgetType={widget.type}
               title={widget.title}
               collapsed={widget.collapsed}
+              customIcon={widget.customIcon}
+              widgetWidth={widget.widgetWidth}
               onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
               onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
               onDelete={() => onDelete(widget.id)}
               onArchive={() => onArchive(widget.id)}
+              onToggleWidth={() => onToggleWidth(widget)}
             >
               <WidgetRenderer widget={widget} />
             </WidgetContainer>
@@ -132,10 +139,13 @@ export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = ({
                 widgetType={widget.type}
                 title={widget.title}
                 collapsed={widget.collapsed}
+                customIcon={widget.customIcon}
+                widgetWidth={widget.widgetWidth}
                 onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
                 onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
                 onDelete={() => onDelete(widget.id)}
                 onArchive={() => onArchive(widget.id)}
+                onToggleWidth={() => onToggleWidth(widget)}
               >
                 <WidgetRenderer widget={widget} />
               </WidgetContainer>

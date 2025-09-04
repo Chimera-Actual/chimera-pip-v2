@@ -20,7 +20,19 @@ import {
   Calendar,
   MessageCircle,
   DollarSign,
-  Terminal as TerminalIcon
+  Terminal as TerminalIcon,
+  User,
+  Zap,
+  Activity,
+  CloudSun,
+  Award,
+  Newspaper,
+  Brain,
+  Coins,
+  Box,
+  Maximize2,
+  Minimize2,
+  Archive
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -40,6 +52,10 @@ interface MobileWidgetContainerProps {
   onSettingsChange?: (settings: any) => void;
   onDelete?: () => void;
   onMove?: (order: number) => void;
+  onArchive?: () => void;
+  onToggleWidth?: () => void;
+  customIcon?: string;
+  widgetWidth?: 'half' | 'full';
   className?: string;
 }
 
@@ -55,11 +71,70 @@ export const MobileWidgetContainer: React.FC<MobileWidgetContainerProps> = ({
   onSettingsChange,
   onDelete,
   onMove,
+  onArchive,
+  onToggleWidth,
+  customIcon,
+  widgetWidth = 'half',
   className
 }) => {
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Get widget icon based on custom icon or widget type
+  const getWidgetIcon = () => {
+    if (customIcon) {
+      // Map common icon names to Lucide icons
+      const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+        'user': User,
+        'zap': Zap,
+        'activity': Activity,
+        'cloud-sun': CloudSun,
+        'award': Award,
+        'folder': Folder,
+        'shield': Shield,
+        'newspaper': Newspaper,
+        'music': Music,
+        'calendar': Calendar,
+        'brain': Brain,
+        'coins': Coins,
+        'terminal': TerminalIcon,
+        'monitor': Monitor,
+        'cloud': Cloud,
+        'trophy': Trophy,
+        'file-text': FileText,
+        'message-circle': MessageCircle,
+        'dollar-sign': DollarSign,
+        'box': Box,
+        'bar-chart': BarChart3
+      };
+      
+      const IconComponent = iconMap[customIcon];
+      if (IconComponent) {
+        return <IconComponent className="w-4 h-4 text-pip-green-primary" />;
+      }
+    }
+
+    // Default icons based on widget type
+    const defaultIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+      'character-profile': User,
+      'special-stats': Zap,
+      'system-monitor': Activity,
+      'weather-station': CloudSun,
+      'achievement-gallery': Award,
+      'file-explorer': Folder,
+      'secure-vault': Shield,
+      'news-terminal': Newspaper,
+      'audio-player': Music,
+      'calendar-mission': Calendar,
+      'ai-oracle': Brain,
+      'cryptocurrency': Coins,
+      'terminal': TerminalIcon
+    };
+
+    const DefaultIcon = defaultIcons[widgetType] || Box;
+    return <DefaultIcon className="w-4 h-4 text-pip-green-primary" />;
+  };
 
   const { gestureProps } = useGestureHandler({
     onLongPress: (event) => {
@@ -107,15 +182,9 @@ export const MobileWidgetContainer: React.FC<MobileWidgetContainerProps> = ({
       {/* Header */}
       <div className="widget-header flex items-center justify-between p-4 bg-pip-bg-secondary/50 border-b border-pip-border">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {/* Drag Handle - Enhanced for mobile */}
-          <div
-            className="drag-handle flex-shrink-0 p-2 -m-2 cursor-grab active:cursor-grabbing touch-target"
-            onTouchStart={handleDragStart}
-            onTouchEnd={handleDragEnd}
-            onMouseDown={handleDragStart}
-            onMouseUp={handleDragEnd}
-          >
-            <Move className="w-5 h-5 text-pip-text-secondary" />
+          {/* Widget Icon */}
+          <div className="flex-shrink-0">
+            {getWidgetIcon()}
           </div>
           
           <h3 className="text-sm font-semibold text-pip-text-bright uppercase tracking-wide truncate">
@@ -160,6 +229,33 @@ export const MobileWidgetContainer: React.FC<MobileWidgetContainerProps> = ({
               <Settings className="w-4 h-4" />
               Settings
             </button>
+            
+            {onToggleWidth && (
+              <button
+                className="w-full px-4 py-3 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
+                onClick={() => {
+                  onToggleWidth();
+                  setShowContextMenu(false);
+                }}
+              >
+                {widgetWidth === 'full' ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {widgetWidth === 'full' ? 'Make Half Width' : 'Make Full Width'}
+              </button>
+            )}
+            
+            {onArchive && (
+              <button
+                className="w-full px-4 py-3 text-left text-sm text-pip-text-secondary hover:bg-pip-bg-tertiary hover:text-pip-text-bright flex items-center gap-3 touch-target"
+                onClick={() => {
+                  onArchive();
+                  setShowContextMenu(false);
+                }}
+              >
+                <Archive className="w-4 h-4" />
+                Archive Widget
+              </button>
+            )}
+            
             {onDelete && (
               <button
                 className="w-full px-4 py-3 text-left text-sm text-destructive hover:bg-destructive/20 flex items-center gap-3 touch-target"
