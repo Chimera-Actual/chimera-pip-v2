@@ -165,7 +165,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
   return (
     <Card className="w-full h-full flex flex-col">
       {/* Chat Messages */}
-      <CardContent className="flex-1 flex flex-col p-4 gap-4">
+      <CardContent className="flex-1 flex flex-col p-2 gap-2">
         <ScrollArea className="flex-1 pr-4">
           <div className="space-y-3">
             {messages.length === 0 ? (
