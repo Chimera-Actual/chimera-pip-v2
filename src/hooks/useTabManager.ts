@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { TabConfiguration } from '@/types/tabManagement';
 import { toast } from '@/hooks/use-toast';
-import { reportError } from '@/lib/errorReporting';
 
 export const useTabManager = () => {
   const { user } = useAuth();
@@ -55,10 +54,7 @@ export const useTabManager = () => {
         setActiveTab(formattedTabs[0].name);
       }
     } catch (err) {
-      reportError('Failed to load tabs', {
-        component: 'useTabManager',
-        action: 'loadTabs'
-      }, err);
+      console.error('Failed to load tabs:', err);
       setError('Failed to load tabs');
       toast({
         title: 'Error',
@@ -135,10 +131,7 @@ export const useTabManager = () => {
 
       return createdTab;
     } catch (err) {
-      reportError('Failed to create tab', {
-        component: 'useTabManager',
-        action: 'createTab'
-      }, err);
+      console.error('Failed to create tab:', err);
       toast({
         title: 'Error',
         description: 'Failed to create tab. Please try again.',
@@ -184,11 +177,7 @@ export const useTabManager = () => {
         description: 'Tab has been updated successfully.',
       });
     } catch (err) {
-      reportError('Failed to update tab', {
-        component: 'useTabManager', 
-        action: 'updateTab',
-        tabId
-      }, err);
+      console.error('Failed to update tab:', err);
       toast({
         title: 'Error',
         description: 'Failed to update tab. Please try again.',
@@ -243,11 +232,7 @@ export const useTabManager = () => {
         description: `${tab?.name} tab has been deleted. Widgets moved to INV tab.`,
       });
     } catch (err) {
-      reportError('Failed to delete tab', {
-        component: 'useTabManager',
-        action: 'deleteTab', 
-        tabId
-      }, err);
+      console.error('Failed to delete tab:', err);
       toast({
         title: 'Error',
         description: 'Failed to delete tab. Please try again.',
@@ -284,10 +269,7 @@ export const useTabManager = () => {
         description: 'Tab order has been updated successfully.',
       });
     } catch (err) {
-      reportError('Failed to reorder tabs', {
-        component: 'useTabManager',
-        action: 'reorderTabs'
-      }, err);
+      console.error('Failed to reorder tabs:', err);
       toast({
         title: 'Error',
         description: 'Failed to reorder tabs. Please try again.',
@@ -345,11 +327,7 @@ export const useTabManager = () => {
         description: `${tab?.name} tab has been archived. Widgets moved to INV tab.`,
       });
     } catch (err) {
-      reportError('Failed to archive tab', {
-        component: 'useTabManager',
-        action: 'archiveTab',
-        tabId  
-      }, err);
+      console.error('Failed to archive tab:', err);
       toast({
         title: 'Error',
         description: 'Failed to archive tab. Please try again.',

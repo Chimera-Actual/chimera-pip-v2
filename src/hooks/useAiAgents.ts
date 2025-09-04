@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { reportError } from '@/lib/errorReporting';
 import { supabase } from '@/integrations/supabase/client';
 import { AiAgent } from '@/types/widgets';
 import { useToast } from '@/hooks/use-toast';
@@ -59,10 +58,7 @@ export const useAiAgents = (): UseAiAgentsReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch agents';
       setError(errorMessage);
-      reportError('Error fetching AI agents', { 
-        component: 'useAiAgents',
-        action: 'fetchAgents' 
-      }, err);
+      console.error('Error fetching AI agents:', err);
     } finally {
       setLoading(false);
     }
@@ -129,6 +125,8 @@ export const useAiAgents = (): UseAiAgentsReturn => {
 
   const updateAgent = useCallback(async (id: string, updates: Partial<AiAgent>): Promise<boolean> => {
     try {
+      console.log('updateAgent called with:', { id, updates });
+      
       const updateData: Record<string, any> = {};
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
@@ -139,6 +137,8 @@ export const useAiAgents = (): UseAiAgentsReturn => {
       if (updates.isDefault !== undefined) updateData.is_default = updates.isDefault;
       if (updates.isShared !== undefined) updateData.is_shared = updates.isShared;
       if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+
+      console.log('Sending update data to Supabase:', updateData);
 
       const { error } = await supabase
         .from('ai_agents')

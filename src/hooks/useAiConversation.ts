@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AiConversation } from '@/types/widgets';
 import { useToast } from '@/hooks/use-toast';
-import { reportError } from '@/lib/errorReporting';
 
 interface UseAiConversationReturn {
   conversation: AiConversation | null;
@@ -94,11 +93,7 @@ export const useAiConversation = (): UseAiConversationReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load conversation';
       setError(errorMessage);
-      reportError('Error loading conversation', {
-        component: 'useAiConversation',
-        widgetId,
-        agentId
-      }, err);
+      console.error('Error loading conversation:', err);
     } finally {
       setLoading(false);
     }

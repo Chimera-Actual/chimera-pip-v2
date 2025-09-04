@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { reportError } from '@/lib/errorReporting';
 
 export interface AnalyticsEvent {
   eventName: string;
@@ -62,10 +61,7 @@ export function useAnalytics() {
         });
       }
     } catch (error) {
-      reportError('Error flushing analytics events', {
-        component: 'useAnalytics',
-        action: 'flushEvents'
-      }, error);
+      console.error('Error flushing analytics events:', error);
       // Re-add failed events back to queue
       eventQueue.current.unshift(...eventsToSend);
     }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { reportError } from '@/lib/errorReporting';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Fingerprint, Eye, Smartphone, AlertCircle } from 'lucide-react';
@@ -91,10 +90,7 @@ export const BiometricLogin: React.FC = () => {
         icon: Smartphone,
       };
     } catch (error) {
-      reportError('Error detecting biometric capability', { 
-        component: 'BiometricLogin',
-        action: 'detectCapability' 
-      }, error);
+      console.error('Error detecting biometric capability:', error);
       return {
         available: false,
         type: 'none',
@@ -147,10 +143,7 @@ export const BiometricLogin: React.FC = () => {
         setError('Biometric authentication failed');
       }
     } catch (error: any) {
-      reportError('Biometric authentication failed', {
-        component: 'BiometricLogin',
-        action: 'authenticate'
-      }, error);
+      console.error('Biometric authentication error:', error);
       
       if (error.name === 'NotAllowedError') {
         setError('Authentication was cancelled or timed out');
@@ -218,10 +211,7 @@ export const BiometricLogin: React.FC = () => {
         setError('Biometric enrollment successful! You can now use biometric authentication.');
       }, 100);
     } catch (error: any) {
-      reportError('Biometric enrollment failed', {
-        component: 'BiometricLogin', 
-        action: 'enrollment'
-      }, error);
+      console.error('Biometric enrollment error:', error);
       
       if (error.name === 'NotAllowedError') {
         setError('Enrollment was cancelled or timed out');

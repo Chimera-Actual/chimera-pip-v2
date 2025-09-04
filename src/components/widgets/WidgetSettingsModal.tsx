@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { webhookService } from '@/lib/webhookService';
 import { AiOracleSettingsModal } from './AiOracleSettingsModal';
 import { useWidgetState } from '@/hooks/useWidgetState';
-import { reportError } from '@/lib/errorReporting';
 
 interface WidgetSettingsModalProps<T = any> {
   widgetId: string;
@@ -477,11 +476,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
         onClose();
       }
     } catch (error) {
-      reportError('Failed to save widget settings', {
-        component: 'WidgetSettingsModal',
-        widgetId,
-        widgetType
-      }, error);
+      console.error('Failed to save settings:', error);
     }
   };
 

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { reportError } from '@/lib/errorReporting';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -59,10 +58,7 @@ export function usePwaInstall() {
       }
       return false;
     } catch (error) {
-      reportError('Error installing PWA', {
-        component: 'usePwaInstall',
-        action: 'installApp'
-      }, error);
+      console.error('Error installing app:', error);
       return false;
     }
   };

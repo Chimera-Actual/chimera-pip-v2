@@ -1,10 +1,15 @@
-import React, { useCallback, useMemo, useState, memo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { WidgetContainer } from './WidgetContainer';
+import { WidgetRenderer } from './WidgetRegistry';
 import { BaseWidget, WidgetType, WidgetWidth } from '@/types/widgets';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
+import { Plus, LayoutGrid, ArrowLeftRight } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   DndContext,
   closestCenter,
@@ -27,22 +32,13 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// Refactored components
-import { DragOverlayWidget } from './grid/DragOverlayWidget';
-import { EmptyGridState } from './grid/EmptyGridState';
-import { AddWidgetButton } from './grid/AddWidgetButton';
-import { OptimizedWidgetPlaceholder } from './grid/OptimizedWidgetPlaceholder';
-import { AnimatedWidgetGrid } from '@/components/enhanced/WidgetTransitions';
-import { WidgetContainer } from './WidgetContainer';
-import { WidgetRenderer } from './WidgetRegistry';
-
 export interface SimpleWidgetGridProps {
   tab: string;
   className?: string;
 }
 
 // Sortable Widget Component
-const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onArchive: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = memo(({ widget, onUpdate, onDelete, onArchive, onToggleWidth, isMobile }) => {
+const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onArchive: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = ({ widget, onUpdate, onDelete, onArchive, onToggleWidth, isMobile }) => {
   const {
     attributes,
     listeners,
@@ -67,18 +63,14 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
   }, [widget.id, onUpdate]);
 
   return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={cn(
-          "relative widget-drag-container",
-          "transition-all duration-200 ease-in-out",
-          isDragging && "widget-dragging",
-          widget.widgetWidth === 'full' 
-            ? 'col-span-full lg:col-span-3 md:col-span-2' 
-            : 'col-span-1'
-        )}
-      >
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "relative",
+        widget.widgetWidth === 'full' ? 'col-span-2' : 'col-span-1'
+      )}
+    >
       <WidgetContainer
         widgetId={widget.id}
         widgetType={widget.type}
@@ -100,7 +92,7 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
       </WidgetContainer>
     </div>
   );
-});
+};
 
 export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, className = '' }) => {
   const { 
@@ -154,7 +146,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   const handleToggleWidth = useCallback((widget: BaseWidget) => {
     const newWidth: WidgetWidth = widget.widgetWidth === 'full' ? 'half' : 'full';
-    console.log(`Toggling widget ${widget.id} from ${widget.widgetWidth} to ${newWidth}`);
     updateWidget(widget.id, { widgetWidth: newWidth });
   }, [updateWidget]);
 
@@ -166,22 +157,25 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
           Rendering {widgets.length} widgets with performance optimization
         </div>
         
-        <div className={cn(
-          'grid gap-4 auto-rows-max widget-grid-container',
-          isMobile ? 'grid-cols-1' : 'grid-cols-2'
-        )} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2')} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {widgets.map((widget, index) => {
             // Lazy render widgets not in viewport
             const isVisible = index < 20 || (index >= 20 && index % 5 === 0); // Show first 20, then every 5th
             
             if (!isVisible) {
               return (
-                <OptimizedWidgetPlaceholder
+                <div
                   key={widget.id}
-                  index={index}
-                  widgetWidth={widget.widgetWidth}
-                  isMobile={isMobile}
-                />
+                  className={cn(
+                    'bg-pip-bg-secondary/30 border border-pip-border/20 rounded-lg flex items-center justify-center',
+                    widget.widgetWidth === 'full' && !isMobile ? 'col-span-2' : 'col-span-1'
+                  )}
+                  style={{ minHeight: '200px' }}
+                >
+                  <span className="text-xs text-pip-text-muted font-pip-mono">
+                    Widget #{index + 1} (Optimized Loading)
+                  </span>
+                </div>
               );
             }
             
@@ -198,7 +192,15 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
             );
           })}
           
-          <AddWidgetButton onAddWidget={() => setShowAddWidget(true)} />
+          <div className="col-span-1 flex items-center justify-center">
+            <Button
+              onClick={() => setShowAddWidget(true)}
+              variant="outline"
+              className="w-full h-24 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+            >
+              <Plus className="w-6 h-6 text-primary" />
+            </Button>
+          </div>
         </div>
         
         {showAddWidget && (
@@ -253,9 +255,38 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <AnimatedWidgetGrid className="widget-grid-main">
+          <div className={cn(
+            'grid gap-4 auto-rows-max',
+            isMobile ? 'grid-cols-1' : 'grid-cols-2'
+          )}>
             {widgets.length === 0 ? (
-              <EmptyGridState onAddWidget={() => setShowAddWidget(true)} />
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <LayoutGrid className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No widgets in this tab</h3>
+                  <p className="text-muted-foreground mb-4">Add your first widget to get started</p>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowAddWidget(true)}
+                          className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          <LayoutGrid className="w-4 h-4 mr-2" />
+                          Add Widget
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add a new widget to this tab</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             ) : (
               <>
                 {widgets.map((widget) => (
@@ -270,21 +301,45 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                   />
                 ))}
                 
-                <AddWidgetButton onAddWidget={() => setShowAddWidget(true)} />
+                <div className="col-span-1 flex items-center justify-center">
+                  <Button
+                    onClick={() => setShowAddWidget(true)}
+                    variant="outline"
+                    className="w-full h-24 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+                  >
+                    <Plus className="w-6 h-6 text-primary" />
+                  </Button>
+                </div>
               </>
             )}
-          </AnimatedWidgetGrid>
+          </div>
         </SortableContext>
 
         <DragOverlay>
           {activeWidget ? (
-            <DragOverlayWidget
-              widget={activeWidget}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-              onArchive={handleArchive}
-              onToggleWidth={handleToggleWidth}
-            />
+            <div className={cn(
+              "bg-background border border-border rounded-lg shadow-lg opacity-80",
+              activeWidget.widgetWidth === 'full' ? 'w-full' : 'w-1/2'
+            )}>
+              <WidgetContainer
+                widgetId={activeWidget.id}
+                widgetType={activeWidget.type}
+                title={activeWidget.title}
+                customIcon={activeWidget.customIcon}
+                widgetWidth={activeWidget.widgetWidth}
+                collapsed={activeWidget.collapsed}
+                onToggleCollapse={() => handleUpdate(activeWidget.id, { collapsed: !activeWidget.collapsed })}
+                onSettingsChange={(settings) => handleUpdate(activeWidget.id, { settings })}
+                onTitleChange={(newTitle) => handleUpdate(activeWidget.id, { title: newTitle })}
+                onIconChange={(newIcon) => handleUpdate(activeWidget.id, { customIcon: newIcon })}
+                onToggleWidth={() => handleToggleWidth(activeWidget)}
+                onDelete={() => handleDelete(activeWidget.id)}
+                onArchive={() => handleArchive(activeWidget.id)}
+                onMove={undefined}
+              >
+                <WidgetRenderer widget={activeWidget} />
+              </WidgetContainer>
+            </div>
           ) : null}
         </DragOverlay>
       </DndContext>

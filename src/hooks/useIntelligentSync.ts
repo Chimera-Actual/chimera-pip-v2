@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { reportError, reportWarning } from '@/lib/errorReporting';
+import { reportError } from '@/lib/errorReporting';
 
 interface SyncOptions {
   delay?: number;
@@ -96,10 +96,7 @@ export const useIntelligentSync = (
         if (error) throw error;
       } else {
         // For other tables, just return success to avoid errors
-        reportWarning(`Sync not implemented for table: ${tableName}`, {
-          component: 'useIntelligentSync',
-          tableName
-        });
+        console.warn(`Sync not implemented for table: ${tableName}`);
         return true;
       }
 

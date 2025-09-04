@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { WidgetTag } from '@/types/tabManagement';
 import { toast } from '@/hooks/use-toast';
-import { reportError } from '@/lib/errorReporting';
 
 export const useTagManager = () => {
   const { user } = useAuth();
@@ -42,10 +41,7 @@ export const useTagManager = () => {
 
       setTags(formattedTags);
     } catch (err) {
-      reportError('Failed to load tags', {
-        component: 'useTagManager',
-        action: 'loadTags'
-      }, err);
+      console.error('Failed to load tags:', err);
       setError('Failed to load tags');
       toast({
         title: 'Error',
@@ -120,10 +116,7 @@ export const useTagManager = () => {
 
       return createdTag;
     } catch (err) {
-      reportError('Failed to create tag', {
-        component: 'useTagManager',
-        action: 'createTag'
-      }, err);
+      console.error('Failed to create tag:', err);
       toast({
         title: 'Error',
         description: 'Failed to create tag. Please try again.',
@@ -174,10 +167,7 @@ export const useTagManager = () => {
         });
       }
     } catch (err) {
-      reportError('Failed to update tag', {
-        component: 'useTagManager',
-        action: 'updateTag'
-      }, err);
+      console.error('Failed to update tag:', err);
       if (updates.name || updates.color || updates.icon || updates.description) {
         toast({
           title: 'Error',
@@ -228,10 +218,7 @@ export const useTagManager = () => {
         description: `${tag?.name} tag has been deleted.`,
       });
     } catch (err) {
-      reportError('Failed to delete tag', {
-        component: 'useTagManager',
-        action: 'deleteTag'
-      }, err);
+      console.error('Failed to delete tag:', err);
       toast({
         title: 'Error',
         description: 'Failed to delete tag. Please try again.',

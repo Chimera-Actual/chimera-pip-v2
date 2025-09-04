@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { WidgetCatalogItem } from '@/types/tabManagement';
 import { WidgetType } from '@/types/widgets';
 import { toast } from '@/hooks/use-toast';
-import { reportError } from '@/lib/errorReporting';
 
 export const useWidgetCatalog = () => {
   const [widgets, setWidgets] = useState<WidgetCatalogItem[]>([]);
@@ -78,10 +77,7 @@ export const useWidgetCatalog = () => {
 
       setWidgets(formattedWidgets);
     } catch (err) {
-      reportError('Failed to load widget catalog', {
-        component: 'useWidgetCatalog',
-        action: 'loadWidgetCatalog'
-      }, err);
+      console.error('Failed to load widget catalog:', err);
       setError('Failed to load widget catalog');
       toast({
         title: 'Error',
