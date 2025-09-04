@@ -89,7 +89,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                 className="h-6 w-6 text-pip-text-primary hover:text-pip-text-bright hover:bg-pip-green-primary/10"
                 onClick={() => handleToggleWidth(widget)}
               >
-                {widget.widgetWidth === 'half' ? <ArrowLeftRight className="h-3 w-3" /> : <ArrowRight className="h-3 w-3" />}
+                <ArrowLeftRight className="h-3 w-3" />
               </Button>
             )}
             
