@@ -43,7 +43,7 @@ export function useWidgetState<T extends Record<string, any>>(
 
   // Debounced sync to Supabase
   const debouncedSync = useMemo(
-    () => debounce(async (widgetId: string, updates: any) => {
+    () => debounce(async (widgetId: string, updates: Record<string, unknown>) => {
       if (!user?.id) return;
       
       setIsLoading(true);
@@ -53,8 +53,8 @@ export function useWidgetState<T extends Record<string, any>>(
         const { error: updateError } = await supabase
           .from('user_widgets')
           .update({
-            widget_config: updates.widget_config,
-            is_collapsed: updates.is_collapsed,
+            widget_config: updates.widget_config as Record<string, any>,
+            is_collapsed: updates.is_collapsed as boolean,
             updated_at: new Date().toISOString()
           })
           .eq('id', widgetId)

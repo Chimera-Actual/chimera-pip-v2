@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { reportError } from '@/lib/errorReporting';
 
 interface AiOracleWidgetProps {
   widget: BaseWidget;
@@ -93,7 +94,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
         const parsed = JSON.parse(savedMessages);
         setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })));
       } catch (error) {
-        console.error('Error loading chat history:', error);
+        reportError('Error loading chat history');
       }
     }
 
@@ -151,11 +152,11 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
         personality: currentPersonality.id,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      toast.error('Failed to get AI response');
-      console.error('AI response error:', error);
-    } finally {
+        setMessages(prev => [...prev, assistantMessage]);
+      } catch (error) {
+        toast.error('Failed to get AI response');
+        reportError('AI response error');
+      } finally {
       setIsThinking(false);
     }
   };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Badge } from '@/components/ui/badge';
+import { reportError } from '@/lib/errorReporting';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Star, Target, Users, Zap, Award } from 'lucide-react';
@@ -113,7 +114,7 @@ export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> =
       
       setAchievements([...dbAchievements, ...mockAchievements]);
     } catch (error) {
-      console.error('Error loading achievements:', error);
+      reportError('Error loading achievements', { component: 'AchievementGalleryWidget' });
     } finally {
       setLoading(false);
     }

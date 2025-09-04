@@ -99,7 +99,7 @@ export function useConsistentWidgetState<T extends Record<string, any>>(
 
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      let lastError: any = null;
+      let lastError: unknown = null;
       
       for (let attempt = 1; attempt <= retryAttempts; attempt++) {
         try {

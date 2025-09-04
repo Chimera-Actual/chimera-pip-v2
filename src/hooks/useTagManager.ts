@@ -139,7 +139,7 @@ export const useTagManager = () => {
     }
 
     try {
-      const dbUpdates: any = {};
+      const dbUpdates: Record<string, unknown> = {};
 
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.color !== undefined) dbUpdates.color = updates.color;

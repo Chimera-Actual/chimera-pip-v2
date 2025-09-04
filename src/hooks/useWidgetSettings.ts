@@ -7,13 +7,13 @@ import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
 import { useIntelligentSync } from './useIntelligentSync';
 
 // Fallback schemas for common widget types
-const getFallbackSchema = <T extends Record<string, any>>(widgetType: string): WidgetSettingsSchema<T> => {
+const getFallbackSchema = <T extends Record<string, unknown>>(widgetType: string): WidgetSettingsSchema<T> => {
   const commonSchema = {
     title: { type: 'string' as const, label: 'Title', required: true, group: 'general' as const },
     refreshInterval: { type: 'number' as const, label: 'Refresh Interval (minutes)', validation: { min: 1, max: 60 }, group: 'general' as const },
   };
 
-  const fallbacks: Record<string, any> = {
+  const fallbacks: Record<string, Record<string, WidgetSettingsField>> = {
     weather: {
       ...commonSchema,
       location: { type: 'string' as const, label: 'Location', required: true, placeholder: 'Enter city name', group: 'general' as const },
@@ -28,7 +28,7 @@ const getFallbackSchema = <T extends Record<string, any>>(widgetType: string): W
   };
 
   const schema = fallbacks[widgetType] || fallbacks.default;
-  const defaultSettings: Record<string, any> = Object.keys(schema).reduce((acc, key) => {
+  const defaultSettings: Record<string, unknown> = Object.keys(schema).reduce((acc, key) => {
     acc[key] = schema[key].type === 'boolean' ? false : schema[key].type === 'number' ? 5 : '';
     return acc;
   }, {});
@@ -56,7 +56,7 @@ interface WidgetSettingsField {
   group?: 'general' | 'display' | 'api' | 'advanced';
 }
 
-interface WidgetSettingsSchema<T = Record<string, any>> {
+interface WidgetSettingsSchema<T = Record<string, unknown>> {
   widgetType: string;
   schemaVersion: number;
   defaultSettings: T;
@@ -68,8 +68,8 @@ interface WidgetInstanceSettings {
   widgetId: string;
   userId: string;
   widgetType: string;
-  settingsOverrides: Record<string, any>;
-  settingsMerged: Record<string, any>;
+  settingsOverrides: Record<string, unknown>;
+  settingsMerged: Record<string, unknown>;
   lastValidatedAt?: string;
   validationErrors?: Record<string, string>;
 }
@@ -81,7 +81,7 @@ interface UseWidgetSettingsReturn<T> {
   isLoading: boolean;
   errors: Record<string, string>;
   isDirty: boolean;
-  updateSetting: (key: keyof T, value: any) => void;
+  updateSetting: (key: keyof T, value: unknown) => void;
   resetToDefaults: () => Promise<void>;
   saveSettings: () => Promise<boolean>;
   validateSettings: () => boolean;
@@ -89,7 +89,7 @@ interface UseWidgetSettingsReturn<T> {
   importSettings: (settingsJson: string) => boolean;
 }
 
-export function useWidgetSettings<T extends Record<string, any>>(
+export function useWidgetSettings<T extends Record<string, unknown>>(
   widgetId: string,
   widgetType: string
 ): UseWidgetSettingsReturn<T> {
@@ -129,7 +129,7 @@ export function useWidgetSettings<T extends Record<string, any>>(
         let parsedSchema: WidgetSettingsSchema<T>;
         
         if (schemaError || !schemaData) {
-          console.warn('Schema load error, using fallback:', schemaError);
+        console.warn('Schema load error, using fallback:', schemaError);
           // Fallback schema for common widget types
           const fallbackSchemas = getFallbackSchema<T>(widgetType);
           parsedSchema = fallbackSchemas;
@@ -181,8 +181,8 @@ export function useWidgetSettings<T extends Record<string, any>>(
               widget_id: widgetId,
               user_id: user.id,
               widget_type: widgetType,
-              settings_overrides: {},
-              settings_merged: defaultSettings
+              settings_overrides: defaultSettings as Record<string, any>,
+              settings_merged: defaultSettings as Record<string, any>
             });
         }
       } catch (error) {
@@ -205,7 +205,7 @@ export function useWidgetSettings<T extends Record<string, any>>(
     loadWidgetSettings();
   }, [widgetId, widgetType, user]);
 
-  const updateSetting = useCallback((key: keyof T, value: any) => {
+  const updateSetting = useCallback((key: keyof T, value: unknown) => {
     const newOverrides = { ...settingsOverrides, [key]: value };
     const newSettings = { ...settings, [key]: value };
     
@@ -247,7 +247,7 @@ export function useWidgetSettings<T extends Record<string, any>>(
         switch (fieldSchema.type) {
           case 'url':
             try {
-              new URL(value);
+              new URL(value as string);
             } catch {
               validationErrors[fieldKey] = 'Must be a valid URL';
             }
@@ -285,8 +285,8 @@ export function useWidgetSettings<T extends Record<string, any>>(
           widget_id: widgetId,
           user_id: user.id,
           widget_type: widgetType,
-          settings_overrides: settingsOverrides,
-          settings_merged: settings,
+          settings_overrides: settingsOverrides as Record<string, any>,
+          settings_merged: settings as Record<string, any>,
           last_validated_at: new Date().toISOString(),
           validation_errors: null,
           updated_at: new Date().toISOString()
@@ -297,7 +297,7 @@ export function useWidgetSettings<T extends Record<string, any>>(
       setIsDirty(false);
       return true;
     } catch (error) {
-      console.error('Failed to save settings:', error);
+        console.error('Failed to save settings:', error);
       reportError(
         'Widget settings save failed',
         {

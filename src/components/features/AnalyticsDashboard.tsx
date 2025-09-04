@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { reportError } from '@/lib/errorReporting';
 
 interface AnalyticsData {
   totalEvents: number;
@@ -118,7 +119,7 @@ export const AnalyticsDashboard: React.FC = () => {
         activityByHour
       });
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      reportError('Error loading analytics');
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +150,7 @@ export const AnalyticsDashboard: React.FC = () => {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Error exporting data:', error);
+      reportError('Error exporting data');
     }
   };
 

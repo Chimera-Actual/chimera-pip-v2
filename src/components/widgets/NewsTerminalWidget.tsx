@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useCallback } from 'react';
 import { BaseWidget, NewsTerminalSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 
@@ -30,7 +30,6 @@ const fetchNewsData = async (categories: string[], maxItems: number): Promise<Ne
   });
 
   if (error) {
-    console.error('News API error:', error);
     throw new Error('Failed to fetch news data');
   }
 
@@ -84,7 +83,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     if (!settings?.categories || settings.categories.length === 0) {
       setError('No news categories selected in widget settings');
       return;
@@ -112,7 +111,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [settings?.categories, settings?.maxItems]);
 
   // Initial data fetch
   useEffect(() => {
@@ -125,7 +124,7 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
 
     const interval = setInterval(fetchNews, settings.refreshInterval * 1000);
     return () => clearInterval(interval);
-  }, [settings?.autoRefresh, settings?.refreshInterval]);
+  }, [settings?.autoRefresh, settings?.refreshInterval, fetchNews]);
 
   if (isLoading && newsItems.length === 0) {
     return <div className="flex justify-center items-center h-32 text-pip-text-muted">Loading news...</div>;

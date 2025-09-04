@@ -31,7 +31,6 @@ const fetchWeatherData = async (location: string, units: string = 'imperial'): P
   });
 
   if (error) {
-    console.error('Weather API error:', error);
     throw new Error('Failed to fetch weather data');
   }
 
@@ -91,7 +90,7 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     if (!settings.location) {
       setError('Location not set in widget settings');
       return;
@@ -108,7 +107,7 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [settings.location, settings.temperatureUnit]);
 
   // Initial data fetch
   useEffect(() => {
@@ -120,7 +119,7 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({
       const interval = setInterval(refreshData, settings.refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [settings.autoRefresh, settings.refreshInterval, weatherData]);
+  }, [settings.autoRefresh, settings.refreshInterval, weatherData, refreshData]);
 
   const convertTemperature = useCallback((temp: number): number => {
     // Temperature comes from API in the requested unit already

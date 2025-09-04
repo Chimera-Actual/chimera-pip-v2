@@ -16,7 +16,7 @@ export interface LoadingActions {
     options?: {
       loadingText?: string;
       errorPrefix?: string;
-      onError?: (error: any) => void;
+      onError?: (error: unknown) => void;
     }
   ) => Promise<T | null>;
 }
@@ -79,7 +79,7 @@ export function useLoadingState(
     options: {
       loadingText?: string;
       errorPrefix?: string;
-      onError?: (error: any) => void;
+      onError?: (error: unknown) => void;
     } = {}
   ): Promise<T | null> => {
     const { loadingText, errorPrefix = 'Operation failed', onError } = options;

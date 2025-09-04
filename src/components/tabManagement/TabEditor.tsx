@@ -1,6 +1,7 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { X, Check } from 'lucide-react';
 import { TabConfiguration } from '@/types/tabManagement';
+import { reportError } from '@/lib/errorReporting';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -89,7 +90,7 @@ export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose,
       });
       onClose();
     } catch (error) {
-      console.error('Failed to save tab:', error);
+      reportError('Failed to save tab');
     } finally {
       setIsSubmitting(false);
     }

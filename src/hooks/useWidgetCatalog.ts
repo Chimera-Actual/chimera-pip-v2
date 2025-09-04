@@ -50,7 +50,7 @@ export const useWidgetCatalog = () => {
 
       // Create tag associations map
       const tagMap = new Map<string, string[]>();
-      associationsData?.forEach((assoc: any) => {
+      associationsData?.forEach((assoc: { widget_type: string; tag_id: string }) => {
         if (!tagMap.has(assoc.widget_type)) {
           tagMap.set(assoc.widget_type, []);
         }

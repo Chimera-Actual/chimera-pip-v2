@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { reportError } from '@/lib/errorReporting';
 
 export interface UserProfile {
   id: string;
@@ -73,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        reportError('Error fetching profile', { component: 'AuthContext' });
         return;
       }
 
@@ -86,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setProfile(profileData);
     } catch (error) {
-      console.error('Profile fetch error:', error);
+      reportError('Profile fetch error', { component: 'AuthContext' });
     }
   };
 
@@ -229,7 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have been logged out safely.",
       });
     } catch (error) {
-      console.error('Sign out error:', error);
+      reportError('Sign out error', { component: 'AuthContext' });
     }
   };
 

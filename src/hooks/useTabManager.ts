@@ -146,7 +146,7 @@ export const useTabManager = () => {
     if (!user?.id) return;
 
     try {
-      const dbUpdates: any = {
+      const dbUpdates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };
 

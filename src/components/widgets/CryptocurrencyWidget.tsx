@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -56,14 +56,14 @@ export const CryptocurrencyWidget: React.FC = () => {
     }, 1000);
   }, [trackWidgetAction]);
 
-  const formatPrice = (price: number) => {
+  const formatPrice = useCallback((price: number) => {
     if (price < 1) {
       return `$${price.toFixed(6)}`;
     }
     return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  }, []);
 
-  const formatMarketCap = (marketCap: number) => {
+  const formatMarketCap = useCallback((marketCap: number) => {
     if (marketCap >= 1e12) {
       return `$${(marketCap / 1e12).toFixed(1)}T`;
     }
@@ -74,7 +74,7 @@ export const CryptocurrencyWidget: React.FC = () => {
       return `$${(marketCap / 1e6).toFixed(1)}M`;
     }
     return `$${marketCap.toLocaleString()}`;
-  };
+  }, []);
 
   if (isLoading) {
     return (

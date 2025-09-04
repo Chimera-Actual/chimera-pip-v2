@@ -6,6 +6,7 @@ interface ErrorContext {
   component?: string;
   action?: string;
   metadata?: Record<string, any>;
+  [key: string]: unknown;
 }
 
 interface ErrorReport {
@@ -107,7 +108,7 @@ class ErrorReporter {
     }
   }
 
-  private sendToAnalytics(type: string, message: string, context?: any): void {
+  private sendToAnalytics(type: string, message: string, context?: ErrorContext): void {
     // Send to analytics service (Google Analytics, Mixpanel, etc.)
     // Example:
     // gtag('event', 'exception', {

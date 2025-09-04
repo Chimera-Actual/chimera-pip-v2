@@ -10,6 +10,17 @@ interface SyncOptions {
   maxRetries?: number;
 }
 
+interface WidgetConfigUpdate {
+  settings: Record<string, unknown>;
+  collapsed: boolean;
+}
+
+interface DatabaseWidgetUpdate {
+  widget_config: WidgetConfigUpdate;  
+  settings_overrides: Record<string, unknown>;
+  settings_merged: Record<string, unknown>;
+}
+
 type SyncableData = Record<string, unknown>;
 
 export const useIntelligentSync = (

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { reportError } from '@/lib/errorReporting';
 import { Label } from '@/components/ui/label';
 import { Loader2, Key, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,12 +32,12 @@ export const PasswordReset: React.FC = () => {
       });
 
       if (error) {
-        console.error('Reset password error:', error);
+        reportError('Reset password error', { component: 'PasswordReset' });
       } else {
         setIsSuccess(true);
       }
     } catch (error) {
-      console.error('Reset password error:', error);
+      reportError('Reset password error', { component: 'PasswordReset' });
     } finally {
       setIsLoading(false);
     }
