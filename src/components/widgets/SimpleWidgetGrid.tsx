@@ -150,8 +150,12 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   const handleToggleWidth = useCallback((widget: BaseWidget) => {
     const newWidth: WidgetWidth = widget.widgetWidth === 'full' ? 'half' : 'full';
+    console.log(`Toggling widget ${widget.id} from ${widget.widgetWidth} to ${newWidth}`);
     updateWidget(widget.id, { widgetWidth: newWidth });
-  }, [updateWidget]);
+    
+    // Force re-render by updating the widget through handleUpdate as well
+    handleUpdate(widget.id, { widgetWidth: newWidth });
+  }, [updateWidget, handleUpdate]);
 
   // Use simple lazy loading for large collections (>15 widgets)
   if (widgets.length > 15) {
