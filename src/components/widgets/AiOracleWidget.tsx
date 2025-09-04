@@ -166,28 +166,15 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
     <Card className="w-full h-full flex flex-col">
       {/* Header */}
       <CardHeader className={`${compactMode ? 'pb-2' : 'pb-3'}`}>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-pip-text-bright">
-            <Brain className="h-5 w-5" />
-            AI Oracle
-            {currentAgent && (
-              <Badge variant="secondary" className="ml-2">
-                {currentAgent.name}
-              </Badge>
-            )}
-          </CardTitle>
-          
-          <div className="flex items-center gap-2">
-            {showTokenUsage && conversation?.metadata?.tokenUsage && (
-              <Badge variant="outline" className="text-xs">
-                {conversation.metadata.tokenUsage} tokens
-              </Badge>
-            )}
-            <Button variant="ghost" size="sm" onClick={onSettingsClick}>
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2 text-pip-text-bright">
+          <Brain className="h-5 w-5" />
+          AI Oracle
+          {currentAgent && (
+            <Badge variant="secondary" className="ml-2">
+              {currentAgent.name}
+            </Badge>
+          )}
+        </CardTitle>
 
         {/* Agent Switcher */}
         {showAgentSwitcher && agents.length > 1 && (
