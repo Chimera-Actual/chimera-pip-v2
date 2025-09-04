@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -204,7 +206,27 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
                           : 'bg-pip-background border border-pip-border text-pip-text'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <div className="prose prose-sm prose-invert max-w-none">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => <p className="whitespace-pre-wrap mb-2 last:mb-0">{children}</p>,
+                            code: ({ children }) => <code className="bg-pip-background/50 px-1 py-0.5 rounded text-xs">{children}</code>,
+                            pre: ({ children }) => <pre className="bg-pip-background/50 border border-pip-border rounded p-2 overflow-x-auto text-xs">{children}</pre>,
+                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-pip-text-bright">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-pip-text-bright">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-pip-text-bright">{children}</h3>,
+                            ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                            li: ({ children }) => <li className="text-sm">{children}</li>,
+                            strong: ({ children }) => <strong className="font-bold text-pip-text-bright">{children}</strong>,
+                            em: ({ children }) => <em className="italic text-pip-text-muted">{children}</em>,
+                            blockquote: ({ children }) => <blockquote className="border-l-2 border-pip-accent pl-3 italic text-pip-text-muted mb-2">{children}</blockquote>
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                       {!compactMode && (
                         <div className={`flex items-center gap-1 mt-1 text-xs ${
                           message.role === 'user' ? 'text-pip-text-bright/70' : 'text-pip-text-muted'

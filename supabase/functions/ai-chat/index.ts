@@ -151,6 +151,15 @@ serve(async (req) => {
 
     if (typeof aiResponse === 'string') {
       responseContent = aiResponse;
+    } else if (Array.isArray(aiResponse) && aiResponse.length > 0) {
+      // Handle array format like [{"output": "content"}]
+      const firstItem = aiResponse[0];
+      if (firstItem && typeof firstItem === 'object' && firstItem.output) {
+        responseContent = firstItem.output;
+        tokenUsage = firstItem.tokenUsage || 0;
+      } else {
+        responseContent = JSON.stringify(firstItem);
+      }
     } else if (aiResponse.response) {
       responseContent = aiResponse.response;
       tokenUsage = aiResponse.tokenUsage || 0;
