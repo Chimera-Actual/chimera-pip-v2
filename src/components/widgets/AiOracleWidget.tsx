@@ -164,46 +164,6 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
 
   return (
     <Card className="w-full h-full flex flex-col">
-      {/* Header */}
-      <CardHeader className={`${compactMode ? 'pb-2' : 'pb-3'}`}>
-        <CardTitle className="flex items-center gap-2 text-pip-text-bright">
-          <Brain className="h-5 w-5" />
-          AI Oracle
-          {currentAgent && (
-            <Badge variant="secondary" className="ml-2">
-              {currentAgent.name}
-            </Badge>
-          )}
-        </CardTitle>
-
-        {/* Agent Switcher */}
-        {showAgentSwitcher && agents.length > 1 && (
-          <div className="flex items-center gap-2 mt-2">
-            <Select value={selectedAgentId} onValueChange={handleAgentChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an agent" />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map(agent => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
-                        style={{ backgroundColor: agent.avatarConfig.color }}
-                      />
-                      <span>{agent.name}</span>
-                      {agent.isDefault && (
-                        <Badge variant="secondary" className="ml-2 text-xs">Default</Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      </CardHeader>
-
       {/* Chat Messages */}
       <CardContent className="flex-1 flex flex-col p-4 gap-4">
         <ScrollArea className="flex-1 pr-4">
