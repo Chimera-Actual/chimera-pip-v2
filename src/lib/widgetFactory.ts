@@ -104,10 +104,24 @@ export class WidgetFactory {
       resizable: false,
       defaultTab: 'DATA',
       defaultSettings: {
-        personality: 'codsworth' as const,
-        autoGreet: true,
-        responseSpeed: 'normal' as const,
-        showStatus: true
+        selectedAgentId: undefined,
+        fallbackAgentId: undefined,
+        instanceOverrides: {
+          responseLength: 'medium' as const,
+          contextAware: true,
+          maxTokens: 1000,
+          temperature: 0.7
+        },
+        conversationSettings: {
+          saveHistory: true,
+          maxHistoryLength: 50,
+          autoSummarize: false
+        },
+        uiPreferences: {
+          showAgentSwitcher: true,
+          showTokenUsage: false,
+          compactMode: false
+        }
       }
     },
     'achievement-gallery': {
