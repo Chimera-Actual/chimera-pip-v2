@@ -67,7 +67,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       data-widget-id={widgetId}
     >
       {/* Widget Header */}
-      <div className="widget-header flex items-center justify-between px-4 py-2 border-b border-pip-border/20 h-12 bg-gradient-to-r from-pip-green-primary/10 to-transparent">
+      <div className="widget-header flex items-center justify-between px-2 py-1 border-b border-pip-border/20 h-12 bg-gradient-to-r from-pip-green-primary/10 to-transparent">
         {/* Left side - Move handle and title */}
         <div className="widget-title-left flex items-center gap-3">
           {onMove && (
