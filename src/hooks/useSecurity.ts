@@ -25,7 +25,7 @@ export function useSecurity() {
         }
       });
     } catch (error) {
-      console.error('Error logging security event:', error);
+      // Handle security event logging error in production
     }
   }, [user?.id]);
 
@@ -104,7 +104,7 @@ export function useSecurity() {
         .rpc('validate_password_strength', { password });
 
       if (error) {
-        console.error('Password validation error:', error);
+        // Handle password validation error in production
         return false;
       }
 
@@ -116,7 +116,7 @@ export function useSecurity() {
 
       return data;
     } catch (error) {
-      console.error('Error validating password:', error);
+      // Handle validation error in production
       return false;
     }
   }, [logSecurityEvent]);
@@ -144,7 +144,7 @@ export function useSecurity() {
         });
       }
     } catch (error) {
-      console.error('Error checking login pattern:', error);
+      // Handle login pattern check error in production
     }
   }, [user?.id, logSecurityEvent]);
 

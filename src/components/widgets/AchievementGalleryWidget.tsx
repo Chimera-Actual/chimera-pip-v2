@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { WidgetContainer } from './WidgetContainer';
@@ -44,7 +44,7 @@ const rarityColors = {
   legendary: 'text-pip-accent-amber',
 };
 
-export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> = ({ widget }) => {
+export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> = memo(({ widget }) => {
   const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -246,4 +246,6 @@ export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> =
       )}
     </WidgetContainer>
   );
-};
+});
+
+AchievementGalleryWidget.displayName = 'AchievementGalleryWidget';

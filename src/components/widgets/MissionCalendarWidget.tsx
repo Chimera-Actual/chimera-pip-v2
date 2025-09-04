@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { WidgetContainer } from './WidgetContainer';
@@ -65,7 +65,7 @@ const categoryIcons = {
   weekly: Calendar as any,
 };
 
-export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = ({ widget }) => {
+export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(({ widget }) => {
   const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -465,4 +465,6 @@ export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = ({ wi
       )}
     </WidgetContainer>
   );
-};
+});
+
+MissionCalendarWidget.displayName = 'MissionCalendarWidget';

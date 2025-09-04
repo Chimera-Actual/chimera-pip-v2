@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { WidgetContainer } from './WidgetContainer';
@@ -53,7 +53,7 @@ const entryIcons = {
   key: Shield,
 };
 
-export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = ({ widget }) => {
+export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widget }) => {
   const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
   const [isLocked, setIsLocked] = useState(true);
   const [masterPassword, setMasterPassword] = useState('');
@@ -453,4 +453,6 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = ({ widget }) 
       )}
     </WidgetContainer>
   );
-};
+});
+
+SecureVaultWidget.displayName = 'SecureVaultWidget';

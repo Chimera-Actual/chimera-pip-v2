@@ -80,7 +80,7 @@ export function usePresence() {
           table: 'user_presence'
         },
         (payload) => {
-          console.log('Presence change:', payload);
+          // Handle presence change
           
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const newPresence: UserPresence = {

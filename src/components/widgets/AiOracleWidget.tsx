@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget, AiOracleSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { WidgetContainer } from './WidgetContainer';
@@ -77,7 +77,7 @@ const personalities: Personality[] = [
   },
 ];
 
-export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({ widget }) => {
+export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) => {
   const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
   const aiSettings = settings as AiOracleSettings;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -395,4 +395,6 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({ widget }) => {
       )}
     </WidgetContainer>
   );
-};
+});
+
+AiOracleWidget.displayName = 'AiOracleWidget';

@@ -132,7 +132,7 @@ export const BiometricLogin: React.FC = () => {
       });
       
       // In production, send authResponse to server for verification
-      console.log('Authentication response:', authResponse);
+      // TODO: Send authResponse to server for verification
 
       // For demo purposes, simulate successful authentication
       const { error } = await signIn('demo@chimera-tec.com', 'biometric-auth');
@@ -202,7 +202,7 @@ export const BiometricLogin: React.FC = () => {
       });
       
       // In production, send registrationResponse to server for verification and storage
-      console.log('Registration response:', registrationResponse);
+      // TODO: Send registrationResponse to server for verification and storage
 
       setIsEnrollment(false);
       setError('');
