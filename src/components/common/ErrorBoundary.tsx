@@ -1,7 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode, memo } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Bug } from 'lucide-react';
+import { reportError } from '@/lib/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -23,10 +24,19 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    // You could send this to an error reporting service
-    // Example: Sentry.captureException(error, { contexts: { errorInfo } });
+    // Use proper error reporting instead of console.error
+    reportError(
+      `Error Boundary: ${error.message}`,
+      {
+        component: 'ErrorBoundary',
+        action: 'componentDidCatch',
+        metadata: {
+          componentStack: errorInfo.componentStack,
+          errorBoundary: true,
+        },
+      },
+      error
+    );
   }
 
   private handleReset = () => {
@@ -34,6 +44,11 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReload = () => {
+    // Report the reload action for analytics
+    reportError('User initiated error boundary reload', {
+      component: 'ErrorBoundary',
+      action: 'handleReload'
+    });
     window.location.reload();
   };
 
