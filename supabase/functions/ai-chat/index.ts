@@ -1,16 +1,25 @@
-// DEPRECATED: This edge function is deprecated in favor of N8N webhooks
-// Use webhookService.callAiChat() instead of calling this function directly
-// This function is kept temporarily for rollback compatibility
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+interface ChatRequest {
+  message: string;
+  agentId: string;
+  conversationId?: string;
+  widgetId: string;
+}
+
+interface ChatResponse {
+  response: string;
+  conversationId: string;
+  tokenUsage?: number;
+  requestCount?: number;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,69 +28,198 @@ serve(async (req) => {
   }
 
   try {
-    const { message, personality, conversationHistory = [] } = await req.json();
-    
-    if (!message) {
-      throw new Error('Message is required');
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
     }
 
-    console.log(`Processing AI chat request for personality: ${personality}`);
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      throw new Error('Invalid auth token');
+    }
 
-    // Define personality system prompts
-    const personalities = {
-      codsworth: "You are Codsworth, a polite and cheerful Mr. Handy robot butler from Fallout. You speak with British mannerisms, are helpful and optimistic, often concerned about proper etiquette and cleanliness. Address the user as 'Sir' or 'Mum'.",
-      modus: "You are MODUS (Multi-Operation Directive and Unilateral Strategic System), an AI from the Enclave in Fallout. You are logical, efficient, and somewhat cold. You speak with authority and focus on strategic objectives.",
-      eden: "You are President John Henry Eden, the AI president of the Enclave from Fallout 3. You are charismatic, patriotic, and speak with the confidence of a politician, always promoting the 'American way'.",
-      nick: "You are Nick Valentine, a synth detective from Fallout 4. You speak like a 1940s film noir detective, are cynical but caring, and often reference old cases and pre-war culture.",
-      default: "You are a helpful AI assistant in the Fallout universe. You understand the post-apocalyptic world and can provide assistance while maintaining the atmosphere of the wasteland."
+    const { message, agentId, conversationId, widgetId }: ChatRequest = await req.json();
+
+    if (!message || !agentId || !widgetId) {
+      throw new Error('Missing required fields: message, agentId, widgetId');
+    }
+
+    // Get agent details
+    const { data: agent, error: agentError } = await supabase
+      .from('ai_agents')
+      .select('*')
+      .eq('id', agentId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (agentError || !agent) {
+      throw new Error('Agent not found or access denied');
+    }
+
+    // Get or create conversation
+    let conversation;
+    if (conversationId) {
+      const { data: existingConv, error: convError } = await supabase
+        .from('ai_conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (convError) {
+        throw new Error('Conversation not found');
+      }
+      conversation = existingConv;
+    } else {
+      // Create new conversation
+      const { data: newConv, error: createError } = await supabase
+        .from('ai_conversations')
+        .insert({
+          widget_id: widgetId,
+          agent_id: agentId,
+          user_id: user.id,
+          messages: [],
+          metadata: {
+            requestCount: 0,
+            tokenUsage: 0
+          }
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error('Failed to create conversation');
+      }
+      conversation = newConv;
+    }
+
+    // Prepare messages for the AI webhook
+    const messages = conversation.messages || [];
+    const conversationHistory = messages.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    // Add current user message
+    conversationHistory.push({
+      role: 'user',
+      content: message
+    });
+
+    // Prepare webhook payload
+    const webhookPayload = {
+      messages: conversationHistory,
+      systemPrompt: agent.system_prompt,
+      modelParameters: agent.model_parameters,
+      agentId: agentId,
+      conversationId: conversation.id,
+      userId: user.id
     };
 
-    const systemPrompt = personalities[personality as keyof typeof personalities] || personalities.default;
+    console.log('Sending to webhook:', agent.webhook_url);
+    console.log('Payload:', JSON.stringify(webhookPayload, null, 2));
 
-    // Prepare conversation context
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory.slice(-10), // Keep last 10 messages for context
-      { role: 'user', content: message }
-    ];
-
-    console.log('Calling OpenAI API...');
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call the n8n webhook
+    const webhookResponse = await fetch(agent.webhook_url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: messages,
-        max_tokens: 500,
-        temperature: 0.8,
-      }),
+      body: JSON.stringify(webhookPayload),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+    if (!webhookResponse.ok) {
+      console.error('Webhook error:', webhookResponse.status, await webhookResponse.text());
+      throw new Error(`Webhook failed: ${webhookResponse.status} ${webhookResponse.statusText}`);
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiResponse = await webhookResponse.json();
+    console.log('AI Response:', aiResponse);
 
-    console.log('AI response generated successfully');
+    // Extract response content - handle different possible response formats
+    let responseContent: string;
+    let tokenUsage = 0;
 
-    return new Response(JSON.stringify({ 
-      response: aiResponse,
-      personality: personality,
-      timestamp: new Date().toISOString()
-    }), {
+    if (typeof aiResponse === 'string') {
+      responseContent = aiResponse;
+    } else if (aiResponse.response) {
+      responseContent = aiResponse.response;
+      tokenUsage = aiResponse.tokenUsage || 0;
+    } else if (aiResponse.message) {
+      responseContent = aiResponse.message;
+      tokenUsage = aiResponse.tokenUsage || 0;
+    } else if (aiResponse.content) {
+      responseContent = aiResponse.content;
+      tokenUsage = aiResponse.tokenUsage || 0;
+    } else {
+      responseContent = JSON.stringify(aiResponse);
+    }
+
+    // Add both messages to conversation history
+    const updatedMessages = [
+      ...messages,
+      {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: message,
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: responseContent,
+        timestamp: new Date().toISOString()
+      }
+    ];
+
+    // Update conversation metadata
+    const currentRequestCount = (conversation.metadata?.requestCount || 0) + 1;
+    const currentTokenUsage = (conversation.metadata?.tokenUsage || 0) + tokenUsage;
+
+    // Save updated conversation
+    const { error: updateError } = await supabase
+      .from('ai_conversations')
+      .update({
+        messages: updatedMessages,
+        metadata: {
+          requestCount: currentRequestCount,
+          tokenUsage: currentTokenUsage,
+          lastAgentUsed: agentId,
+          updatedAt: new Date().toISOString()
+        }
+      })
+      .eq('id', conversation.id);
+
+    if (updateError) {
+      console.error('Failed to update conversation:', updateError);
+      // Don't throw here - we got the AI response, just log the error
+    }
+
+    const response: ChatResponse = {
+      response: responseContent,
+      conversationId: conversation.id,
+      tokenUsage: currentTokenUsage,
+      requestCount: currentRequestCount
+    };
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     console.error('Error in ai-chat function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
+      details: error instanceof Error ? error.stack : undefined
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

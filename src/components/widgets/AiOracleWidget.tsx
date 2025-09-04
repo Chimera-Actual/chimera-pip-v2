@@ -12,6 +12,7 @@ import { AiOracleSettings, BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { useAiAgents } from '@/hooks/useAiAgents';
 import { useAiConversation } from '@/hooks/useAiConversation';
+import { AiOracleSettingsModal } from './AiOracleSettingsModal';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AiOracleWidgetProps {
@@ -25,6 +26,9 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
 }) => {
   const { settings, isLoading } = useWidgetState(widget.id, widget.settings);
   const aiSettings = settings as AiOracleSettings;
+  
+  // Local state
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   // AI Agents hook
   const { 
@@ -49,11 +53,11 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
     clearConversation
   } = useAiConversation();
   
-  // Simple state update function for now
-  const updateSettings = async (newSettings: Partial<AiOracleSettings>) => {
+  // Settings update function
+  const handleSettingsChange = useCallback(async (newSettings: Partial<AiOracleSettings>) => {
     // This would normally update the widget settings through the widget system
     console.log('Settings update:', newSettings);
-  };
+  }, []);
   
   // Initialize selected agent
   useEffect(() => {
@@ -86,9 +90,9 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
 
   const handleAgentChange = useCallback(async (agentId: string) => {
     setSelectedAgentId(agentId);
-    await updateSettings({ selectedAgentId: agentId });
+    await handleSettingsChange({ selectedAgentId: agentId });
     await loadConversation(widget.id, agentId);
-  }, [updateSettings, widget.id, loadConversation]);
+  }, [handleSettingsChange, widget.id, loadConversation]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -137,7 +141,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
         <CardContent className="flex flex-col items-center justify-center h-full text-center">
           <Brain className="h-12 w-12 text-pip-text-muted mb-4" />
           <p className="text-pip-text-muted mb-4">No AI agents configured</p>
-          <Button onClick={onSettingsClick} variant="outline" size="sm">
+          <Button onClick={() => setShowSettingsModal(true)} variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
             Configure Agents
           </Button>
@@ -167,7 +171,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
                 {conversation.metadata.tokenUsage} tokens
               </Badge>
             )}
-            <Button variant="ghost" size="sm" onClick={onSettingsClick}>
+            <Button variant="ghost" size="sm" onClick={() => setShowSettingsModal(true)}>
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -333,6 +337,15 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
           </div>
         </div>
       </CardContent>
+
+      {/* Settings Modal */}
+      <AiOracleSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        widget={widget}
+        settings={aiSettings}
+        onSettingsChange={handleSettingsChange}
+      />
     </Card>
   );
 };
