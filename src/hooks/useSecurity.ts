@@ -69,22 +69,31 @@ export function useSecurity() {
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
 
-    // Monitor console access (potential debugging attempts)
-    const originalLog = console.log;
-    console.log = (...args) => {
-      originalLog(...args);
-      if (args.some(arg => typeof arg === 'string' && arg.includes('token'))) {
-        logSecurityEvent('console_token_access', {
-          timestamp: new Date().toISOString()
-        });
+    // Monitor for potential token access in localStorage/sessionStorage
+    const checkForTokenAccess = () => {
+      try {
+        const storage = { ...localStorage, ...sessionStorage };
+        const hasTokenData = Object.keys(storage).some(key => 
+          key.includes('token') || key.includes('auth')
+        );
+        if (hasTokenData) {
+          logSecurityEvent('storage_token_access', {
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        // Storage access blocked, this is actually good for security
       }
     };
 
+    // Check for token access periodically
+    const tokenCheckInterval = setInterval(checkForTokenAccess, 30000); // Check every 30 seconds
+
     return () => {
       window.fetch = originalFetch;
-      console.log = originalLog;
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
+      clearInterval(tokenCheckInterval);
     };
   }, [user?.id, logSecurityEvent]);
 

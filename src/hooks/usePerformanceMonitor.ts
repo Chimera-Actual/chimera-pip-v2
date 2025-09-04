@@ -77,23 +77,37 @@ export const usePerformanceMonitor = (componentName: string, enabled: boolean = 
   useEffect(() => {
     if (!enabled || !('PerformanceObserver' in window)) return;
 
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.duration > 50) { // Long task threshold
-          reportPerformance(`${componentName}_long_task`, entry.duration, {
-            component: componentName,
-            metadata: { 
-              threshold: 50,
-              entryType: entry.entryType 
-            }
-          });
+    let observer: PerformanceObserver | null = null;
+
+    try {
+      observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.duration > 50) { // Long task threshold
+            reportPerformance(`${componentName}_long_task`, entry.duration, {
+              component: componentName,
+              metadata: { 
+                threshold: 50,
+                entryType: entry.entryType 
+              }
+            });
+          }
+        }
+      });
+
+      observer.observe({ entryTypes: ['longtask'] });
+    } catch (error) {
+      console.warn('PerformanceObserver not supported:', error);
+    }
+
+    return () => {
+      if (observer) {
+        try {
+          observer.disconnect();
+        } catch (error) {
+          console.warn('Error disconnecting PerformanceObserver:', error);
         }
       }
-    });
-
-    observer.observe({ entryTypes: ['longtask'] });
-
-    return () => observer.disconnect();
+    };
   }, [enabled, componentName]);
 
   return {
