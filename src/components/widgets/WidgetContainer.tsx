@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
+import { GripVertical, ChevronDown, Settings, MoreHorizontal, Archive, Trash2 } from 'lucide-react';
 
 interface WidgetContainerProps {
   widgetId: string;
@@ -78,7 +79,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
               aria-label="Move widget"
               title="Move Widget"
             >
-              <span className="text-pip-green-primary text-lg font-mono">⊹</span>
+              <GripVertical className="h-4 w-4 text-pip-green-primary" />
             </Button>
           )}
           
@@ -101,9 +102,10 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             aria-label={collapsed ? 'Expand widget' : 'Collapse widget'}
             title={collapsed ? 'Expand' : 'Collapse'}
           >
-            <span className="text-pip-green-primary text-lg font-mono">
-              {collapsed ? '▶' : '▼'}
-            </span>
+            <ChevronDown className={cn(
+              "h-4 w-4 text-pip-green-primary transition-transform duration-200",
+              collapsed && "rotate-[-90deg]"
+            )} />
           </Button>
           
           {onSettingsChange && (
@@ -115,7 +117,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
               aria-label="Widget settings"
               title="Widget Settings"
             >
-              <span className="text-pip-green-primary text-lg font-mono">⚙</span>
+              <Settings className="h-4 w-4 text-pip-green-primary" />
             </Button>
           )}
           
@@ -129,7 +131,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                 aria-label="More options"
                 title="More Options"
               >
-                <span className="text-pip-green-primary text-lg font-mono">🗑</span>
+                <MoreHorizontal className="h-4 w-4 text-pip-green-primary" />
               </Button>
               
               {/* Dropdown Menu */}
@@ -143,7 +145,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                         setShowDropdown(false);
                       }}
                     >
-                      <span className="menu-icon text-base">📦</span>
+                      <Archive className="h-4 w-4" />
                       Archive
                     </button>
                   )}
@@ -155,7 +157,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                         setShowDropdown(false);
                       }}
                     >
-                      <span className="menu-icon text-base">⚠️</span>
+                      <Trash2 className="h-4 w-4" />
                       Delete
                     </button>
                   )}
