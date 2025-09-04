@@ -3,10 +3,14 @@ import { BaseWidget } from '@/types/widgets';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
 
+interface WidgetSettingsUpdate {
+  [key: string]: string | number | boolean | string[];
+}
+
 interface WidgetGridRendererProps {
   widgets: BaseWidget[];
   onToggleCollapse: (widgetId: string) => void;
-  onSettingsChange: (widgetId: string, settings: any) => void;
+  onSettingsChange: (widgetId: string, settings: WidgetSettingsUpdate) => void;
   onDelete?: (widgetId: string) => void;
   onArchive?: (widgetId: string) => void;
   onMove?: (widgetId: string, position: { x: number; y: number }) => void;

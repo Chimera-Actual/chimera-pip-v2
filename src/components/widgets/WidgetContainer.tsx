@@ -10,7 +10,7 @@ interface WidgetContainerProps {
   title: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onSettingsChange?: (settings: any) => void;
+  onSettingsChange?: (settings: Record<string, string | number | boolean | string[]>) => void;
   onDelete?: () => void;
   onArchive?: () => void;
   onMove?: () => void;

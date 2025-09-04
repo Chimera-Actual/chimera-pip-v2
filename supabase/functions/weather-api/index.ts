@@ -21,6 +21,10 @@ serve(async (req) => {
       throw new Error('Location is required');
     }
 
+    if (!openWeatherApiKey) {
+      throw new Error('OpenWeather API key is not configured');
+    }
+
     console.log(`Fetching weather data for: ${location}`);
 
     // Get current weather data
@@ -29,6 +33,7 @@ serve(async (req) => {
     );
 
     if (!weatherResponse.ok) {
+      console.error(`Weather API HTTP error: ${weatherResponse.status} ${weatherResponse.statusText}`);
       throw new Error(`Weather API error: ${weatherResponse.status}`);
     }
 

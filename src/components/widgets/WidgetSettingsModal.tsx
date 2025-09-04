@@ -31,9 +31,9 @@ interface WidgetSettingsField {
 interface SettingsFieldProps {
   fieldKey: string;
   fieldSchema: WidgetSettingsField;
-  value: any;
+  value: string | number | boolean | string[] | undefined;
   error?: string;
-  onChange: (value: any) => void;
+  onChange: (value: string | number | boolean | string[]) => void;
   onTestConnection: (fieldKey: string, endpoint: string) => void;
 }
 
@@ -59,7 +59,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
               "placeholder:text-muted-foreground font-mono text-sm",
               error && "border-destructive focus:ring-destructive"
             )}
-            value={value || ''}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={fieldSchema.placeholder}
             required={fieldSchema.required}
@@ -77,12 +77,12 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
                 "placeholder:text-muted-foreground font-mono text-sm",
                 error && "border-destructive focus:ring-destructive"
               )}
-              value={value || ''}
+              value={typeof value === 'string' ? value : ''}
               onChange={(e) => onChange(e.target.value)}
               placeholder={fieldSchema.placeholder}
               required={fieldSchema.required}
             />
-            {value && (
+            {value && typeof value === 'string' && (
               <button
                 type="button"
                 className="px-3 py-2 bg-primary/20 text-primary border border-primary/30 rounded-md hover:bg-primary/30 transition-colors text-sm flex items-center gap-1"
@@ -106,7 +106,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
                 "placeholder:text-muted-foreground font-mono text-sm",
                 error && "border-destructive focus:ring-destructive"
               )}
-              value={value || ''}
+              value={typeof value === 'string' ? value : ''}
               onChange={(e) => onChange(e.target.value)}
               placeholder={fieldSchema.placeholder || "Enter API key..."}
               required={fieldSchema.required}
@@ -130,7 +130,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
               "placeholder:text-muted-foreground font-mono text-sm resize-vertical",
               error && "border-destructive focus:ring-destructive"
             )}
-            value={value || ''}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={fieldSchema.placeholder}
             required={fieldSchema.required}
@@ -148,7 +148,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
               "font-mono text-sm",
               error && "border-destructive focus:ring-destructive"
             )}
-            value={value || ''}
+            value={typeof value === 'number' ? value : ''}
             onChange={(e) => onChange(Number(e.target.value))}
             min={fieldSchema.validation?.min}
             max={fieldSchema.validation?.max}
@@ -162,7 +162,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
             <div className="relative">
               <input
                 type="checkbox"
-                checked={value || false}
+                checked={Boolean(value)}
                 onChange={(e) => onChange(e.target.checked)}
                 className="sr-only"
               />
@@ -195,7 +195,7 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
               "font-mono text-sm",
               error && "border-destructive focus:ring-destructive"
             )}
-            value={value || ''}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onChange(e.target.value)}
             required={fieldSchema.required}
           >
@@ -209,29 +209,30 @@ const SettingsField: React.FC<SettingsFieldProps> = ({
         );
 
       case 'multiselect':
+        const arrayValue = Array.isArray(value) ? value : [];
         return (
           <div className="max-h-48 overflow-y-auto p-3 bg-background/30 border border-muted-foreground/20 rounded-md space-y-2">
             {fieldSchema.options?.map(option => (
               <label key={option.value} className="flex items-center gap-2 cursor-pointer hover:bg-primary/10 p-1 rounded">
                 <input
                   type="checkbox"
-                  checked={(value || []).includes(option.value)}
+                  checked={arrayValue.includes(option.value)}
                   onChange={(e) => {
-                    const currentValues = value || [];
+                    const currentValues = arrayValue;
                     const newValues = e.target.checked
                       ? [...currentValues, option.value]
-                      : currentValues.filter((v: any) => v !== option.value);
+                      : currentValues.filter((v: string) => v !== option.value);
                     onChange(newValues);
                   }}
                   className="sr-only"
                 />
                 <div className={cn(
                   "w-4 h-4 border rounded flex items-center justify-center text-xs",
-                  (value || []).includes(option.value)
+                  arrayValue.includes(option.value)
                     ? "bg-primary border-primary text-primary-foreground"
                     : "border-muted-foreground/30"
                 )}>
-                  {(value || []).includes(option.value) && '✓'}
+                  {arrayValue.includes(option.value) && '✓'}
                 </div>
                 <span className="text-sm text-foreground">{option.label}</span>
               </label>

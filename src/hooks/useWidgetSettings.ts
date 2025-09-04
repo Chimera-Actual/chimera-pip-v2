@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
 import { reportError } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
+import { useIntelligentSync } from './useIntelligentSync';
 
 // Fallback schemas for common widget types
 const getFallbackSchema = <T extends Record<string, any>>(widgetType: string): WidgetSettingsSchema<T> => {
@@ -100,6 +101,16 @@ export function useWidgetSettings<T extends Record<string, any>>(
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
 
+  // Intelligent sync for widget settings
+  const { sync: syncSettings, initializeSync } = useIntelligentSync(
+    'widget_instance_settings', 
+    widgetId, 
+    {
+      delay: INTERACTION_DELAYS.DEBOUNCE_SYNC,
+      compareDepth: true
+    }
+  );
+
   // Load settings schema and instance data
   useEffect(() => {
     const loadWidgetSettings = async () => {
@@ -144,11 +155,25 @@ export function useWidgetSettings<T extends Record<string, any>>(
         if (instanceData) {
           setSettings(instanceData.settings_merged as T);
           setSettingsOverrides(instanceData.settings_overrides as Partial<T>);
+          
+          // Initialize intelligent sync with current data
+          initializeSync({
+            widget_config: { settings: instanceData.settings_merged as T, collapsed: false },
+            settings_overrides: instanceData.settings_overrides as Partial<T>,
+            settings_merged: instanceData.settings_merged as T
+          });
         } else {
           // Create new instance with defaults
           const defaultSettings = parsedSchema.defaultSettings;
           setSettings(defaultSettings);
           setSettingsOverrides({});
+          
+          // Initialize sync for new widget
+          initializeSync({
+            widget_config: { settings: defaultSettings, collapsed: false },
+            settings_overrides: {},
+            settings_merged: defaultSettings
+          });
           
           await supabase
             .from('widget_instance_settings')
@@ -181,9 +206,19 @@ export function useWidgetSettings<T extends Record<string, any>>(
   }, [widgetId, widgetType, user]);
 
   const updateSetting = useCallback((key: keyof T, value: any) => {
-    setSettingsOverrides(prev => ({ ...prev, [key]: value }));
-    setSettings(prev => ({ ...prev, [key]: value }));
+    const newOverrides = { ...settingsOverrides, [key]: value };
+    const newSettings = { ...settings, [key]: value };
+    
+    setSettingsOverrides(newOverrides);
+    setSettings(newSettings);
     setIsDirty(true);
+    
+    // Intelligent sync - only syncs if data actually changed
+    syncSettings({
+      widget_config: { settings: newSettings, collapsed: false },
+      settings_overrides: newOverrides,
+      settings_merged: newSettings
+    });
     
     // Clear validation error for this field
     setErrors(prev => {
@@ -191,7 +226,7 @@ export function useWidgetSettings<T extends Record<string, any>>(
       delete newErrors[key as string];
       return newErrors;
     });
-  }, []);
+  }, [settingsOverrides, settings, syncSettings]);
 
   const validateSettings = useCallback(() => {
     if (!schema) return false;
