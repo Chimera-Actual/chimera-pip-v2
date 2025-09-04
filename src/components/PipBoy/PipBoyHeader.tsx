@@ -42,7 +42,6 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
       {/* Center: System Info */}
       <div className="flex items-center space-x-6">
         <div className="text-center">
-          <div className="text-xs text-pip-text-muted font-pip-mono">VAULT</div>
           <div className="text-sm text-primary font-pip-mono pip-text-glow">
             {profile?.vault_number?.toString().padStart(3, '0') || '000'}
           </div>
