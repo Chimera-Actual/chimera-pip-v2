@@ -248,6 +248,32 @@
     text-shadow: var(--text-glow);
   }
   
+  /* Phase 4: Advanced System Integration */
+  .mobile-widget-container {
+    touch-action: manipulation;
+  }
+  
+  .priority-high {
+    contain: layout style paint;
+    will-change: transform;
+  }
+  
+  .priority-low {
+    contain: layout;
+  }
+  
+  .focus-trap {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+  
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  
   .pip-button-glow {
     box-shadow: var(--button-glow);
     transition: var(--transition-glow);
