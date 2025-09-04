@@ -77,6 +77,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             id: widget.id,
             type: widgetType,
             title: widgetConfig?.title || definition.title,
+            customIcon: widgetConfig?.customIcon || undefined,
             collapsed: widget.is_collapsed || false,
             archived: widget.is_archived || false,
             order: widget.order_position || 0,
@@ -86,7 +87,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             userId: widget.user_id,
             createdAt: new Date(widget.created_at || Date.now()),
             updatedAt: new Date(widget.updated_at || Date.now()),
-          };
+          } as BaseWidget;
         } catch (widgetError) {
           reportWarning(
             'Failed to parse widget data',
@@ -252,9 +253,10 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         updated_at: new Date().toISOString(),
       };
 
-      if (updates.title !== undefined || updates.settings !== undefined) {
+      if (updates.title !== undefined || updates.settings !== undefined || updates.customIcon !== undefined) {
         dbUpdates.widget_config = {
           title: updates.title || currentWidget.title,
+          customIcon: updates.customIcon !== undefined ? updates.customIcon : currentWidget.customIcon,
           settings: updates.settings || currentWidget.settings,
         };
       }

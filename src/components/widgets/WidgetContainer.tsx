@@ -1,19 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
-import { GripVertical, ChevronDown, Settings, MoreHorizontal, Archive, Trash2 } from 'lucide-react';
+import { 
+  GripVertical, 
+  ChevronDown, 
+  Settings, 
+  MoreHorizontal, 
+  Archive, 
+  Trash2,
+  Edit3,
+  Check,
+  X,
+  ArrowLeftRight,
+  Folder,
+  BarChart3,
+  Monitor,
+  Cloud,
+  Trophy,
+  FileText,
+  Shield,
+  Music,
+  Calendar,
+  MessageCircle,
+  DollarSign,
+  Terminal as TerminalIcon
+} from 'lucide-react';
 
 interface WidgetContainerProps {
   widgetId: string;
   widgetType: string;
   title: string;
+  customIcon?: string;
+  widgetWidth?: 'half' | 'full';
   collapsed: boolean;
   onToggleCollapse: () => void;
   onSettingsChange?: (settings: Record<string, string | number | boolean | string[]>) => void;
+  onTitleChange?: (newTitle: string) => void;
+  onIconChange?: (newIcon: string) => void;
+  onToggleWidth?: () => void;
   onDelete?: () => void;
   onArchive?: () => void;
   onMove?: () => void;
+  dragHandleProps?: any;
   className?: string;
   children: React.ReactNode;
   isLoading?: boolean;
@@ -24,12 +54,18 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   widgetId,
   widgetType,
   title,
+  customIcon,
+  widgetWidth = 'half',
   collapsed,
   onToggleCollapse,
   onSettingsChange,
+  onTitleChange,
+  onIconChange,
+  onToggleWidth,
   onDelete,
   onArchive,
   onMove,
+  dragHandleProps,
   className = '',
   children,
   isLoading = false,
@@ -38,7 +74,69 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState(title);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Widget icon mapping
+  const getWidgetIcon = useCallback((iconName?: string, widgetType?: string) => {
+    const iconMap: Record<string, any> = {
+      'character-profile': Folder,
+      'special-stats': BarChart3,
+      'system-monitor': Monitor,
+      'weather-station': Cloud,
+      'achievement-gallery': Trophy,
+      'file-explorer': Folder,
+      'secure-vault': Shield,
+      'news-terminal': FileText,
+      'audio-player': Music,
+      'calendar-mission': Calendar,
+      'ai-oracle': MessageCircle,
+      'cryptocurrency': DollarSign,
+      'terminal': TerminalIcon,
+      
+      // Custom icons
+      'folder': Folder,
+      'bar-chart-3': BarChart3,
+      'monitor': Monitor,
+      'cloud': Cloud,
+      'trophy': Trophy,
+      'shield': Shield,
+      'file-text': FileText,
+      'music': Music,
+      'calendar': Calendar,
+      'message-circle': MessageCircle,
+      'dollar-sign': DollarSign,
+      'settings': Settings,
+      'archive': Archive,
+      'grip-vertical': GripVertical
+    };
+    
+    return iconMap[iconName || widgetType || 'folder'] || Folder;
+  }, []);
+
+  // Handle title editing
+  const handleTitleSave = useCallback(() => {
+    if (tempTitle.trim() && tempTitle !== title) {
+      onTitleChange?.(tempTitle.trim());
+    } else {
+      setTempTitle(title);
+    }
+    setIsEditingTitle(false);
+  }, [tempTitle, title, onTitleChange]);
+
+  const handleTitleCancel = useCallback(() => {
+    setTempTitle(title);
+    setIsEditingTitle(false);
+  }, [title]);
+
+  const handleTitleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTitleSave();
+    } else if (e.key === 'Escape') {
+      handleTitleCancel();
+    }
+  }, [handleTitleSave, handleTitleCancel]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -54,6 +152,13 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
     }
   }, [showDropdown]);
 
+  // Update temp title when title changes
+  useEffect(() => {
+    setTempTitle(title);
+  }, [title]);
+
+  const IconComponent = getWidgetIcon(customIcon, widgetType);
+
   return (
     <div 
       ref={containerRef}
@@ -68,32 +173,90 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
     >
       {/* Widget Header */}
       <div className="widget-header flex items-center justify-between px-2 py-1 border-b border-pip-border/20 h-12 bg-gradient-to-r from-pip-green-primary/10 to-transparent">
-        {/* Left side - Move handle and title */}
-        <div className="widget-title-left flex items-center gap-3">
-          {onMove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="widget-move p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
-              onClick={onMove}
-              aria-label="Move widget"
-              title="Move Widget"
-            >
-              <GripVertical className="h-4 w-4 text-pip-green-primary" />
-            </Button>
-          )}
+        {/* Left side - Icon (drag handle), title, and loading indicator */}
+        <div className="widget-title-left flex items-center gap-3 flex-1 min-w-0">
+          {/* Widget Icon as Drag Handle */}
+          <div
+            className={cn(
+              "widget-icon-drag-handle flex items-center justify-center w-8 h-8 rounded-md bg-pip-green-primary/20 border border-pip-green-primary/30 transition-all duration-200",
+              dragHandleProps ? "cursor-grab active:cursor-grabbing hover:bg-pip-green-primary/30 hover:scale-105" : ""
+            )}
+            {...dragHandleProps}
+            title="Drag to move widget"
+          >
+            <IconComponent className="h-4 w-4 text-pip-green-primary" />
+          </div>
           
-          <h3 className="widget-title font-pip-display text-sm font-bold tracking-wider uppercase text-pip-text-bright pip-text-glow">
-            {title}
-          </h3>
+          {/* Widget Title - Editable */}
+          <div className="flex-1 min-w-0">
+            {isEditingTitle ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  value={tempTitle}
+                  onChange={(e) => setTempTitle(e.target.value)}
+                  onKeyDown={handleTitleKeyDown}
+                  className="h-6 text-sm font-pip-display font-bold tracking-wider uppercase text-pip-text-bright bg-pip-bg-secondary/50 border-pip-border focus:border-pip-green-primary"
+                  autoFocus
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-6 w-6 hover:bg-pip-green-primary/20"
+                  onClick={handleTitleSave}
+                >
+                  <Check className="h-3 w-3 text-pip-green-primary" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-6 w-6 hover:bg-destructive/20"
+                  onClick={handleTitleCancel}
+                >
+                  <X className="h-3 w-3 text-destructive" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 group">
+                <h3 className="widget-title font-pip-display text-sm font-bold tracking-wider uppercase text-pip-text-bright pip-text-glow truncate">
+                  {title}
+                </h3>
+                {onTitleChange && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-1 h-5 w-5 opacity-0 group-hover:opacity-100 hover:bg-pip-green-primary/20 transition-all"
+                    onClick={() => setIsEditingTitle(true)}
+                    title="Edit title"
+                  >
+                    <Edit3 className="h-3 w-3 text-pip-green-primary" />
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
           
           {isLoading && (
-            <div className="h-2 w-2 rounded-full bg-pip-green-primary animate-pulse" />
+            <div className="h-2 w-2 rounded-full bg-pip-green-primary animate-pulse flex-shrink-0" />
           )}
         </div>
         
         {/* Right side - Control buttons */}
-        <div className="widget-title-controls flex items-center gap-1">
+        <div className="widget-title-controls flex items-center gap-1 flex-shrink-0">
+          {/* Width Toggle */}
+          {onToggleWidth && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="widget-width-toggle p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+              onClick={onToggleWidth}
+              aria-label={`Toggle width (currently ${widgetWidth})`}
+              title={`Toggle Width (${widgetWidth})`}
+            >
+              <ArrowLeftRight className="h-4 w-4 text-pip-green-primary" />
+            </Button>
+          )}
+          
+          {/* Collapse/Expand */}
           <Button
             variant="ghost"
             size="sm"
@@ -108,6 +271,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             )} />
           </Button>
           
+          {/* Settings */}
           {onSettingsChange && (
             <Button
               variant="ghost"
@@ -121,6 +285,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             </Button>
           )}
           
+          {/* More Options */}
           {(onDelete || onArchive) && (
             <div className="widget-menu-container relative">
               <Button

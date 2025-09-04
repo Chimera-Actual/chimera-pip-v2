@@ -54,6 +54,14 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleTitleChange = useCallback((newTitle: string) => {
+    onUpdate(widget.id, { title: newTitle });
+  }, [widget.id, onUpdate]);
+
+  const handleIconChange = useCallback((newIcon: string) => {
+    onUpdate(widget.id, { customIcon: newIcon });
+  }, [widget.id, onUpdate]);
+
   return (
     <div
       ref={setNodeRef}
@@ -67,23 +75,21 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
         widgetId={widget.id}
         widgetType={widget.type}
         title={widget.title}
+        customIcon={widget.customIcon}
+        widgetWidth={widget.widgetWidth}
         collapsed={widget.collapsed}
         onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
         onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
+        onTitleChange={handleTitleChange}
+        onIconChange={handleIconChange}
+        onToggleWidth={() => onToggleWidth(widget)}
         onDelete={() => onDelete(widget.id)}
         onArchive={() => onArchive(widget.id)}
         onMove={undefined}
+        dragHandleProps={{ ...attributes, ...listeners }}
       >
         <WidgetRenderer widget={widget} />
       </WidgetContainer>
-      
-      {/* Drag handle - positioned in top-left corner */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-8 w-6 h-6 cursor-grab active:cursor-grabbing opacity-0 hover:opacity-100 transition-opacity"
-        style={{ touchAction: 'none' }}
-      />
     </div>
   );
 };
@@ -319,9 +325,14 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                 widgetId={activeWidget.id}
                 widgetType={activeWidget.type}
                 title={activeWidget.title}
+                customIcon={activeWidget.customIcon}
+                widgetWidth={activeWidget.widgetWidth}
                 collapsed={activeWidget.collapsed}
                 onToggleCollapse={() => handleUpdate(activeWidget.id, { collapsed: !activeWidget.collapsed })}
                 onSettingsChange={(settings) => handleUpdate(activeWidget.id, { settings })}
+                onTitleChange={(newTitle) => handleUpdate(activeWidget.id, { title: newTitle })}
+                onIconChange={(newIcon) => handleUpdate(activeWidget.id, { customIcon: newIcon })}
+                onToggleWidth={() => handleToggleWidth(activeWidget)}
                 onDelete={() => handleDelete(activeWidget.id)}
                 onArchive={() => handleArchive(activeWidget.id)}
                 onMove={undefined}

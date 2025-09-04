@@ -23,6 +23,7 @@ export interface BaseWidget {
   id: string;
   type: WidgetType;
   title: string;
+  customIcon?: string; // Custom icon override for this widget instance
   collapsed: boolean;
   archived: boolean;
   order: number;
@@ -37,6 +38,7 @@ export interface BaseWidget {
 // Database interfaces for type safety
 export interface WidgetConfigDB {
   title?: string;
+  customIcon?: string; // Custom icon for this widget instance
   settings?: Record<string, any>;
 }
 
