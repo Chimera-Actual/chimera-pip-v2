@@ -4,6 +4,8 @@ import { Settings, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeO
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
 import { webhookService } from '@/lib/webhookService';
+import { AiOracleSettingsModal } from './AiOracleSettingsModal';
+import { useWidgetState } from '@/hooks/useWidgetState';
 
 interface WidgetSettingsModalProps<T = any> {
   widgetId: string;
@@ -386,6 +388,29 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
   onClose,
   onSettingsChange
 }: WidgetSettingsModalProps<T>) => {
+  // Special case: Use AiOracleSettingsModal for ai-oracle widgets
+  if (widgetType === 'ai-oracle') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { settings: currentSettings } = useWidgetState(widgetId, {});
+    
+    return (
+      <AiOracleSettingsModal
+        isOpen={isOpen}
+        onClose={onClose}
+        widget={{ 
+          id: widgetId, 
+          type: widgetType as 'ai-oracle', 
+          title: widgetTitle,
+          settings: currentSettings
+        } as any}
+        settings={currentSettings as any}
+        onSettingsChange={(newSettings: any) => {
+          onSettingsChange?.(newSettings);
+        }}
+      />
+    );
+  }
+
   const {
     settings,
     settingsOverrides,

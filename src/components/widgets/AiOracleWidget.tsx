@@ -57,20 +57,34 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
     }));
   }, [setAiSettings]);
   
-  // Initialize selected agent
+  // Initialize selected agent with fallback behavior
   useEffect(() => {
-    if (!agentsLoading && agents.length > 0 && !isInitialized) {
-      const agentToSelect = aiSettings?.selectedAgentId 
-        ? agents.find(a => a.id === aiSettings.selectedAgentId)
-        : getDefaultAgent();
+    if (!agentsLoading && !isInitialized) {
+      let agentToSelect = null;
+      
+      // Try to get configured agent first
+      if (aiSettings?.selectedAgentId && agents.length > 0) {
+        agentToSelect = agents.find(a => a.id === aiSettings.selectedAgentId);
+      }
+      
+      // Fallback to default agent
+      if (!agentToSelect && agents.length > 0) {
+        agentToSelect = getDefaultAgent();
+        
+        // Update settings to reflect the fallback
+        if (agentToSelect) {
+          handleSettingsChange({ selectedAgentId: agentToSelect.id });
+        }
+      }
       
       if (agentToSelect) {
         setSelectedAgentId(agentToSelect.id);
         loadConversation(widget.id, agentToSelect.id);
-        setIsInitialized(true);
       }
+      
+      setIsInitialized(true);
     }
-  }, [agentsLoading, agents, aiSettings?.selectedAgentId, getDefaultAgent, widget.id, loadConversation, isInitialized]);
+  }, [agentsLoading, agents, aiSettings?.selectedAgentId, getDefaultAgent, widget.id, loadConversation, isInitialized, handleSettingsChange]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

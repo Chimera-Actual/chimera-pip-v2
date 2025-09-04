@@ -19,9 +19,54 @@ export function useWidgetState<T extends Record<string, any>>(
   defaultSettings: T
 ): WidgetStateHookResult<T> {
   const { user } = useAuth();
+  
+  // Migration logic for AI Oracle widgets with legacy settings
+  const migrateAiOracleSettings = useCallback((settings: any): T => {
+    if (typeof settings === 'object' && settings !== null) {
+      // Check if this has legacy AI Oracle settings
+      if ('personality' in settings || 'autoGreet' in settings || 'responseSpeed' in settings) {
+        // Convert legacy settings to new format
+        const migratedSettings = {
+          selectedAgentId: undefined,
+          fallbackAgentId: undefined,
+          instanceOverrides: {
+            responseLength: settings.responseSpeed === 'fast' ? 'short' : 
+                           settings.responseSpeed === 'slow' ? 'long' : 'medium',
+            contextAware: true,
+            maxTokens: 1000,
+            temperature: 0.7
+          },
+          conversationSettings: {
+            saveHistory: true,
+            maxHistoryLength: 50,
+            autoSummarize: false
+          },
+          uiPreferences: {
+            showAgentSwitcher: true,
+            showTokenUsage: settings.showStatus || false,
+            compactMode: false
+          }
+        };
+        
+        console.log('Migrated legacy AI Oracle settings:', { from: settings, to: migratedSettings });
+        return migratedSettings as unknown as T;
+      }
+    }
+    
+    return { ...defaultSettings, ...settings } as T;
+  }, [defaultSettings]);
+  
   const [settings, setSettingsState] = useState<T>(() => {
     const saved = localStorage.getItem(`widget-${widgetId}-settings`);
-    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+    if (saved) {
+      try {
+        const parsedSettings = JSON.parse(saved);
+        return migrateAiOracleSettings(parsedSettings);
+      } catch (error) {
+        console.warn('Failed to parse saved widget settings:', error);
+      }
+    }
+    return defaultSettings;
   });
 
   const [collapsed, setCollapsedState] = useState(() => {
@@ -104,9 +149,12 @@ export function useWidgetState<T extends Record<string, any>>(
   const setSettings = useCallback((newSettings: T | ((prev: T) => T)) => {
     setSettingsState(prev => {
       const result = typeof newSettings === 'function' ? newSettings(prev) : newSettings;
-      return { ...prev, ...result };
+      const merged = { ...prev, ...result };
+      
+      // Apply migration if this is an update to AI Oracle settings
+      return migrateAiOracleSettings(merged);
     });
-  }, []);
+  }, [migrateAiOracleSettings]);
 
   const setCollapsed = useCallback((newCollapsed: boolean) => {
     setCollapsedState(newCollapsed);
