@@ -1,5 +1,4 @@
-import React, { useState, useRef } from 'react';
-import { ChevronDown, Settings, Trash2, Grip, ArrowLeftRight } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
@@ -12,8 +11,8 @@ interface WidgetContainerProps {
   onToggleCollapse: () => void;
   onSettingsChange?: (settings: any) => void;
   onDelete?: () => void;
+  onArchive?: () => void;
   onMove?: () => void;
-  onResize?: () => void;
   className?: string;
   children: React.ReactNode;
   isLoading?: boolean;
@@ -28,16 +27,31 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   onToggleCollapse,
   onSettingsChange,
   onDelete,
+  onArchive,
   onMove,
-  onResize,
   className = '',
   children,
   isLoading = false,
   error = null
 }) => {
-  const [isResizing, setIsResizing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   return (
     <div 
@@ -45,7 +59,6 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       className={cn(
         'widget-container pip-terminal pip-glow border-2 border-pip-border-bright/30 backdrop-blur-sm transition-all duration-200 relative',
         collapsed ? 'h-12' : 'min-h-[200px]',
-        isResizing && 'select-none',
         isLoading && 'opacity-60',
         error && 'border-destructive/50',
         className
@@ -54,21 +67,20 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
     >
       {/* Widget Header */}
       <div className="widget-header flex items-center justify-between px-4 py-2 border-b border-pip-border/20 h-12 bg-gradient-to-r from-pip-green-primary/10 to-transparent">
-        <div className="widget-title-section flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="collapse-button p-1 h-auto hover:bg-pip-green-primary/20 transition-colors"
-            onClick={onToggleCollapse}
-            aria-label={collapsed ? 'Expand widget' : 'Collapse widget'}
-          >
-            <ChevronDown 
-              className={cn(
-                'h-4 w-4 text-pip-green-primary transition-transform duration-200',
-                collapsed ? '-rotate-90' : 'rotate-0'
-              )} 
-            />
-          </Button>
+        {/* Left side - Move handle and title */}
+        <div className="widget-title-left flex items-center gap-3">
+          {onMove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="widget-move p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+              onClick={onMove}
+              aria-label="Move widget"
+              title="Move Widget"
+            >
+              <span className="text-pip-green-primary text-lg font-mono">⊹</span>
+            </Button>
+          )}
           
           <h3 className="widget-title font-pip-display text-sm font-bold tracking-wider uppercase text-pip-text-bright pip-text-glow">
             {title}
@@ -79,56 +91,115 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
           )}
         </div>
         
-        <div className="widget-controls flex items-center gap-1">
-          {onResize && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
-              onClick={onResize}
-              aria-label="Resize widget"
-            >
-              <ArrowLeftRight className="h-4 w-4 text-pip-green-primary" />
-            </Button>
-          )}
-          
-          {onMove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
-              onClick={onMove}
-              aria-label="Move widget"
-            >
-              <Grip className="h-4 w-4 text-pip-green-primary" />
-            </Button>
-          )}
+        {/* Right side - Control buttons */}
+        <div className="widget-title-controls flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="widget-collapse p-1 h-auto hover:bg-pip-green-primary/20 transition-colors"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? 'Expand widget' : 'Collapse widget'}
+            title={collapsed ? 'Expand' : 'Collapse'}
+          >
+            <span className="text-pip-green-primary text-lg font-mono">
+              {collapsed ? '▶' : '▼'}
+            </span>
+          </Button>
           
           {onSettingsChange && (
             <Button
               variant="ghost"
               size="sm"
-              className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+              className="widget-settings p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
               onClick={() => setShowSettings(true)}
               aria-label="Widget settings"
+              title="Widget Settings"
             >
-              <Settings className="h-4 w-4 text-pip-green-primary" />
+              <span className="text-pip-green-primary text-lg font-mono">⚙</span>
             </Button>
           )}
           
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1 h-auto hover:bg-destructive/20 transition-colors opacity-60 hover:opacity-100"
-              onClick={onDelete}
-              aria-label="Delete widget"
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+          {(onDelete || onArchive) && (
+            <div className="widget-menu-container relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="widget-delete p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+                onClick={() => setShowDropdown(!showDropdown)}
+                aria-label="More options"
+                title="More Options"
+              >
+                <span className="text-pip-green-primary text-lg font-mono">🗑</span>
+              </Button>
+              
+              {/* Dropdown Menu */}
+              {showDropdown && (
+                <div className="widget-dropdown-menu absolute right-0 top-full bg-pip-bg/95 border-2 border-pip-green-primary/80 rounded backdrop-blur-sm min-w-[120px] z-[1000] shadow-pip-glow mt-1">
+                  {onArchive && (
+                    <button 
+                      className="menu-item flex items-center gap-2 w-full px-3 py-2 bg-transparent border-none text-pip-green-primary font-pip-mono text-sm cursor-pointer text-left transition-all hover:bg-pip-green-primary/10 hover:shadow-pip-text-glow"
+                      onClick={() => {
+                        onArchive();
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <span className="menu-icon text-base">📦</span>
+                      Archive
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button 
+                      className="menu-item menu-danger flex items-center gap-2 w-full px-3 py-2 bg-transparent border-none text-pip-green-primary font-pip-mono text-sm cursor-pointer text-left transition-all hover:bg-destructive/10 hover:text-destructive hover:shadow-destructive/50"
+                      onClick={() => {
+                        setShowDeleteConfirm(true);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <span className="menu-icon text-base">⚠️</span>
+                      Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2000]">
+          <div className="bg-pip-bg border-2 border-pip-green-primary/80 rounded p-6 max-w-sm mx-4 shadow-pip-glow">
+            <h3 className="font-pip-display text-lg font-bold text-pip-text-bright mb-4">
+              Confirm Delete
+            </h3>
+            <p className="font-pip-mono text-sm text-pip-text-dim mb-6">
+              Are you sure you want to permanently delete "{title}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-4 py-2 font-pip-mono text-sm hover:bg-pip-green-primary/20"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-4 py-2 font-pip-mono text-sm bg-destructive/20 text-destructive hover:bg-destructive/30"
+                onClick={() => {
+                  onDelete?.();
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Widget Content */}
       <div className={cn(

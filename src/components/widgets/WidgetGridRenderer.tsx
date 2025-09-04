@@ -8,8 +8,8 @@ interface WidgetGridRendererProps {
   onToggleCollapse: (widgetId: string) => void;
   onSettingsChange: (widgetId: string, settings: any) => void;
   onDelete?: (widgetId: string) => void;
+  onArchive?: (widgetId: string) => void;
   onMove?: (widgetId: string, position: { x: number; y: number }) => void;
-  onResize?: (widgetId: string, size: { width: number; height: number }) => void;
 }
 
 export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
@@ -17,8 +17,8 @@ export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
   onToggleCollapse,
   onSettingsChange,
   onDelete,
-  onMove,
-  onResize
+  onArchive,
+  onMove
 }) => {
   return (
     <div className="widget-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
@@ -32,8 +32,8 @@ export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
           onToggleCollapse={() => onToggleCollapse(widget.id)}
           onSettingsChange={(settings) => onSettingsChange(widget.id, settings)}
           onDelete={onDelete ? () => onDelete(widget.id) : undefined}
+          onArchive={onArchive ? () => onArchive(widget.id) : undefined}
           onMove={onMove ? () => onMove(widget.id, { x: 0, y: 0 }) : undefined}
-          onResize={onResize ? () => onResize(widget.id, { width: 300, height: 200 }) : undefined}
         >
           <WidgetRenderer widget={widget} />
         </WidgetContainer>

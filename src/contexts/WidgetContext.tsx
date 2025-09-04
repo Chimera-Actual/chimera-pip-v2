@@ -10,10 +10,13 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
 
 interface WidgetContextType {
   widgets: BaseWidget[];
+  archivedWidgets: BaseWidget[];
   isLoading: boolean;
   error: string | null;
   addWidget: (type: WidgetType, tabAssignment?: TabAssignment) => Promise<BaseWidget | null>;
   removeWidget: (widgetId: string) => Promise<void>;
+  archiveWidget: (widgetId: string) => Promise<void>;
+  restoreWidget: (widgetId: string) => Promise<void>;
   updateWidget: (widgetId: string, updates: Partial<BaseWidget>) => Promise<void>;
   getWidgetsByTab: (tab: TabAssignment) => BaseWidget[];
   refreshWidgets: () => Promise<void>;
@@ -36,6 +39,7 @@ interface WidgetProviderProps {
 export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const [widgets, setWidgets] = useState<BaseWidget[]>([]);
+  const [archivedWidgets, setArchivedWidgets] = useState<BaseWidget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +65,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         throw fetchError;
       }
 
-      const formattedWidgets: BaseWidget[] = (data || []).map(widget => {
+      const allWidgets: BaseWidget[] = (data || []).map(widget => {
         try {
           const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
           const widgetType = widget.widget_type as WidgetType;
@@ -74,6 +78,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             type: widgetType,
             title: widgetConfig?.title || definition.title,
             collapsed: widget.is_collapsed || false,
+            archived: widget.is_archived || false,
             order: widget.order_position || 0,
             widgetWidth: (widget.widget_width as WidgetWidth) || 'half',
             tabAssignment: widget.tab_assignment as TabAssignment,
@@ -96,7 +101,12 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         }
       }).filter((widget): widget is BaseWidget => widget !== null);
 
-      setWidgets(formattedWidgets);
+      // Separate active and archived widgets
+      const activeWidgets = allWidgets.filter(w => !w.archived);
+      const archived = allWidgets.filter(w => w.archived);
+      
+      setWidgets(activeWidgets);
+      setArchivedWidgets(archived);
     } catch (err) {
       reportError(
         ERROR_MESSAGES.WIDGET_LOAD_FAILED,
@@ -151,6 +161,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
           order_position: widget.order,
           widget_width: widget.widgetWidth,
           is_collapsed: widget.collapsed,
+          is_archived: widget.archived,
         })
         .select()
         .single();
@@ -251,6 +262,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       if (updates.order !== undefined) dbUpdates.order_position = updates.order;
       if (updates.widgetWidth !== undefined) dbUpdates.widget_width = updates.widgetWidth;
       if (updates.collapsed !== undefined) dbUpdates.is_collapsed = updates.collapsed;
+      if (updates.archived !== undefined) dbUpdates.is_archived = updates.archived;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;
 
       const { error: updateError } = await supabase
@@ -263,9 +275,18 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         throw updateError;
       }
 
+      // Update widgets in appropriate array
+      const updatedWidget = { ...updates, updatedAt: new Date() };
+      
       setWidgets(prev => prev.map(widget => 
         widget.id === widgetId 
-          ? { ...widget, ...updates, updatedAt: new Date() }
+          ? { ...widget, ...updatedWidget }
+          : widget
+      ));
+      
+      setArchivedWidgets(prev => prev.map(widget => 
+        widget.id === widgetId 
+          ? { ...widget, ...updatedWidget }
           : widget
       ));
     } catch (err) {
@@ -288,9 +309,71 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     }
   }, [user?.id, widgets]);
 
-  // Get widgets by tab
+  // Archive a widget
+  const archiveWidget = useCallback(async (widgetId: string): Promise<void> => {
+    if (!user?.id) return;
+
+    try {
+      const widget = widgets.find(w => w.id === widgetId);
+      if (!widget) return;
+
+      await updateWidget(widgetId, { archived: true });
+      
+      setWidgets(prev => prev.filter(w => w.id !== widgetId));
+      setArchivedWidgets(prev => [...prev, { ...widget, archived: true, updatedAt: new Date() }]);
+      
+      toast({
+        title: 'Widget Archived',
+        description: 'Widget moved to archive. You can restore it later.',
+      });
+    } catch (err) {
+      reportError(
+        'Failed to archive widget',
+        {
+          widgetId,
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'archiveWidget'
+        },
+        err
+      );
+    }
+  }, [user?.id, widgets, updateWidget]);
+
+  // Restore a widget from archive
+  const restoreWidget = useCallback(async (widgetId: string): Promise<void> => {
+    if (!user?.id) return;
+
+    try {
+      const widget = archivedWidgets.find(w => w.id === widgetId);
+      if (!widget) return;
+
+      await updateWidget(widgetId, { archived: false });
+      
+      setArchivedWidgets(prev => prev.filter(w => w.id !== widgetId));
+      setWidgets(prev => [...prev, { ...widget, archived: false, updatedAt: new Date() }]);
+      
+      toast({
+        title: 'Widget Restored',
+        description: 'Widget restored from archive.',
+      });
+    } catch (err) {
+      reportError(
+        'Failed to restore widget',
+        {
+          widgetId,
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'restoreWidget'
+        },
+        err
+      );
+    }
+  }, [user?.id, archivedWidgets, updateWidget]);
+
+  // Get widgets by tab (active widgets only)
   const getWidgetsByTab = useCallback((tab: TabAssignment): BaseWidget[] => {
-    return widgets.filter(widget => widget.tabAssignment === tab);
+    return widgets.filter(widget => widget.tabAssignment === tab && !widget.archived);
   }, [widgets]);
 
   // Refresh widgets
@@ -305,10 +388,13 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
   const contextValue: WidgetContextType = {
     widgets,
+    archivedWidgets,
     isLoading,
     error,
     addWidget,
     removeWidget,
+    archiveWidget,
+    restoreWidget,
     updateWidget,
     getWidgetsByTab,
     refreshWidgets,

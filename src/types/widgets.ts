@@ -24,6 +24,7 @@ export interface BaseWidget {
   type: WidgetType;
   title: string;
   collapsed: boolean;
+  archived: boolean;
   order: number;
   widgetWidth: WidgetWidth;
   tabAssignment: TabAssignment;
