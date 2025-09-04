@@ -64,18 +64,33 @@
     --red-primary: 0 100% 55%;
     --red-glow: 0 100% 65%;
 
-    /* Animation and layout */
-    --font-family-mono: 'Share Tech Mono', 'Courier New', monospace;
-    --font-family-display: 'Orbitron', monospace;
-    --pip-animation-speed: 0.3s;
-    --radius: 6px;
-    
-  /* Pip-Boy Effects */
+  /* Enhanced animation and layout */
+  --font-family-mono: 'Share Tech Mono', 'Courier New', monospace;
+  --font-family-display: 'Orbitron', monospace;
+  --pip-animation-speed: 0.3s;
+  --radius: 6px;
+  
+  /* Enhanced Pip-Boy Effects */
   --scan-line-opacity: 0.03;
   --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
   --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
   --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
   --transition-glow: all 0.2s ease-in-out;
+  
+  /* New: Enhanced gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(var(--pip-green-primary)), hsl(var(--pip-green-secondary)));
+  --gradient-secondary: linear-gradient(180deg, hsl(var(--pip-bg-secondary)), hsl(var(--pip-bg-tertiary)));
+  --gradient-glow: radial-gradient(circle at center, hsl(var(--pip-green-primary) / 0.3), transparent 70%);
+  
+  /* New: Enhanced shadows */
+  --shadow-glow: 0 0 20px hsl(var(--pip-green-primary) / 0.3);
+  --shadow-widget: 0 4px 12px hsl(var(--pip-bg-primary) / 0.5);
+  --shadow-modal: 0 10px 40px hsl(var(--pip-bg-primary) / 0.8);
+  
+  /* New: Animation variables */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animation-glow: pip-glow 2s ease-in-out infinite alternate;
 }
 
 /* Theme Overrides - Complete color system changes */
@@ -431,6 +446,62 @@
   
   .pip-scan-line {
     animation: pip-scan 2s linear infinite;
+  }
+
+  /* Enhanced Pip-Boy specific styling */
+  .pip-container {
+    background: var(--gradient-secondary);
+    border: 1px solid hsl(var(--pip-border));
+    box-shadow: var(--shadow-widget);
+    transition: var(--transition-smooth);
+  }
+
+  .pip-container:hover {
+    border-color: hsl(var(--pip-border-bright));
+    box-shadow: var(--shadow-glow);
+  }
+
+  .pip-button {
+    background: var(--gradient-primary);
+    border: 1px solid hsl(var(--pip-border-bright));
+    color: hsl(var(--pip-bg-primary));
+    transition: var(--transition-bounce);
+  }
+
+  .pip-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Enhanced animations */
+  @keyframes pip-glow {
+    0% { 
+      text-shadow: 0 0 10px hsl(var(--pip-green-primary) / 0.5);
+      box-shadow: 0 0 20px hsl(var(--pip-green-primary) / 0.2);
+    }
+    100% { 
+      text-shadow: 0 0 20px hsl(var(--pip-green-primary) / 0.8);
+      box-shadow: 0 0 40px hsl(var(--pip-green-primary) / 0.4);
+    }
+  }
+
+  @keyframes pip-pulse {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  .pip-pulse {
+    animation: pip-pulse 2s ease-in-out infinite;
+  }
+
+  .pip-enhanced-glow {
+    animation: var(--animation-glow);
   }
 }
 
