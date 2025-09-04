@@ -97,6 +97,7 @@ export const SUCCESS_MESSAGES = {
 
 // Modal Sizing Constants
 export const MODAL_SIZES = {
-  SETTINGS_MODAL: 'max-w-4xl h-[80vh]',
-  WIDGET_SETTINGS_MODAL: 'max-w-4xl h-[80vh]',
+  SETTINGS_MODAL: 'max-w-4xl h-[85vh] md:h-[80vh]',
+  WIDGET_SETTINGS_MODAL: 'max-w-4xl h-[85vh] md:h-[80vh]',
+  CATALOG_MODAL: 'max-w-6xl h-[90vh]',
 } as const;

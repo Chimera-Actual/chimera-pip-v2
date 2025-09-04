@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWidgets } from '@/contexts/WidgetContext';
@@ -16,7 +16,7 @@ interface WidgetGridProps {
   className?: string;
 }
 
-export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
+export const WidgetGrid: React.FC<WidgetGridProps> = memo(({ tab, className }) => {
   const { getWidgetsByTab, addWidget, removeWidget, updateWidget, refreshWidgets, isLoading } = useWidgets();
   const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
   const isMobile = useIsMobile();
@@ -67,6 +67,7 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
         className="w-full h-32 border-2 border-dashed border-pip-border hover:border-primary/50 bg-transparent hover:bg-pip-bg-secondary/30 transition-all duration-200 group"
         disabled={isLoading}
         onClick={() => setShowAdvancedCatalog(true)}
+        aria-label="Add new widget to dashboard"
       >
         <div className="flex flex-col items-center gap-2 text-pip-text-muted group-hover:text-primary transition-colors">
           <Plus className="h-8 w-8" />
@@ -101,6 +102,8 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({ tab, className }) => {
 
   // Use simple layout system for better mobile experience
   return <SimpleWidgetGrid tab={tab} className={className} />;
-};
+});
+
+WidgetGrid.displayName = 'WidgetGrid';
 
 // Note: Moved CSS to index.css for better performance and maintainability

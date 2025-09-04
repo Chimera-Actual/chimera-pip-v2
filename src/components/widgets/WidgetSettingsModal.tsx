@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Settings, X, Save, RotateCcw, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
+import { MODAL_SIZES } from '@/lib/constants';
 
 interface WidgetSettingsModalProps<T = any> {
   widgetId: string;
@@ -446,7 +447,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
       <div className="absolute inset-0 bg-pip-bg-overlay/80 backdrop-blur-md" onClick={onClose} />
       
       {/* Modal - Centered with standardized size */}
-      <div className="relative w-full max-w-4xl h-[80vh] rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow">
+      <div className={`relative w-full ${MODAL_SIZES.WIDGET_SETTINGS_MODAL} rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow`}>
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-primary/20 bg-primary/5">
           <div className="flex items-center gap-3">

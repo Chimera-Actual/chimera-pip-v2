@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Search, Grid, List, Plus, X, Filter, Star } from 'lucide-react';
+import { Search, Grid, List, Plus, X, Filter, Star, Folder, 
+  Settings, BarChart3, Gamepad2, Music, Video, Code, Book, 
+  Camera, Terminal, Database, Network, Shield, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,7 +12,6 @@ import { useWidgetCatalog } from '@/hooks/useWidgetCatalog';
 import { useTagManager } from '@/hooks/useTagManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import * as LucideIcons from 'lucide-react';
 
 interface AdvancedWidgetCatalogProps {
   currentTab: string;
@@ -19,7 +20,13 @@ interface AdvancedWidgetCatalogProps {
 }
 
 const IconComponent = React.memo(({ iconName, className }: { iconName: string; className?: string }) => {
-  const Icon = (LucideIcons as any)[iconName] || LucideIcons.Folder;
+  // Map common icon names to components for better performance
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    Folder, Settings, BarChart3, Gamepad2, Music, Video, Code, Book,
+    Camera, Terminal, Database, Network, Shield, Rocket, Star
+  };
+  
+  const Icon = iconMap[iconName] || Folder;
   return <Icon className={className} />;
 });
 

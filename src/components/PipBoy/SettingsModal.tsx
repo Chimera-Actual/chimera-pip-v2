@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Palette, Volume2, Layout, User, Save, RotateCcw } from 'lucide-react';
+import { MODAL_SIZES } from '@/lib/constants';
 import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
 import { ColorTheme } from './PipBoyContainer';
 import { cn } from '@/lib/utils';
@@ -77,7 +78,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+      <DialogContent className={`${MODAL_SIZES.SETTINGS_MODAL} bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300`}>
         <DialogHeader className="border-b border-pip-border/30 pb-4">
           <DialogTitle className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
             SYSTEM PREFERENCES

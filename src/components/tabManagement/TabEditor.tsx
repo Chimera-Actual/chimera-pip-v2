@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import * as LucideIcons from 'lucide-react';
+import { Folder, Settings, BarChart3, Gamepad2, Music, Video, Code, 
+  Book, Camera, Terminal, Database, Network, Shield, Rocket, Star } from 'lucide-react';
 
 interface TabEditorProps {
   tab?: TabConfiguration;
@@ -15,21 +16,21 @@ interface TabEditorProps {
 }
 
 const availableIcons = [
-  { name: 'FolderIcon', label: 'Folder', icon: LucideIcons.Folder },
-  { name: 'CogIcon', label: 'Settings', icon: LucideIcons.Settings },
-  { name: 'ChartIcon', label: 'Analytics', icon: LucideIcons.BarChart3 },
-  { name: 'GamepadIcon', label: 'Games', icon: LucideIcons.Gamepad2 },
-  { name: 'MusicIcon', label: 'Music', icon: LucideIcons.Music },
-  { name: 'VideoIcon', label: 'Video', icon: LucideIcons.Video },
-  { name: 'CodeIcon', label: 'Development', icon: LucideIcons.Code },
-  { name: 'BookIcon', label: 'Reading', icon: LucideIcons.Book },
-  { name: 'CameraIcon', label: 'Media', icon: LucideIcons.Camera },
-  { name: 'TerminalIcon', label: 'Terminal', icon: LucideIcons.Terminal },
-  { name: 'DatabaseIcon', label: 'Data', icon: LucideIcons.Database },
-  { name: 'NetworkIcon', label: 'Network', icon: LucideIcons.Network },
-  { name: 'ShieldIcon', label: 'Security', icon: LucideIcons.Shield },
-  { name: 'RocketIcon', label: 'Projects', icon: LucideIcons.Rocket },
-  { name: 'StarIcon', label: 'Favorites', icon: LucideIcons.Star },
+  { name: 'FolderIcon', label: 'Folder', icon: Folder },
+  { name: 'CogIcon', label: 'Settings', icon: Settings },
+  { name: 'ChartIcon', label: 'Analytics', icon: BarChart3 },
+  { name: 'GamepadIcon', label: 'Games', icon: Gamepad2 },
+  { name: 'MusicIcon', label: 'Music', icon: Music },
+  { name: 'VideoIcon', label: 'Video', icon: Video },
+  { name: 'CodeIcon', label: 'Development', icon: Code },
+  { name: 'BookIcon', label: 'Reading', icon: Book },
+  { name: 'CameraIcon', label: 'Media', icon: Camera },
+  { name: 'TerminalIcon', label: 'Terminal', icon: Terminal },
+  { name: 'DatabaseIcon', label: 'Data', icon: Database },
+  { name: 'NetworkIcon', label: 'Network', icon: Network },
+  { name: 'ShieldIcon', label: 'Security', icon: Shield },
+  { name: 'RocketIcon', label: 'Projects', icon: Rocket },
+  { name: 'StarIcon', label: 'Favorites', icon: Star },
 ];
 
 const colorOptions = [
