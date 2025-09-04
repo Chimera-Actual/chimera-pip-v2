@@ -567,7 +567,6 @@
   .pip-enhanced-glow {
     animation: var(--animation-glow);
   }
-}
 
 /* Widget Grid Auto-fit Enhancement */
 .widgets-grid {
