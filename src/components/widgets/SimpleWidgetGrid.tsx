@@ -37,7 +37,7 @@ export interface SimpleWidgetGridProps {
 }
 
 // Sortable Widget Component
-const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = ({ widget, onUpdate, onDelete, onToggleWidth, isMobile }) => {
+const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onArchive: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = ({ widget, onUpdate, onDelete, onArchive, onToggleWidth, isMobile }) => {
   const {
     attributes,
     listeners,
@@ -80,8 +80,8 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
         onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
         onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
         onDelete={() => onDelete(widget.id)}
+        onArchive={() => onArchive(widget.id)}
         onMove={handleMove}
-        onResize={!isMobile ? handleResize : undefined}
         className="h-full"
       >
         <div className="widget-content pip-scrollbar">
@@ -102,6 +102,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     getWidgetsByTab, 
     addWidget, 
     removeWidget, 
+    archiveWidget,
     updateWidget
   } = useWidgets();
   
@@ -129,6 +130,10 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   const handleDeleteWidget = async (widgetId: string) => {
     await removeWidget(widgetId);
+  };
+
+  const handleArchiveWidget = async (widgetId: string) => {
+    await archiveWidget(widgetId);
   };
 
   const handleToggleWidth = async (widget: BaseWidget) => {
@@ -185,6 +190,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                   widget={widget}
                   onUpdate={handleUpdateWidget}
                   onDelete={handleDeleteWidget}
+                  onArchive={handleArchiveWidget}
                   onToggleWidth={handleToggleWidth}
                   isMobile={isMobile}
                 />

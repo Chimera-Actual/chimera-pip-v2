@@ -188,6 +188,7 @@ export class WidgetFactory {
       type,
       title: definition.title,
       collapsed: false,
+      archived: false,
       order: 0,
       widgetWidth: definition.defaultWidgetWidth,
       tabAssignment: tabAssignment || definition.defaultTab,
