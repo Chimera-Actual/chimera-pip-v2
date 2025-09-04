@@ -45,7 +45,7 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
   children,
   className
 }) => {
-  // Handle escape key and body overflow
+  // Handle escape key, body overflow, and focus management
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -56,6 +56,12 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
+      
+      // Focus management - focus the modal content
+      const modal = document.querySelector('[role="dialog"]');
+      if (modal instanceof HTMLElement) {
+        modal.focus();
+      }
     }
 
     return () => {
