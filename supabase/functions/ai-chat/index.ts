@@ -115,12 +115,14 @@ serve(async (req) => {
 
     // Prepare webhook payload
     const webhookPayload = {
-      messages: conversationHistory,
-      systemPrompt: agent.system_prompt,
-      modelParameters: agent.model_parameters,
-      agentId: agentId,
-      conversationId: conversation.id,
-      userId: user.id
+      session_id: conversation.id,
+      user_id: user.id,
+      user_prompt: message,
+      system_message: agent.system_prompt,
+      temperature: agent.model_parameters?.temperature,
+      max_tokens: agent.model_parameters?.maxTokens,
+      top_p: agent.model_parameters?.topP,
+      response_length: agent.model_parameters?.responseLength
     };
 
     console.log('Sending to webhook:', agent.webhook_url);

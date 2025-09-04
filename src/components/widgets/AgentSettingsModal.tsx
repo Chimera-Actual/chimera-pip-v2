@@ -75,7 +75,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           name: formData.name,
           description: formData.description,
           webhookUrl: formData.webhookUrl,
-          systemPrompt: formData.systemPrompt,
+          systemMessage: formData.systemMessage,
           modelParameters: formData.modelParameters,
           avatarConfig: formData.avatarConfig,
           isDefault: formData.isDefault,
@@ -86,7 +86,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           name: formData.name,
           description: formData.description,
           webhookUrl: formData.webhookUrl,
-          systemPrompt: formData.systemPrompt,
+          systemMessage: formData.systemMessage,
           modelParameters: formData.modelParameters,
           avatarConfig: formData.avatarConfig,
           isDefault: formData.isDefault,
@@ -217,11 +217,11 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <Label htmlFor="system-prompt">System Prompt</Label>
+                  <Label htmlFor="system-message">System Message</Label>
                   <Textarea
-                    id="system-prompt"
-                    value={formData.systemPrompt}
-                    onChange={(e) => updateField('systemPrompt', e.target.value)}
+                    id="system-message"
+                    value={formData.systemMessage}
+                    onChange={(e) => updateField('systemMessage', e.target.value)}
                     placeholder="You are a helpful assistant that..."
                     rows={4}
                   />

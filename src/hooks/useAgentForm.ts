@@ -6,7 +6,7 @@ export interface AgentFormData {
   name: string;
   description: string;
   webhookUrl: string;
-  systemPrompt: string;
+  systemMessage: string;
   modelParameters: AiAgent['modelParameters'];
   avatarConfig: {
     icon: string;
@@ -20,7 +20,7 @@ const defaultAgentForm: AgentFormData = {
   name: '',
   description: '',
   webhookUrl: '',
-  systemPrompt: '',
+  systemMessage: '',
   modelParameters: {
     temperature: 0.7,
     maxTokens: 1000,
@@ -96,7 +96,7 @@ export const useAgentForm = () => {
       name: agent.name,
       description: agent.description || '',
       webhookUrl: agent.webhookUrl,
-      systemPrompt: agent.systemPrompt || '',
+      systemMessage: agent.systemMessage || '',
       modelParameters: agent.modelParameters,
       avatarConfig: agent.avatarConfig,
       isDefault: agent.isDefault,

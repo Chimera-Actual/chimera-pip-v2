@@ -44,7 +44,7 @@ export const useAiAgents = (): UseAiAgentsReturn => {
         name: agent.name,
         description: agent.description,
         webhookUrl: agent.webhook_url,
-        systemPrompt: agent.system_prompt,
+        systemMessage: agent.system_prompt,
         modelParameters: agent.model_parameters as AiAgent['modelParameters'],
         avatarConfig: agent.avatar_config as AiAgent['avatarConfig'],
         isDefault: agent.is_default,
@@ -76,7 +76,7 @@ export const useAiAgents = (): UseAiAgentsReturn => {
           name: agentData.name,
           description: agentData.description,
           webhook_url: agentData.webhookUrl,
-          system_prompt: agentData.systemPrompt,
+          system_prompt: agentData.systemMessage,
           model_parameters: agentData.modelParameters,
           avatar_config: agentData.avatarConfig,
           is_default: agentData.isDefault,
@@ -94,7 +94,7 @@ export const useAiAgents = (): UseAiAgentsReturn => {
         name: data.name,
         description: data.description,
         webhookUrl: data.webhook_url,
-        systemPrompt: data.system_prompt,
+        systemMessage: data.system_prompt,
         modelParameters: data.model_parameters as AiAgent['modelParameters'],
         avatarConfig: data.avatar_config as AiAgent['avatarConfig'],
         isDefault: data.is_default,
@@ -129,7 +129,7 @@ export const useAiAgents = (): UseAiAgentsReturn => {
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.webhookUrl !== undefined) updateData.webhook_url = updates.webhookUrl;
-      if (updates.systemPrompt !== undefined) updateData.system_prompt = updates.systemPrompt;
+      if (updates.systemMessage !== undefined) updateData.system_prompt = updates.systemMessage;
       if (updates.modelParameters !== undefined) updateData.model_parameters = updates.modelParameters;
       if (updates.avatarConfig !== undefined) updateData.avatar_config = updates.avatarConfig;
       if (updates.isDefault !== undefined) updateData.is_default = updates.isDefault;

@@ -105,78 +105,42 @@ export const useAiConversation = (): UseAiConversationReturn => {
     try {
       setLoading(true);
 
-      // Add user message to conversation
+      // Use Supabase Edge Function for AI chat
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message,
+          agentId,
+          conversationId: conversation.id,
+          widgetId: conversation.widgetId
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data || !data.response) {
+        throw new Error('Invalid response from AI service');
+      }
+
+      // Update local state with the response
       const userMessage = {
         role: 'user' as const,
         content: message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       };
 
-      const updatedMessages = [...conversation.messages, userMessage];
-
-      // Get the agent's webhook URL
-      const { data: agent, error: agentError } = await supabase
-        .from('ai_agents')
-        .select('webhook_url, system_prompt, model_parameters')
-        .eq('id', agentId)
-        .single();
-
-      if (agentError) throw agentError;
-
-      // Send message to agent via webhook
-      const response = await fetch(agent.webhook_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          conversationHistory: updatedMessages.slice(-10), // Send last 10 messages for context
-          systemPrompt: agent.system_prompt,
-          parameters: agent.model_parameters
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Agent request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const responseData = await response.json();
-      
-      // Add assistant message to conversation
       const assistantMessage = {
         role: 'assistant' as const,
-        content: responseData.response || responseData.message || 'Sorry, I could not process your request.',
+        content: data.response,
         timestamp: new Date(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         metadata: {
           agentId,
-          responseTime: responseData.responseTime,
-          tokenUsage: responseData.tokenUsage
+          tokenUsage: data.tokenUsage
         }
       };
 
-      const finalMessages = [...updatedMessages, assistantMessage];
-
-      // Update conversation in database - convert dates to ISO strings for storage
-      const messagesForStorage = finalMessages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp.toISOString()
-      }));
-
-      const { error: updateError } = await supabase
-        .from('ai_conversations')
-        .update({
-          messages: messagesForStorage,
-          metadata: {
-            ...conversation.metadata,
-            requestCount: (conversation.metadata.requestCount || 0) + 1,
-            tokenUsage: (conversation.metadata.tokenUsage || 0) + (responseData.tokenUsage || 0),
-            lastAgentUsed: agentId
-          }
-        })
-        .eq('id', conversation.id);
-
-      if (updateError) throw updateError;
+      const finalMessages = [...conversation.messages, userMessage, assistantMessage];
 
       // Update local state
       setConversation(prev => prev ? {
@@ -184,8 +148,8 @@ export const useAiConversation = (): UseAiConversationReturn => {
         messages: finalMessages,
         metadata: {
           ...prev.metadata,
-          requestCount: (prev.metadata.requestCount || 0) + 1,
-          tokenUsage: (prev.metadata.tokenUsage || 0) + (responseData.tokenUsage || 0),
+          requestCount: data.requestCount || (prev.metadata.requestCount || 0) + 1,
+          tokenUsage: data.tokenUsage || (prev.metadata.tokenUsage || 0),
           lastAgentUsed: agentId
         }
       } : null);

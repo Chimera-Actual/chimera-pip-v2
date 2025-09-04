@@ -131,7 +131,7 @@ export interface AiAgent {
   name: string;
   description?: string;
   webhookUrl: string;
-  systemPrompt?: string;
+  systemMessage?: string;
   modelParameters: {
     temperature?: number;
     maxTokens?: number;
@@ -155,6 +155,7 @@ export interface AiConversation {
   agentId: string;
   userId: string;
   messages: Array<{
+    id?: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
