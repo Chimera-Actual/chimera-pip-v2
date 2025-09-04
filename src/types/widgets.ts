@@ -104,10 +104,70 @@ export interface CalendarMissionSettings {
 }
 
 export interface AiOracleSettings {
-  personality: 'codsworth' | 'modus' | 'eden' | 'nick_valentine';
-  responseLength: 'short' | 'medium' | 'long';
-  contextAware: boolean;
-  saveHistory: boolean;
+  selectedAgentId?: string;
+  fallbackAgentId?: string;
+  instanceOverrides?: {
+    responseLength?: 'short' | 'medium' | 'long';
+    contextAware?: boolean;
+    maxTokens?: number;
+    temperature?: number;
+  };
+  conversationSettings?: {
+    saveHistory: boolean;
+    maxHistoryLength: number;
+    autoSummarize: boolean;
+  };
+  uiPreferences?: {
+    showAgentSwitcher: boolean;
+    showTokenUsage: boolean;
+    compactMode: boolean;
+  };
+}
+
+// AI Agent interfaces for the multi-agent system
+export interface AiAgent {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  webhookUrl: string;
+  systemPrompt?: string;
+  modelParameters: {
+    temperature?: number;
+    maxTokens?: number;
+    topP?: number;
+    responseLength?: 'short' | 'medium' | 'long';
+  };
+  avatarConfig: {
+    icon: string;
+    color: string;
+  };
+  isDefault: boolean;
+  isShared: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AiConversation {
+  id: string;
+  widgetId: string;
+  agentId: string;
+  userId: string;
+  messages: Array<{
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: Date;
+    metadata?: Record<string, any>;
+  }>;
+  metadata: {
+    tokenUsage?: number;
+    requestCount?: number;
+    lastAgentUsed?: string;
+    conversationTitle?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CryptocurrencySettings {

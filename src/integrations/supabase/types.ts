@@ -14,6 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          avatar_config: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          is_shared: boolean
+          model_parameters: Json
+          name: string
+          system_prompt: string | null
+          updated_at: string
+          user_id: string
+          webhook_url: string
+        }
+        Insert: {
+          avatar_config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          is_shared?: boolean
+          model_parameters?: Json
+          name: string
+          system_prompt?: string | null
+          updated_at?: string
+          user_id: string
+          webhook_url: string
+        }
+        Update: {
+          avatar_config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          is_shared?: boolean
+          model_parameters?: Json
+          name?: string
+          system_prompt?: string | null
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
+      ai_conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          messages: Json
+          metadata: Json
+          updated_at: string
+          user_id: string
+          widget_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json
+          updated_at?: string
+          user_id: string
+          widget_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json
+          updated_at?: string
+          user_id?: string
+          widget_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          record_id?: string
+          table_name?: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string
