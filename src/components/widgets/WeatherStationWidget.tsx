@@ -74,9 +74,17 @@ const getAirQualityColor = (airQuality: string): string => {
 };
 
 export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({ widget }) => {
-  const { settings, setSettings, collapsed, setCollapsed, isLoading: hookLoading, error: hookError } = useWidgetState(
+  const { settings, setSettings, isLoading: hookLoading, error: hookError } = useWidgetState(
     widget.id,
-    widget.settings as WeatherStationSettings
+    { 
+      location: 'Boston, MA',
+      temperatureUnit: 'F',
+      showRadiation: true,
+      showAirQuality: true,
+      autoRefresh: true,
+      refreshInterval: 300000,
+      ...widget.settings as WeatherStationSettings
+    }
   );
   
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);

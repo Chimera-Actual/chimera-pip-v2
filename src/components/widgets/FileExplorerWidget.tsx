@@ -205,9 +205,9 @@ const formatDate = (date: Date): string => {
 };
 
 export const FileExplorerWidget: React.FC<FileExplorerWidgetProps> = memo(({ widget }) => {
-  const { settings, setSettings, collapsed, setCollapsed, isLoading, error } = useWidgetState(
+  const { settings, setSettings, isLoading, error } = useWidgetState(
     widget.id,
-    widget.settings
+    widget.settings || {}
   );
 
   const [fileSystem, setFileSystem] = useState<FileItem>(mockFileSystem);

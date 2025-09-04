@@ -65,7 +65,7 @@ const categoryIcons = {
 };
 
 export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(({ widget }) => {
-  const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
+  const { settings, isLoading } = useWidgetState(widget.id, widget.settings || {});
   const [missions, setMissions] = useState<Mission[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [showAddForm, setShowAddForm] = useState(false);
