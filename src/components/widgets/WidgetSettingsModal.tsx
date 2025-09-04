@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, X, Save, RotateCcw, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
 import { MODAL_SIZES } from '@/lib/constants';
@@ -423,7 +424,24 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     }
   };
 
-  if (!isOpen) return null;
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
 
   // Group settings by their group property
   const groupedSettings = schema ? Object.entries(schema.settingsSchema).reduce(
@@ -442,43 +460,33 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     : availableGroups.filter(g => g !== 'advanced');
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-pip-bg-overlay/80 backdrop-blur-md" onClick={onClose} />
-      
-      {/* Modal - Centered with standardized size */}
-      <div className={`relative w-full ${MODAL_SIZES.WIDGET_SETTINGS_MODAL} rounded-lg bg-background/95 border-2 border-primary/30 flex flex-col backdrop-blur-md shadow-2xl shadow-primary/20 pip-glow pip-border-glow`}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-primary/20 bg-primary/5">
-          <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-primary pip-glow" />
-            <h3 className="text-lg font-bold text-primary uppercase tracking-wide pip-text-glow">
-              {widgetTitle} - Settings
-            </h3>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={`${MODAL_SIZES.WIDGET_SETTINGS_MODAL} bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300`}>
+        <DialogHeader className="border-b border-pip-border/30 pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Settings className="w-6 h-6 text-primary pip-glow" />
+              <DialogTitle className="text-lg font-bold text-primary uppercase tracking-wide pip-text-glow">
+                {widgetTitle} - Settings
+              </DialogTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                {showAdvanced ? 'Basic' : 'Advanced'}
+              </button>
+              <button 
+                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
+                onClick={() => setShowImportExport(!showImportExport)}
+              >
+                Import/Export
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              {showAdvanced ? 'Basic' : 'Advanced'}
-            </button>
-            <button 
-              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
-              onClick={() => setShowImportExport(!showImportExport)}
-            >
-              Import/Export
-            </button>
-            <button 
-              className="p-2 text-destructive hover:bg-destructive/20 border border-destructive/30 rounded transition-colors"
-              onClick={onClose}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        </DialogHeader>
 
-        {/* Body */}
         <div className="flex-1 overflow-hidden">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-primary">
@@ -541,8 +549,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-5 border-t border-primary/20 bg-background/40">
+        <div className="flex items-center justify-between pt-4 border-t border-pip-border/30">
           <div className="flex items-center gap-4 text-xs">
             {isDirty && (
               <div className="flex items-center gap-1 text-amber-400">
@@ -582,7 +589,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
