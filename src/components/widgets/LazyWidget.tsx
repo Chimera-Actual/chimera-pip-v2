@@ -3,6 +3,7 @@ import { BaseWidget } from '@/types/widgets';
 import { useLazyLoading } from '@/hooks/useLazyLoading';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
+import { WidgetTransitions, WidgetLoadingStates } from '@/components/enhanced/WidgetTransitions';
 import { cn } from '@/lib/utils';
 
 interface LazyWidgetProps {
@@ -17,22 +18,11 @@ interface LazyWidgetProps {
 const WidgetSkeleton: React.FC<{ widget: BaseWidget }> = memo(({ widget }) => (
   <div
     className={cn(
-      "animate-pulse bg-pip-bg-secondary/20 border border-pip-border/10 rounded-lg",
       widget.widgetWidth === 'full' ? 'col-span-2' : 'col-span-1'
     )}
     style={{ minHeight: '200px' }}
   >
-    <div className="p-4 space-y-3">
-      <div className="flex items-center space-x-2">
-        <div className="w-4 h-4 bg-pip-primary/20 rounded"></div>
-        <div className="h-3 bg-pip-primary/20 rounded w-20"></div>
-      </div>
-      <div className="space-y-2">
-        <div className="h-2 bg-pip-bg-secondary/30 rounded w-full"></div>
-        <div className="h-2 bg-pip-bg-secondary/30 rounded w-3/4"></div>
-        <div className="h-2 bg-pip-bg-secondary/30 rounded w-1/2"></div>
-      </div>
-    </div>
+    <WidgetLoadingStates.Skeleton />
   </div>
 ));
 
@@ -66,27 +56,33 @@ export const LazyWidget: React.FC<LazyWidgetProps> = memo(({
       )}
     >
       {shouldRender ? (
-        <Suspense fallback={<WidgetSkeleton widget={widget} />}>
-          <WidgetContainer
-            widgetId={widget.id}
-            widgetType={widget.type}
-            title={widget.title}
-            customIcon={widget.customIcon}
-            widgetWidth={widget.widgetWidth}
-            collapsed={widget.collapsed}
-            onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
-            onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
-            onTitleChange={handleTitleChange}
-            onIconChange={handleIconChange}
-            onToggleWidth={() => onToggleWidth(widget)}
-            onDelete={() => onDelete(widget.id)}
-            onArchive={() => onArchive(widget.id)}
-            onMove={undefined}
-            dragHandleProps={dragHandleProps}
-          >
-            <WidgetRenderer widget={widget} />
-          </WidgetContainer>
-        </Suspense>
+        <WidgetTransitions 
+          widget={widget}
+          isLoading={!shouldRender}
+          status="active"
+        >
+          <Suspense fallback={<WidgetLoadingStates.Boot message={`Loading ${widget.type}...`} />}>
+            <WidgetContainer
+              widgetId={widget.id}
+              widgetType={widget.type}
+              title={widget.title}
+              customIcon={widget.customIcon}
+              widgetWidth={widget.widgetWidth}
+              collapsed={widget.collapsed}
+              onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
+              onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
+              onTitleChange={handleTitleChange}
+              onIconChange={handleIconChange}
+              onToggleWidth={() => onToggleWidth(widget)}
+              onDelete={() => onDelete(widget.id)}
+              onArchive={() => onArchive(widget.id)}
+              onMove={undefined}
+              dragHandleProps={dragHandleProps}
+            >
+              <WidgetRenderer widget={widget} />
+            </WidgetContainer>
+          </Suspense>
+        </WidgetTransitions>
       ) : (
         <WidgetSkeleton widget={widget} />
       )}

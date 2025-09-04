@@ -32,6 +32,7 @@ import { DragOverlayWidget } from './grid/DragOverlayWidget';
 import { EmptyGridState } from './grid/EmptyGridState';
 import { AddWidgetButton } from './grid/AddWidgetButton';
 import { OptimizedWidgetPlaceholder } from './grid/OptimizedWidgetPlaceholder';
+import { AnimatedWidgetGrid } from '@/components/enhanced/WidgetTransitions';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
 
@@ -244,8 +245,8 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <div className={cn(
-            'grid gap-4 auto-rows-max',
+          <AnimatedWidgetGrid className={cn(
+            'auto-rows-max',
             isMobile ? 'grid-cols-1' : 'grid-cols-2'
           )}>
             {widgets.length === 0 ? (
@@ -267,7 +268,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
                 <AddWidgetButton onAddWidget={() => setShowAddWidget(true)} />
               </>
             )}
-          </div>
+          </AnimatedWidgetGrid>
         </SortableContext>
 
         <DragOverlay>
