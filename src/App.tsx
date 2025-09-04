@@ -34,7 +34,7 @@ const App = () => {
             <WidgetProvider>
               <ErrorBoundary>
                 <BrowserRouter>
-                  <div className="min-h-screen bg-background font-sans antialiased">
+                  <div className="min-h-screen bg-background font-pip-mono antialiased">
                     <Suspense fallback={
                       <div className="min-h-screen flex items-center justify-center bg-pip-bg-primary">
                         <LoadingSpinner size="lg" text="INITIALIZING PIP-BOY INTERFACE" />

@@ -84,7 +84,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   return (
     <div className={`min-h-screen pip-scanlines ${className}`}>
       <div className="container mx-auto p-4 max-w-7xl">
-        <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 min-h-[800px] flex flex-col">
+        <Card variant="pip-terminal" className="min-h-[800px] flex flex-col">
           {/* Dashboard Header */}
           <DashboardHeader 
             colorTheme={colorTheme}

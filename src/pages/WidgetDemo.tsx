@@ -32,11 +32,11 @@ const WidgetDemo: React.FC = () => {
   ];
 
   const themes: { value: PipBoyTheme; label: string; color: string }[] = [
-    { value: 'green', label: 'Classic Green', color: '#00ff00' },
-    { value: 'amber', label: 'Amber', color: '#ffaa00' },
-    { value: 'blue', label: 'Blue', color: '#0088ff' },
-    { value: 'red', label: 'Red', color: '#ff0000' },
-    { value: 'white', label: 'White', color: '#ffffff' }
+    { value: 'green', label: 'Classic Green', color: 'hsl(var(--pip-green-primary))' },
+    { value: 'amber', label: 'Amber', color: 'hsl(45 100% 55%)' },
+    { value: 'blue', label: 'Blue', color: 'hsl(207 100% 55%)' },
+    { value: 'red', label: 'Red', color: 'hsl(0 100% 55%)' },
+    { value: 'white', label: 'White', color: 'hsl(var(--pip-text-bright))' }
   ];
 
   const renderWidget = (widget: any) => {

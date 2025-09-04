@@ -71,7 +71,7 @@ export const VaultRegistration: React.FC = () => {
   return (
     <div className="min-h-screen pip-scanlines bg-pip-bg-primary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8">
+        <Card variant="pip-terminal" className="p-pip-lg">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">

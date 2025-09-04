@@ -105,16 +105,16 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 className="h-8 w-8 p-0 transition-all duration-200 font-pip-mono text-xs border border-pip-border hover:border-primary hover:bg-pip-bg-secondary/50"
                 title="Tab Settings"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="pip-icon-sm" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => setShowAdvancedCatalog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="pip-icon-sm" />
                 Add Widget
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleTabSettings}>
-                <Pencil className="mr-2 h-4 w-4" />
+                <Pencil className="pip-icon-sm" />
                 Tab Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -122,7 +122,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 onClick={handleArchiveTab}
                 disabled={currentTab?.isDefault}
               >
-                <Archive className="mr-2 h-4 w-4" />
+                <Archive className="pip-icon-sm" />
                 Archive Tab
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -130,7 +130,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 disabled={currentTab?.isDefault}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 className="pip-icon-sm" />
                 Delete Tab
               </DropdownMenuItem>
             </DropdownMenuContent>

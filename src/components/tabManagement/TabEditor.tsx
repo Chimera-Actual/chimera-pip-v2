@@ -35,13 +35,13 @@ const availableIcons = [
 
 const colorOptions = [
   { value: '', label: 'Default', color: 'transparent' },
-  { value: '#00ff00', label: 'Green', color: '#00ff00' },
-  { value: '#ffaa00', label: 'Amber', color: '#ffaa00' },
-  { value: '#0088ff', label: 'Blue', color: '#0088ff' },
-  { value: '#ff0000', label: 'Red', color: '#ff0000' },
-  { value: '#ffffff', label: 'White', color: '#ffffff' },
-  { value: '#ff00ff', label: 'Magenta', color: '#ff00ff' },
-  { value: '#00ffff', label: 'Cyan', color: '#00ffff' },
+  { value: 'hsl(var(--pip-green-primary))', label: 'Green', color: 'hsl(var(--pip-green-primary))' },
+  { value: 'hsl(45 100% 55%)', label: 'Amber', color: 'hsl(45 100% 55%)' },
+  { value: 'hsl(207 100% 55%)', label: 'Blue', color: 'hsl(207 100% 55%)' },
+  { value: 'hsl(0 100% 55%)', label: 'Red', color: 'hsl(0 100% 55%)' },
+  { value: 'hsl(var(--pip-text-bright))', label: 'White', color: 'hsl(var(--pip-text-bright))' },
+  { value: 'hsl(300 100% 55%)', label: 'Magenta', color: 'hsl(300 100% 55%)' },
+  { value: 'hsl(180 100% 55%)', label: 'Cyan', color: 'hsl(180 100% 55%)' },
 ];
 
 export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose, onSave }) => {
@@ -99,7 +99,7 @@ export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose,
 
   return (
     <div className="fixed inset-0 z-50 bg-pip-bg-overlay/90 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto pip-glow pip-terminal pip-scanlines">
+      <div className="pip-widget-dialog p-pip-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-30 pip-scanlines rounded-lg" />
         <div className="flex items-center justify-between mb-6 relative z-10">

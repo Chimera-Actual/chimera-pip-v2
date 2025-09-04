@@ -170,8 +170,8 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2000]">
-          <div className="bg-pip-bg border-2 border-pip-green-primary/80 rounded p-6 max-w-sm mx-4 shadow-pip-glow">
+        <div className="fixed inset-0 bg-pip-bg-overlay/80 flex items-center justify-center z-[2000]">
+          <div className="pip-widget-dialog p-pip-lg max-w-sm mx-4 shadow-pip-glow">
             <h3 className="font-pip-display text-lg font-bold text-pip-text-bright mb-4">
               Confirm Delete
             </h3>

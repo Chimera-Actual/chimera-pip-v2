@@ -77,6 +77,13 @@ export default {
 					bright: 'hsl(var(--pip-border-bright))'
 				}
 			},
+			spacing: {
+				'pip-xs': '0.5rem',    // 8px
+				'pip-sm': '1rem',      // 16px  
+				'pip-md': '1.5rem',    // 24px
+				'pip-lg': '2rem',      // 32px
+				'pip-xl': '3rem',      // 48px
+			},
 			fontFamily: {
 				'mono': ['var(--font-mono)'],
 				'display': ['var(--font-display)'],

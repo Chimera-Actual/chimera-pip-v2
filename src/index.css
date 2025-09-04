@@ -296,6 +296,50 @@
   box-sizing: border-box;
 }
 
+/* Consistent Border System */
+.pip-border-light { 
+  border: 1px solid hsl(var(--pip-border)); 
+}
+
+.pip-border-medium { 
+  border: 2px solid hsl(var(--pip-border)); 
+}
+
+.pip-border-heavy { 
+  border: 2px solid hsl(var(--pip-border-bright)); 
+}
+
+/* Consistent Icon Sizes */
+.pip-icon-xs { 
+  @apply h-3 w-3; /* 12px */
+}
+
+.pip-icon-sm { 
+  @apply h-4 w-4; /* 16px */
+}
+
+.pip-icon-md { 
+  @apply h-5 w-5; /* 20px */
+}
+
+.pip-icon-lg { 
+  @apply h-6 w-6; /* 24px */
+}
+
+.pip-icon-xl { 
+  @apply h-8 w-8; /* 32px */
+}
+
+/* Widget Container Variants */
+.pip-widget-standard {
+  @apply pip-terminal pip-glow pip-border-heavy;
+  backdrop-filter: blur(8px);
+}
+
+.pip-widget-dialog {
+  @apply bg-pip-bg-primary pip-border-heavy rounded-lg pip-glow pip-terminal pip-scanlines;
+}
+
 /* Widget drag styling */
 .widget-dragging {
   opacity: 0.8;

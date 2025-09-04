@@ -302,16 +302,16 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
               >
                 <div className={`flex gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   <div className={`p-1 rounded-full ${message.role === 'user' ? 'bg-pip-accent-blue' : `bg-pip-bg-secondary ${currentPersonality.color}`}`}>
-                    {message.role === 'user' ? 
-                      <User className="h-3 w-3 text-white" /> : 
-                      <Bot className="h-3 w-3" />
-                    }
+                      {message.role === 'user' ? 
+                        <User className="pip-icon-xs text-pip-text-bright" /> : 
+                        <Bot className="pip-icon-xs" />
+                      }
                   </div>
-                  <div className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-pip-accent-blue text-white' : 'bg-pip-bg-secondary'}`}>
+                  <div className={`p-pip-xs rounded-lg ${message.role === 'user' ? 'bg-primary/20 text-pip-text-bright' : 'bg-pip-bg-secondary'}`}>
                     <p className="text-xs font-pip-mono whitespace-pre-wrap">
                       {message.content}
                     </p>
-                    <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-white' : 'text-pip-text-muted'}`}>
+                    <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-pip-text-bright' : 'text-pip-text-muted'}`}>
                       {message.timestamp.toLocaleTimeString()}
                     </div>
                   </div>

@@ -523,7 +523,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
                         className={cn(
                           "w-full px-4 py-3 border rounded font-pip-mono uppercase tracking-wide flex items-center gap-3 transition-colors",
                           showDeleteConfirm
-                            ? "bg-destructive text-white border-destructive hover:bg-destructive/80"
+                            ? "bg-destructive text-destructive-foreground border-destructive hover:bg-destructive/80"
                             : "bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30"
                         )}
                         onClick={handleDelete}

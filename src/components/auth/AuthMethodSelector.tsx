@@ -43,7 +43,7 @@ export const AuthMethodSelector: React.FC = () => {
   return (
     <div className="min-h-screen pip-scanlines bg-pip-bg-primary flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8">
+        <Card variant="pip-terminal" className="p-pip-lg">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-display font-bold text-pip-text-bright pip-text-glow mb-4">
@@ -73,7 +73,7 @@ export const AuthMethodSelector: React.FC = () => {
                     <div className="flex items-start space-x-4">
                       <div className={`p-3 rounded-full border-2 ${
                         method.available 
-                          ? 'border-primary bg-primary/20 text-primary group-hover:bg-primary group-hover:text-black' 
+                          ? 'border-primary bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground' 
                           : 'border-pip-border bg-pip-bg-secondary text-pip-text-muted'
                       } transition-all duration-300`}>
                         <IconComponent className="h-6 w-6" />

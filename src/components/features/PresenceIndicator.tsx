@@ -28,7 +28,7 @@ export const PresenceIndicator: React.FC = () => {
       {presenceList.length > 0 && (
         <div className="flex -space-x-2">
           {presenceList.slice(0, 5).map((presence) => (
-            <Avatar key={presence.userId} className="w-6 h-6 border-2 border-background">
+            <Avatar key={presence.userId} className="w-6 h-6 pip-border-medium">
               <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                 {presence.userId.slice(0, 2).toUpperCase()}
               </AvatarFallback>

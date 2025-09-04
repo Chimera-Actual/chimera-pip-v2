@@ -56,9 +56,9 @@ export const DashboardFooter: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? (
-              <Wifi className="w-4 h-4 text-pip-green-primary" />
+              <Wifi className="pip-icon-sm text-pip-green-primary" />
             ) : (
-              <WifiOff className="w-4 h-4 text-destructive" />
+              <WifiOff className="pip-icon-sm text-destructive" />
             )}
             <span className="text-xs font-pip-mono text-pip-text-secondary uppercase">
               {connectionStatus}
@@ -66,7 +66,7 @@ export const DashboardFooter: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-pip-text-muted" />
+            <Database className="pip-icon-sm text-pip-text-muted" />
             <span className="text-xs font-pip-mono text-pip-text-muted">
               Last Sync: {formatTime(lastSync)}
             </span>
@@ -83,7 +83,7 @@ export const DashboardFooter: React.FC = () => {
         {/* Right Side - System Time */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-pip-text-muted" />
+            <Clock className="pip-icon-sm text-pip-text-muted" />
             <span className="text-xs font-pip-mono text-pip-text-secondary">
               {formatDate(currentTime)}
             </span>

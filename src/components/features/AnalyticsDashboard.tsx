@@ -159,7 +159,13 @@ export const AnalyticsDashboard: React.FC = () => {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const COLORS = ['#00ff00', '#00aa00', '#008800', '#006600', '#004400'];
+  const COLORS = [
+    'hsl(var(--pip-green-primary))',
+    'hsl(var(--pip-green-secondary))', 
+    'hsl(var(--pip-green-muted))',
+    'hsl(120 60% 25%)',
+    'hsl(120 40% 20%)'
+  ];
 
   if (isLoading) {
     return (

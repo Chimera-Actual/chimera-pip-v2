@@ -27,7 +27,7 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
       {/* Left: CHIMERA-TEC Branding */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <Zap className="h-8 w-8 text-primary pip-text-glow" />
+          <Zap className="pip-icon-xl text-primary pip-text-glow" />
           <div>
             <h1 className="text-xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
               CHIMERA-PIP 4000 mk2

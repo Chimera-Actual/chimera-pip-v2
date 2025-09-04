@@ -85,7 +85,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
          role="dialog" 
          aria-modal="true" 
          aria-labelledby="widget-catalog-title">
-      <div className={`relative bg-pip-bg-primary border-2 border-pip-border-bright rounded-lg w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col pip-glow pip-terminal pip-scanlines`}>
+      <div className="pip-widget-dialog w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col">
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-20 pip-scanlines rounded-lg" />
         {/* Header */}
@@ -272,7 +272,7 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
                             return tag ? (
                               <span
                                 key={tagId}
-                                className="inline-block px-2 py-0.5 text-xs rounded font-medium text-black"
+                                className="inline-block px-2 py-0.5 text-xs rounded font-medium text-pip-text-primary"
                                 style={{ backgroundColor: tag.color }}
                               >
                                 {tag.name}

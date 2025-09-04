@@ -61,7 +61,7 @@ export const BootSequence: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">
-      <Card className="pip-terminal pip-glow border-2 border-pip-border-bright/30 p-8 max-w-2xl w-full mx-4">
+      <Card variant="pip-terminal" className="p-pip-lg max-w-2xl w-full mx-4">
         <div className="text-center space-y-8">
           {/* CHIMERA-TEC Industries Logo */}
           <div className="flex flex-col items-center justify-center space-y-6 animate-pip-boot">
