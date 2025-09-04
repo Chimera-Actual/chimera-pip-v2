@@ -1,5 +1,6 @@
 import React, { Suspense, memo } from 'react';
 import { SimpleWidgetGrid } from './SimpleWidgetGrid';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 export interface WidgetGridProps {
   tab: string;
@@ -7,6 +8,13 @@ export interface WidgetGridProps {
 }
 
 export const WidgetGrid: React.FC<WidgetGridProps> = memo(({ tab, className }) => {
+  const { markRenderStart, markRenderEnd } = usePerformanceMonitor('WidgetGrid');
+  
+  React.useLayoutEffect(() => {
+    markRenderStart();
+    return markRenderEnd;
+  });
+
   return (
     <Suspense fallback={
       <div className="animate-pulse space-y-4">

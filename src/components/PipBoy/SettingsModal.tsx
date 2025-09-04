@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Palette, Volume2, Layout, User, Save, RotateCcw } from 'lucide-react';
-import { MODAL_SIZES } from '@/lib/constants';
+import { Palette, Volume2, Layout, User } from 'lucide-react';
 import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
 import { ColorTheme } from './PipBoyContainer';
 import { cn } from '@/lib/utils';
@@ -57,39 +56,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     });
   };
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
+  // Check if settings have changed for dirty state
+  const isDirty = tempSettings.theme !== currentTheme || tempSettings.sound !== soundEnabled;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${MODAL_SIZES.SETTINGS_MODAL} bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300`}>
-        <DialogHeader className="border-b border-pip-border/30 pb-4">
-          <DialogTitle className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-            SYSTEM PREFERENCES
-          </DialogTitle>
-          <p className="text-xs text-pip-text-muted font-pip-mono">
-            CHIMERA-PIP 4000 mk2 CONFIGURATION INTERFACE
-          </p>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue="theme" className="h-full flex flex-col">
+    <BaseSettingsModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="SYSTEM PREFERENCES"
+      description="CHIMERA-PIP 4000 mk2 CONFIGURATION INTERFACE"
+      size="large"
+      onSave={handleSaveSettings}
+      onReset={handleResetSettings}
+      isDirty={isDirty}
+    >
+        <Tabs defaultValue="theme" className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-4 bg-pip-bg-secondary/30 border border-pip-border">
               <TabsTrigger 
                 value="theme" 
@@ -255,38 +236,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </div>
                 </div>
               </TabsContent>
-            </div>
-          </Tabs>
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-pip-border/30">
-          <Button
-            variant="outline"
-            onClick={handleResetSettings}
-            className="font-pip-mono text-xs border-pip-border text-pip-text-secondary hover:text-primary"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            RESET
-          </Button>
-          
-          <div className="flex space-x-2">
-            <Button
-              variant="ghost"
-              onClick={onClose}
-              className="font-pip-mono text-xs text-pip-text-secondary hover:text-primary"
-            >
-              CANCEL
-            </Button>
-            <Button
-              onClick={handleSaveSettings}
-              className="font-pip-mono text-xs bg-primary/20 border-primary text-primary hover:bg-primary/30 pip-button-glow"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              SAVE CHANGES
-            </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </Tabs>
+    </BaseSettingsModal>
   );
 };

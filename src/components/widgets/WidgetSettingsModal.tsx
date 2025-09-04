@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, X, Save, RotateCcw, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
+import { Settings, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
-import { MODAL_SIZES } from '@/lib/constants';
 
 interface WidgetSettingsModalProps<T = any> {
   widgetId: string;
@@ -411,6 +410,10 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     }
   };
 
+  const handleReset = async () => {
+    await resetToDefaults();
+  };
+
   const handleTestConnection = async (fieldKey: string, endpoint: string) => {
     try {
       const response = await fetch(endpoint, { method: 'HEAD' });
@@ -423,25 +426,6 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
       alert('Connection failed: ' + error);
     }
   };
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
 
   // Group settings by their group property
   const groupedSettings = schema ? Object.entries(schema.settingsSchema).reduce(
@@ -460,97 +444,92 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     : availableGroups.filter(g => g !== 'advanced');
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${MODAL_SIZES.WIDGET_SETTINGS_MODAL} bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300`}>
-        <DialogHeader className="border-b border-pip-border/30 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Settings className="w-6 h-6 text-primary pip-glow" />
-              <DialogTitle className="text-lg font-bold text-primary uppercase tracking-wide pip-text-glow">
-                {widgetTitle} - Settings
-              </DialogTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              <button 
-                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-              >
-                {showAdvanced ? 'Basic' : 'Advanced'}
-              </button>
-              <button 
-                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
-                onClick={() => setShowImportExport(!showImportExport)}
-              >
-                Import/Export
-              </button>
-            </div>
+    <BaseSettingsModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`${widgetTitle} SETTINGS`}
+      description="Configure widget behavior and appearance"
+      size="large"
+      onSave={handleSave}
+      onReset={handleReset}
+      isDirty={isDirty}
+      isLoading={isLoading}
+    >
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-primary">
+          <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <span className="text-sm uppercase tracking-wide">Loading settings...</span>
+        </div>
+      ) : showImportExport ? (
+        <ImportExportPanel
+          onExport={exportSettings}
+          onImport={importSettings}
+          onClose={() => setShowImportExport(false)}
+        />
+      ) : (
+        <div className="h-full flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <button 
+              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              {showAdvanced ? 'Basic' : 'Advanced'}
+            </button>
+            <button 
+              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors uppercase tracking-wide"
+              onClick={() => setShowImportExport(!showImportExport)}
+            >
+              Import/Export
+            </button>
           </div>
-        </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-primary">
-              <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <span className="text-sm uppercase tracking-wide">Loading settings...</span>
-            </div>
-          ) : showImportExport ? (
-            <ImportExportPanel
-              onExport={exportSettings}
-              onImport={importSettings}
-              onClose={() => setShowImportExport(false)}
-            />
-          ) : (
-            <div className="h-full flex flex-col">
-              {/* Group Navigation */}
-              {filteredGroups.length > 1 && (
-                <div className="flex border-b border-primary/20 bg-background/40">
-                  {filteredGroups.map(groupId => (
-                    <button
-                      key={groupId}
-                      className={cn(
-                        "px-5 py-3 text-sm font-medium transition-all uppercase tracking-wide",
-                        activeGroup === groupId
-                          ? "text-primary border-b-2 border-primary bg-primary/10"
-                          : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                      )}
-                      onClick={() => setActiveGroup(groupId)}
-                    >
-                      {groupId}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Settings Content */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {filteredGroups.map(groupId => (
-                  <div 
-                    key={groupId} 
-                    className={cn(
-                      "space-y-6",
-                      activeGroup === groupId ? "block" : "hidden"
-                    )}
-                  >
-                    {groupedSettings[groupId]?.map(([fieldKey, fieldSchema]) => (
-                      <SettingsField
-                        key={fieldKey}
-                        fieldKey={fieldKey}
-                        fieldSchema={fieldSchema}
-                        value={settings[fieldKey]}
-                        error={errors[fieldKey]}
-                        onChange={(value) => updateSetting(fieldKey as keyof T, value)}
-                        onTestConnection={handleTestConnection}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
+          {/* Group Navigation */}
+          {filteredGroups.length > 1 && (
+            <div className="flex border-b border-primary/20 bg-background/40 mb-4">
+              {filteredGroups.map(groupId => (
+                <button
+                  key={groupId}
+                  className={cn(
+                    "px-5 py-3 text-sm font-medium transition-all uppercase tracking-wide",
+                    activeGroup === groupId
+                      ? "text-primary border-b-2 border-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  )}
+                  onClick={() => setActiveGroup(groupId)}
+                >
+                  {groupId}
+                </button>
+              ))}
             </div>
           )}
-        </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-pip-border/30">
-          <div className="flex items-center gap-4 text-xs">
+          {/* Settings Content */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredGroups.map(groupId => (
+              <div 
+                key={groupId} 
+                className={cn(
+                  "space-y-6",
+                  activeGroup === groupId ? "block" : "hidden"
+                )}
+              >
+                {groupedSettings[groupId]?.map(([fieldKey, fieldSchema]) => (
+                  <SettingsField
+                    key={fieldKey}
+                    fieldKey={fieldKey}
+                    fieldSchema={fieldSchema}
+                    value={settings[fieldKey]}
+                    error={errors[fieldKey]}
+                    onChange={(value) => updateSetting(fieldKey as keyof T, value)}
+                    onTestConnection={handleTestConnection}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Status indicators */}
+          <div className="flex items-center gap-4 text-xs mt-4 pt-4 border-t border-pip-border/30">
             {isDirty && (
               <div className="flex items-center gap-1 text-amber-400">
                 <AlertCircle className="w-4 h-4" />
@@ -564,32 +543,8 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
               </div>
             )}
           </div>
-          
-          <div className="flex items-center gap-3">
-            <button 
-              className="px-4 py-2 bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors text-sm flex items-center gap-2 uppercase tracking-wide"
-              onClick={resetToDefaults}
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset
-            </button>
-            <button 
-              className="px-4 py-2 bg-secondary text-secondary-foreground border border-secondary/30 rounded hover:bg-secondary/80 transition-colors text-sm uppercase tracking-wide"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button 
-              className="px-4 py-2 bg-primary text-primary-foreground border border-primary/30 rounded hover:bg-primary/80 transition-colors text-sm flex items-center gap-2 disabled:opacity-50 uppercase tracking-wide"
-              onClick={handleSave}
-              disabled={Object.keys(errors).length > 0}
-            >
-              <Save className="w-4 h-4" />
-              Save Settings
-            </button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+    </BaseSettingsModal>
   );
 };

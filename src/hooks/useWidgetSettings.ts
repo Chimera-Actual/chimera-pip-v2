@@ -5,6 +5,41 @@ import { debounce } from 'lodash';
 import { reportError } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
 
+// Fallback schemas for common widget types
+const getFallbackSchema = <T extends Record<string, any>>(widgetType: string): WidgetSettingsSchema<T> => {
+  const commonSchema = {
+    title: { type: 'string' as const, label: 'Title', required: true, group: 'general' as const },
+    refreshInterval: { type: 'number' as const, label: 'Refresh Interval (minutes)', validation: { min: 1, max: 60 }, group: 'general' as const },
+  };
+
+  const fallbacks: Record<string, any> = {
+    weather: {
+      ...commonSchema,
+      location: { type: 'string' as const, label: 'Location', required: true, placeholder: 'Enter city name', group: 'general' as const },
+      units: { type: 'select' as const, label: 'Units', options: [{ value: 'metric', label: 'Celsius' }, { value: 'imperial', label: 'Fahrenheit' }], group: 'display' as const },
+    },
+    terminal: {
+      ...commonSchema,
+      prompt: { type: 'string' as const, label: 'Prompt', placeholder: '$ ', group: 'display' as const },
+      theme: { type: 'select' as const, label: 'Terminal Theme', options: [{ value: 'green', label: 'Green' }, { value: 'amber', label: 'Amber' }], group: 'display' as const },
+    },
+    default: commonSchema
+  };
+
+  const schema = fallbacks[widgetType] || fallbacks.default;
+  const defaultSettings: Record<string, any> = Object.keys(schema).reduce((acc, key) => {
+    acc[key] = schema[key].type === 'boolean' ? false : schema[key].type === 'number' ? 5 : '';
+    return acc;
+  }, {});
+
+  return {
+    widgetType,
+    schemaVersion: 1,
+    defaultSettings: defaultSettings as T,
+    settingsSchema: schema as Record<keyof T, WidgetSettingsField>
+  };
+};
+
 interface WidgetSettingsField {
   type: 'string' | 'number' | 'boolean' | 'select' | 'textarea' | 'url' | 'apikey' | 'multiselect';
   label: string;
@@ -79,47 +114,51 @@ export function useWidgetSettings<T extends Record<string, any>>(
           .eq('widget_type', widgetType)
           .single();
 
-        if (schemaError) {
-          console.error('Schema load error:', schemaError);
-          return;
-        }
-
-        if (schemaData) {
-          const parsedSchema: WidgetSettingsSchema<T> = {
+        // Handle schema loading with fallback to defaults
+        let parsedSchema: WidgetSettingsSchema<T>;
+        
+        if (schemaError || !schemaData) {
+          console.warn('Schema load error, using fallback:', schemaError);
+          // Fallback schema for common widget types
+          const fallbackSchemas = getFallbackSchema<T>(widgetType);
+          parsedSchema = fallbackSchemas;
+        } else {
+          parsedSchema = {
             widgetType: schemaData.widget_type,
             schemaVersion: schemaData.schema_version,
             defaultSettings: schemaData.default_settings as T,
             settingsSchema: schemaData.settings_schema as Record<keyof T, WidgetSettingsField>
           };
-          setSchema(parsedSchema);
-          
-          // Load instance settings or create with defaults
-          const { data: instanceData } = await supabase
-            .from('widget_instance_settings')
-            .select('*')
-            .eq('widget_id', widgetId)
-            .eq('user_id', user.id)
-            .single();
+        }
+        
+        setSchema(parsedSchema);
+        
+        // Load instance settings or create with defaults
+        const { data: instanceData } = await supabase
+          .from('widget_instance_settings')
+          .select('*')
+          .eq('widget_id', widgetId)
+          .eq('user_id', user.id)
+          .single();
 
-          if (instanceData) {
-            setSettings(instanceData.settings_merged as T);
-            setSettingsOverrides(instanceData.settings_overrides as Partial<T>);
-          } else {
-            // Create new instance with defaults
-            const defaultSettings = parsedSchema.defaultSettings;
-            setSettings(defaultSettings);
-            setSettingsOverrides({});
-            
-            await supabase
-              .from('widget_instance_settings')
-              .insert({
-                widget_id: widgetId,
-                user_id: user.id,
-                widget_type: widgetType,
-                settings_overrides: {},
-                settings_merged: defaultSettings
-              });
-          }
+        if (instanceData) {
+          setSettings(instanceData.settings_merged as T);
+          setSettingsOverrides(instanceData.settings_overrides as Partial<T>);
+        } else {
+          // Create new instance with defaults
+          const defaultSettings = parsedSchema.defaultSettings;
+          setSettings(defaultSettings);
+          setSettingsOverrides({});
+          
+          await supabase
+            .from('widget_instance_settings')
+            .insert({
+              widget_id: widgetId,
+              user_id: user.id,
+              widget_type: widgetType,
+              settings_overrides: {},
+              settings_merged: defaultSettings
+            });
         }
       } catch (error) {
         console.error('Failed to load widget settings:', error);

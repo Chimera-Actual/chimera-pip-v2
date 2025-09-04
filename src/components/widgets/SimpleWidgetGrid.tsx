@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useWidgets } from '@/contexts/WidgetContext';
-import { WidgetRenderer } from './WidgetRegistry';
 import { WidgetContainer } from './WidgetContainer';
-import { WidgetType, BaseWidget, WidgetWidth } from '@/types/widgets';
+import { WidgetRenderer } from './WidgetRegistry';
+import { BaseWidget, WidgetType, WidgetWidth } from '@/types/widgets';
+import { useWidgets } from '@/contexts/WidgetContext';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Plus, LayoutGrid, ArrowLeftRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -53,42 +54,29 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleResize = () => {
-    onToggleWidth(widget);
-  };
-
-  const handleMove = () => {
-    // For keyboard accessibility, we can use the existing drag handlers
-    // The actual drag-and-drop is handled by the sortable context
-  };
-
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        widget.widgetWidth === 'full' ? "col-span-2" : "col-span-1",
-        isDragging && "z-50"
+        "relative",
+        widget.widgetWidth === 'full' ? 'col-span-2' : 'col-span-1'
       )}
-      {...attributes}
     >
       <WidgetContainer
         widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={widget.collapsed}
-        onToggleCollapse={() => onUpdate(widget.id, { collapsed: !widget.collapsed })}
-        onSettingsChange={(settings) => onUpdate(widget.id, { settings })}
+        onUpdate={onUpdate}
         onDelete={() => onDelete(widget.id)}
         onArchive={() => onArchive(widget.id)}
-        onMove={handleMove}
-        className="h-full"
+        onToggleWidth={() => onToggleWidth(widget)}
+        isMobile={isMobile}
       >
-        <div className="widget-content pip-scrollbar">
-          <WidgetRenderer widget={widget} />
-        </div>
+        <WidgetRenderer widget={widget} />
       </WidgetContainer>
+      
+      {/* Drag handle - positioned in top-left corner */}
       <div
+        {...attributes}
         {...listeners}
         className="absolute top-2 left-8 w-6 h-6 cursor-grab active:cursor-grabbing opacity-0 hover:opacity-100 transition-opacity"
         style={{ touchAction: 'none' }}
@@ -106,12 +94,53 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     updateWidget
   } = useWidgets();
   
-  const [showAdvancedCatalog, setShowAdvancedCatalog] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
-
-  const widgets = getWidgetsByTab(tab as any).sort((a, b) => a.order - b.order);
+  // Performance monitoring
+  const { markRenderStart, markRenderEnd, trackMemoryUsage } = usePerformanceMonitor('SimpleWidgetGrid');
   
+  // Track render performance
+  React.useLayoutEffect(() => {
+    markRenderStart();
+    return markRenderEnd;
+  });
+
+  // Track memory usage on widget count changes
+  const allWidgets = getWidgetsByTab(tab as any);
+  React.useEffect(() => {
+    if (allWidgets.length > 10) { // Monitor memory when many widgets
+      trackMemoryUsage();
+    }
+  }, [allWidgets.length, trackMemoryUsage]);
+
+  const [showAddWidget, setShowAddWidget] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  
+  const isMobile = useIsMobile();
+  
+  // Get widgets for current tab
+  const widgets = allWidgets;
+
+  const handleAddWidget = useCallback((widgetType: WidgetType) => {
+    addWidget(widgetType, tab as any);
+    setShowAddWidget(false);
+  }, [addWidget, tab]);
+
+  const handleDelete = useCallback((widgetId: string) => {
+    removeWidget(widgetId);
+  }, [removeWidget]);
+
+  const handleArchive = useCallback((widgetId: string) => {
+    archiveWidget(widgetId);
+  }, [archiveWidget]);
+
+  const handleUpdate = useCallback((widgetId: string, updates: Partial<BaseWidget>) => {
+    updateWidget(widgetId, updates);
+  }, [updateWidget]);
+
+  const handleToggleWidth = useCallback((widget: BaseWidget) => {
+    const newWidth: WidgetWidth = widget.widgetWidth === 'full' ? 'half' : 'full';
+    updateWidget(widget.id, { widgetWidth: newWidth });
+  }, [updateWidget]);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -119,160 +148,127 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     })
   );
 
-  const handleAddWidget = async (type: WidgetType) => {
-    await addWidget(type, tab as any);
-    setShowAdvancedCatalog(false);
-  };
-
-  const handleUpdateWidget = async (widgetId: string, updates: Partial<BaseWidget>) => {
-    await updateWidget(widgetId, updates);
-  };
-
-  const handleDeleteWidget = async (widgetId: string) => {
-    await removeWidget(widgetId);
-  };
-
-  const handleArchiveWidget = async (widgetId: string) => {
-    await archiveWidget(widgetId);
-  };
-
-  const handleToggleWidth = async (widget: BaseWidget) => {
-    const newWidth: WidgetWidth = widget.widgetWidth === 'half' ? 'full' : 'half';
-    await handleUpdateWidget(widget.id, { widgetWidth: newWidth });
-  };
-
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (active.id !== over?.id) {
-      const oldIndex = widgets.findIndex(widget => widget.id === active.id);
-      const newIndex = widgets.findIndex(widget => widget.id === over?.id);
+      const oldIndex = widgets.findIndex(w => w.id === active.id);
+      const newIndex = widgets.findIndex(w => w.id === over?.id);
       
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newWidgets = arrayMove(widgets, oldIndex, newIndex);
-        
-        // Update order for all affected widgets
-        for (let i = 0; i < newWidgets.length; i++) {
-          if (newWidgets[i].order !== i) {
-            await handleUpdateWidget(newWidgets[i].id, { order: i });
-          }
-        }
-      }
+      const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+      
+      // Update positions
+      reorderedWidgets.forEach((widget, index) => {
+        updateWidget(widget.id, { order: index });
+      });
     }
     
     setActiveId(null);
   };
 
-  const activeWidget = widgets.find(widget => widget.id === activeId);
+  const activeWidget = widgets.find(w => w.id === activeId);
 
-  const gridContent = (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="space-y-4">
-        {/* Widget Grid */}
-        {widgets.length > 0 ? (
-          <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-            <div className={cn(
-              "grid gap-4 relative",
-              isMobile ? "grid-cols-1" : "grid-cols-2"
-            )}>
-              {widgets.map(widget => (
-                <SortableWidget
-                  key={widget.id}
-                  widget={widget}
-                  onUpdate={handleUpdateWidget}
-                  onDelete={handleDeleteWidget}
-                  onArchive={handleArchiveWidget}
-                  onToggleWidth={handleToggleWidth}
-                  isMobile={isMobile}
-                />
-              ))}
-              
-              {/* Compact Add Widget Button */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowAdvancedCatalog(true)}
-                      className="absolute -top-10 right-0 h-8 w-8 text-pip-text-primary border-pip-border/30 hover:bg-pip-green-primary/10 hover:border-pip-green-primary/50"
-                    >
-                      <div className="flex items-center justify-center">
-                        <Plus className="h-3 w-3" />
-                        <LayoutGrid className="h-3 w-3 -ml-1" />
-                      </div>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add Widget</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </SortableContext>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="max-w-md">
-              <h3 className="text-lg font-medium text-pip-text-bright mb-2">No widgets yet</h3>
-              <p className="text-sm text-pip-text-muted mb-4">
-                Add your first widget to get started with your {tab} dashboard
-              </p>
-              <Button
-                onClick={() => setShowAdvancedCatalog(true)}
-                className="bg-pip-green-primary hover:bg-pip-green-secondary text-pip-bg-primary"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Widget
-              </Button>
-            </div>
+  return (
+    <div className={cn('flex flex-col space-y-4', className)}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
+          <div className={cn(
+            'grid gap-4 auto-rows-max',
+            isMobile ? 'grid-cols-1' : 'grid-cols-2'
+          )}>
+            {widgets.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <LayoutGrid className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No widgets in this tab</h3>
+                  <p className="text-muted-foreground mb-4">Add your first widget to get started</p>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowAddWidget(true)}
+                          className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          <LayoutGrid className="w-4 h-4 mr-2" />
+                          Add Widget
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add a new widget to this tab</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+            ) : (
+              <>
+                {widgets.map((widget) => (
+                  <SortableWidget
+                    key={widget.id}
+                    widget={widget}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    onArchive={handleArchive}
+                    onToggleWidth={handleToggleWidth}
+                    isMobile={isMobile}
+                  />
+                ))}
+                
+                <div className="col-span-1 flex items-center justify-center">
+                  <Button
+                    onClick={() => setShowAddWidget(true)}
+                    variant="outline"
+                    className="w-full h-24 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+                  >
+                    <Plus className="w-6 h-6 text-primary" />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </SortableContext>
 
-        {/* Advanced Widget Catalog Modal */}
-        {showAdvancedCatalog && (
-          <AdvancedWidgetCatalog
-            onClose={() => setShowAdvancedCatalog(false)}
-            onAddWidget={handleAddWidget}
-            currentTab={tab as any}
-          />
-        )}
-
-        {/* Drag Overlay */}
         <DragOverlay>
           {activeWidget ? (
-            <div className="bg-pip-bg-overlay/80 backdrop-blur-sm border border-pip-border-bright rounded-lg p-3 transform rotate-3 shadow-2xl pip-glow">
-              <div className="flex items-center gap-2 opacity-75">
-                <div className="w-4 h-4 bg-pip-green-primary rounded-full animate-pulse" />
-                <span className="text-sm text-pip-text-bright font-bold">{activeWidget.title}</span>
-              </div>
+            <div className={cn(
+              "bg-background border border-border rounded-lg shadow-lg opacity-80",
+              activeWidget.widgetWidth === 'full' ? 'w-full' : 'w-1/2'
+            )}>
+              <WidgetContainer
+                widgetId={activeWidget.id}
+                onUpdate={handleUpdate}
+                onDelete={() => handleDelete(activeWidget.id)}
+                onArchive={() => handleArchive(activeWidget.id)}
+                onToggleWidth={() => handleToggleWidth(activeWidget)}
+                isMobile={isMobile}
+              >
+                <WidgetRenderer widget={activeWidget} />
+              </WidgetContainer>
             </div>
           ) : null}
         </DragOverlay>
-      </div>
-    </DndContext>
-  );
+      </DndContext>
 
-  // Mobile view
-  if (isMobile) {
-    return (
-      <div className={cn("p-4", className)}>
-        {gridContent}
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("p-4", className)}>
-      {gridContent}
+      {showAddWidget && (
+        <AdvancedWidgetCatalog
+          onClose={() => setShowAddWidget(false)}
+          onAddWidget={handleAddWidget}
+          currentTab={tab}
+        />
+      )}
     </div>
   );
 };
