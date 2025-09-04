@@ -63,6 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [attemptCount, setAttemptCount] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState<number | null>(null);
+  
+  // Use toast hook at top level as required by React
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
