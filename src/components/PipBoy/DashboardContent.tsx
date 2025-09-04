@@ -86,7 +86,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
   return (
     <main className={`dashboard-content flex-1 p-6 ${className || ''}`}>
       {/* Content Header */}
-      <div className="flex justify-between items-center mb-6 pb-4 border-b border-pip-border">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-pip-border">
         <div className="flex items-baseline gap-4">
           <h2 className="text-3xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
             {activeTab}
