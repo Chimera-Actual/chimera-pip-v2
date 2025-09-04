@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
-import { reportError } from '@/lib/errorReporting';
+import { reportError, reportWarning } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
 import { useIntelligentSync } from './useIntelligentSync';
 
@@ -129,7 +129,11 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
         let parsedSchema: WidgetSettingsSchema<T>;
         
         if (schemaError || !schemaData) {
-        console.warn('Schema load error, using fallback:', schemaError);
+        reportWarning('Schema load error, using fallback', {
+          component: 'useWidgetSettings',
+          widgetType,
+          error: schemaError
+        });
           // Fallback schema for common widget types
           const fallbackSchemas = getFallbackSchema<T>(widgetType);
           parsedSchema = fallbackSchemas;
@@ -186,7 +190,11 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
             });
         }
       } catch (error) {
-        console.error('Failed to load widget settings:', error);
+        reportError('Failed to load widget settings', {
+          component: 'useWidgetSettings', 
+          widgetId,
+          widgetType
+        }, error);
         reportError(
           'Widget settings load failed',
           {
@@ -297,7 +305,11 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
       setIsDirty(false);
       return true;
     } catch (error) {
-        console.error('Failed to save settings:', error);
+        reportError('Failed to save widget settings', {
+          component: 'useWidgetSettings',
+          widgetId,
+          widgetType
+        }, error);
       reportError(
         'Widget settings save failed',
         {
