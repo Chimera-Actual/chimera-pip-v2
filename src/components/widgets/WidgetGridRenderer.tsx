@@ -32,8 +32,8 @@ export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
           onToggleCollapse={() => onToggleCollapse(widget.id)}
           onSettingsChange={(settings) => onSettingsChange(widget.id, settings)}
           onDelete={onDelete ? () => onDelete(widget.id) : undefined}
-          onMove={onMove ? (position) => onMove(widget.id, position) : undefined}
-          onResize={onResize ? (size) => onResize(widget.id, size) : undefined}
+          onMove={onMove ? () => onMove(widget.id, { x: 0, y: 0 }) : undefined}
+          onResize={onResize ? () => onResize(widget.id, { width: 300, height: 200 }) : undefined}
         >
           <WidgetRenderer widget={widget} />
         </WidgetContainer>

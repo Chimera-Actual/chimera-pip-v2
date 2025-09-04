@@ -857,6 +857,42 @@
   }
 }
 
+/* Custom scrollbars - Enhanced Pip-Boy Theme */
+.pip-scrollbar::-webkit-scrollbar,
+.widget-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.pip-scrollbar::-webkit-scrollbar-track,
+.widget-content::-webkit-scrollbar-track {
+  background: rgba(0, 255, 0, 0.05);
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 2px;
+}
+
+.pip-scrollbar::-webkit-scrollbar-thumb,
+.widget-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 0, 0.6);
+  border: 1px solid rgba(0, 255, 0, 0.8);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.pip-scrollbar::-webkit-scrollbar-thumb:hover,
+.widget-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+/* Firefox scrollbar */
+.pip-scrollbar,
+.widget-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 0, 0.6) rgba(0, 255, 0, 0.1);
+}
+
 /* High Contrast Mode Support */
 @media (prefers-contrast: high) {
   :root {

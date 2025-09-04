@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ChevronDown, Settings, Trash2, Grip } from 'lucide-react';
+import { ChevronDown, Settings, Trash2, Grip, ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
@@ -12,8 +12,8 @@ interface WidgetContainerProps {
   onToggleCollapse: () => void;
   onSettingsChange?: (settings: any) => void;
   onDelete?: () => void;
-  onMove?: (position: { x: number; y: number }) => void;
-  onResize?: (size: { width: number; height: number }) => void;
+  onMove?: () => void;
+  onResize?: () => void;
   className?: string;
   children: React.ReactNode;
   isLoading?: boolean;
@@ -43,7 +43,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
     <div 
       ref={containerRef}
       className={cn(
-        'widget-container pip-terminal pip-glow border-2 border-pip-border-bright/30 backdrop-blur-sm transition-all duration-200',
+        'widget-container pip-terminal pip-glow border-2 border-pip-border-bright/30 backdrop-blur-sm transition-all duration-200 relative',
         collapsed ? 'h-12' : 'min-h-[200px]',
         isResizing && 'select-none',
         isLoading && 'opacity-60',
@@ -80,11 +80,24 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         </div>
         
         <div className="widget-controls flex items-center gap-1">
+          {onResize && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+              onClick={onResize}
+              aria-label="Resize widget"
+            >
+              <ArrowLeftRight className="h-4 w-4 text-pip-green-primary" />
+            </Button>
+          )}
+          
           {onMove && (
             <Button
               variant="ghost"
               size="sm"
               className="p-1 h-auto hover:bg-pip-green-primary/20 transition-colors opacity-60 hover:opacity-100"
+              onClick={onMove}
               aria-label="Move widget"
             >
               <Grip className="h-4 w-4 text-pip-green-primary" />
@@ -119,8 +132,8 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
 
       {/* Widget Content */}
       <div className={cn(
-        'widget-content transition-all duration-200 overflow-hidden',
-        collapsed ? 'h-0 p-0' : 'p-4 h-auto'
+        'widget-content transition-all duration-200 overflow-hidden pip-scrollbar',
+        collapsed ? 'h-0 p-0' : 'p-4 h-auto max-h-96 overflow-y-auto'
       )}>
         {!collapsed && (
           <>
@@ -133,41 +146,6 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
           </>
         )}
       </div>
-
-      {/* Resize Handles */}
-      {!collapsed && onResize && (
-        <>
-          {/* Right resize handle */}
-          <div 
-            className="resize-handle resize-handle-right absolute right-0 top-12 bottom-0 w-2 cursor-e-resize opacity-0 hover:opacity-100 transition-opacity bg-pip-green-primary/20 hover:bg-pip-green-primary/40"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setIsResizing(true);
-              // Resize logic would go here
-            }}
-          />
-          
-          {/* Bottom resize handle */}
-          <div 
-            className="resize-handle resize-handle-bottom absolute bottom-0 left-0 right-0 h-2 cursor-s-resize opacity-0 hover:opacity-100 transition-opacity bg-pip-green-primary/20 hover:bg-pip-green-primary/40"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setIsResizing(true);
-              // Resize logic would go here
-            }}
-          />
-          
-          {/* Corner resize handle */}
-          <div 
-            className="resize-handle resize-handle-corner absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity bg-pip-green-primary/40 hover:bg-pip-green-primary/60"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setIsResizing(true);
-              // Resize logic would go here
-            }}
-          />
-        </>
-      )}
 
       {/* Widget Settings Modal */}
       <WidgetSettingsModal
