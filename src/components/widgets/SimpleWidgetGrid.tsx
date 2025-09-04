@@ -10,7 +10,7 @@ import { Plus, Move, Settings, X, ChevronUp, ChevronDown, ArrowLeftRight, ArrowR
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
 
-interface SimpleWidgetGridProps {
+export interface SimpleWidgetGridProps {
   tab: string;
   className?: string;
 }
