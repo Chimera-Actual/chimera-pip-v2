@@ -129,6 +129,26 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     }
   }, [user?.id]);
 
+  // Helper function to get default widget icon
+  const getDefaultWidgetIcon = useCallback((widgetType: WidgetType): string => {
+    const iconMap: Record<WidgetType, string> = {
+      'character-profile': 'folder',
+      'special-stats': 'bar-chart-3',
+      'system-monitor': 'monitor',
+      'weather-station': 'cloud',
+      'achievement-gallery': 'trophy',
+      'file-explorer': 'folder',
+      'secure-vault': 'shield',
+      'news-terminal': 'file-text',
+      'audio-player': 'music',
+      'calendar-mission': 'calendar',
+      'ai-oracle': 'message-circle',
+      'cryptocurrency': 'dollar-sign',
+      'terminal': 'terminal'
+    };
+    return iconMap[widgetType] || 'folder';
+  }, []);
+
   // Add a new widget
   const addWidget = useCallback(async (type: WidgetType, tabAssignment?: TabAssignment): Promise<BaseWidget | null> => {
     if (!user?.id) {
@@ -157,6 +177,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
           tab_assignment: widget.tabAssignment,
           widget_config: {
             title: widget.title,
+            customIcon: getDefaultWidgetIcon(widget.type),
             settings: widget.settings
           } as any,
           order_position: widget.order,
@@ -197,7 +218,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       });
       return null;
     }
-  }, [user?.id, widgets]);
+  }, [user?.id, widgets, getDefaultWidgetIcon]);
 
   // Remove a widget
   const removeWidget = useCallback(async (widgetId: string): Promise<void> => {

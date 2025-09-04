@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
+import { IconPicker } from './IconPicker';
 import { Settings, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
+import { useWidgets } from '@/contexts/WidgetContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { webhookService } from '@/lib/webhookService';
 import { AiOracleSettingsModal } from './AiOracleSettingsModal';
@@ -411,6 +415,30 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     );
   }
 
+  // Widget context for updating widget instance properties
+  const { updateWidget, widgets } = useWidgets();
+  const currentWidget = widgets.find(w => w.id === widgetId);
+
+  // Local state for widget instance properties
+  const [instanceTitle, setInstanceTitle] = useState(widgetTitle);
+  const [instanceIcon, setInstanceIcon] = useState(currentWidget?.customIcon || '');
+  const [instanceSettingsDirty, setInstanceSettingsDirty] = useState(false);
+
+  // Update local state when widget changes
+  useEffect(() => {
+    if (currentWidget) {
+      setInstanceTitle(currentWidget.title);
+      setInstanceIcon(currentWidget.customIcon || '');
+    }
+  }, [currentWidget]);
+
+  // Check if instance settings are dirty
+  useEffect(() => {
+    const titleChanged = instanceTitle !== (currentWidget?.title || widgetTitle);
+    const iconChanged = instanceIcon !== (currentWidget?.customIcon || '');
+    setInstanceSettingsDirty(titleChanged || iconChanged);
+  }, [instanceTitle, instanceIcon, currentWidget, widgetTitle]);
+
   const {
     settings,
     settingsOverrides,
@@ -426,19 +454,38 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     importSettings
   } = useWidgetSettings<T>(widgetId, widgetType);
 
-  const [activeGroup, setActiveGroup] = useState<string>('general');
+  const [activeGroup, setActiveGroup] = useState<string>('instance');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
 
   const handleSave = async () => {
-    if (await saveSettings()) {
-      onSettingsChange?.(settings);
-      onClose();
+    try {
+      // Save widget-specific settings
+      const settingsSaved = await saveSettings();
+      
+      // Save instance settings if they're dirty
+      if (instanceSettingsDirty && currentWidget) {
+        await updateWidget(widgetId, {
+          title: instanceTitle,
+          customIcon: instanceIcon || undefined
+        });
+      }
+
+      if (settingsSaved) {
+        onSettingsChange?.(settings);
+        onClose();
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error);
     }
   };
 
   const handleReset = async () => {
     await resetToDefaults();
+    if (currentWidget) {
+      setInstanceTitle(currentWidget.title);
+      setInstanceIcon(currentWidget.customIcon || '');
+    }
   };
 
   const handleTestConnection = async (fieldKey: string, endpoint: string) => {
@@ -466,21 +513,23 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
     {} as Record<string, Array<[string, any]>>
   ) : {};
 
-  const availableGroups = Object.keys(groupedSettings);
+  const availableGroups = ['instance', ...Object.keys(groupedSettings)];
   const filteredGroups = showAdvanced 
     ? availableGroups 
     : availableGroups.filter(g => g !== 'advanced');
+
+  const isSettingsDirty = isDirty || instanceSettingsDirty;
 
   return (
     <BaseSettingsModal
       isOpen={isOpen}
       onClose={onClose}
       title={`${widgetTitle} SETTINGS`}
-      description="Configure widget behavior and appearance"
+      description="Configure widget instance and behavior settings"
       size="large"
       onSave={handleSave}
       onReset={handleReset}
-      isDirty={isDirty}
+      isDirty={isSettingsDirty}
       isLoading={isLoading}
     >
       {isLoading ? (
@@ -525,7 +574,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
                   )}
                   onClick={() => setActiveGroup(groupId)}
                 >
-                  {groupId}
+                  {groupId === 'instance' ? 'WIDGET' : groupId}
                 </button>
               ))}
             </div>
@@ -533,7 +582,46 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
           {/* Settings Content */}
           <div className="flex-1 overflow-y-auto">
-            {filteredGroups.map(groupId => (
+            {/* Widget Instance Settings */}
+            <div className={cn(
+              "space-y-6",
+              activeGroup === 'instance' ? "block" : "hidden"
+            )}>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-semibold text-primary uppercase tracking-wide">
+                    Widget Name
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Customize the display name for this widget instance
+                  </p>
+                  <Input
+                    type="text"
+                    value={instanceTitle}
+                    onChange={(e) => setInstanceTitle(e.target.value)}
+                    placeholder="Enter widget name..."
+                    className="bg-pip-bg-secondary/50 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-text"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-semibold text-primary uppercase tracking-wide">
+                    Widget Icon
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Choose an icon to represent this widget
+                  </p>
+                  <IconPicker
+                    selectedIcon={instanceIcon}
+                    onIconSelect={setInstanceIcon}
+                    triggerClassName="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Widget-Specific Settings */}
+            {filteredGroups.filter(g => g !== 'instance').map(groupId => (
               <div 
                 key={groupId} 
                 className={cn(
@@ -558,7 +646,7 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
           {/* Status indicators */}
           <div className="flex items-center gap-4 text-xs mt-4 pt-4 border-t border-pip-border/30">
-            {isDirty && (
+            {isSettingsDirty && (
               <div className="flex items-center gap-1 text-amber-400">
                 <AlertCircle className="w-4 h-4" />
                 <span className="uppercase tracking-wide">Unsaved changes</span>

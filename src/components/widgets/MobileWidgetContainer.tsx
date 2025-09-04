@@ -1,5 +1,29 @@
-import React, { useState } from 'react';
-import { MoreVertical, Settings, X, Move, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { 
+  MoreVertical, 
+  Settings, 
+  X, 
+  ChevronUp, 
+  ChevronDown,
+  Edit3,
+  Check,
+  Move,
+  ArrowLeftRight,
+  Folder,
+  BarChart3,
+  Monitor,
+  Cloud,
+  Trophy,
+  Shield,
+  FileText,
+  Music,
+  Calendar,
+  MessageCircle,
+  DollarSign,
+  Terminal as TerminalIcon
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useGestureHandler } from '@/hooks/useGestureHandler';
 import { WidgetSettingsModal } from './WidgetSettingsModal';
 import { cn } from '@/lib/utils';
