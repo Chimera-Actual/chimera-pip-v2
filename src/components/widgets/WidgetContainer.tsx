@@ -59,7 +59,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       ref={containerRef}
       className={cn(
         'widget-container pip-terminal pip-glow border-2 border-pip-border-bright/30 backdrop-blur-sm transition-all duration-200 relative',
-        collapsed ? 'h-12' : 'min-h-[200px]',
+        collapsed ? 'h-[50px]' : 'min-h-[200px]',
         isLoading && 'opacity-60',
         error && 'border-destructive/50',
         className
