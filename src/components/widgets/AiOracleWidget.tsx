@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget, AiOracleSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
-import { WidgetContainer } from './WidgetContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,7 +77,7 @@ const personalities: Personality[] = [
 ];
 
 export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) => {
-  const { settings, collapsed, setCollapsed, isLoading } = useWidgetState(widget.id, widget.settings);
+  const { settings, isLoading } = useWidgetState(widget.id, widget.settings);
   const aiSettings = settings as AiOracleSettings;
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -221,173 +220,162 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
   };
 
   return (
-    <WidgetContainer
-      title="AI Oracle"
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      className="pip-widget"
-      widgetId={widget.id}
-      widgetType={widget.type}
-    >
-      {!collapsed && (
-        <div className="space-y-4">
-          {/* Header with Personality Info */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
-                <Brain className="h-4 w-4" />
-              </div>
-              <div>
-                <div className="text-sm font-pip-mono font-bold">{currentPersonality.name}</div>
-                <div className="text-xs text-pip-text-muted font-pip-mono">
-                  {currentPersonality.description}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <Settings className="h-3 w-3" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={clearHistory}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
+    <div className="space-y-4">
+      {/* Header with Personality Info */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className={`p-2 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
+            <Brain className="h-4 w-4" />
           </div>
-
-          {/* Settings Panel */}
-          {showSettings && (
-            <div className="space-y-3 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/20">
-              <h4 className="text-sm font-pip-mono font-semibold mb-3">AI Personality</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {personalities.map(personality => (
-                  <Button
-                    key={personality.id}
-                    size="sm"
-                    variant={currentPersonality.id === personality.id ? "default" : "outline"}
-                    className="justify-start font-pip-mono"
-                    onClick={() => switchPersonality(personality)}
-                  >
-                    <div className={personality.color}>
-                      <Brain className="h-3 w-3 mr-1" />
-                    </div>
-                    {personality.name}
-                  </Button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-xs font-pip-mono">
-                  Context: {aiSettings?.contextAware ? 'ON' : 'OFF'}
-                </Badge>
-                <Badge variant="outline" className="text-xs font-pip-mono">
-                  History: {aiSettings?.saveHistory ? 'ON' : 'OFF'}
-                </Badge>
-              </div>
-            </div>
-          )}
-
-          {/* Chat Messages */}
-          <ScrollArea className="h-48 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/10">
-            {messages.length === 0 ? (
-              <div className="text-center text-pip-text-muted font-pip-mono py-8">
-                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Start a conversation with your AI Oracle</p>
-                <p className="text-xs mt-1">Ask anything - {currentPersonality.name} is here to help</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {messages.map(message => (
-                  <div
-                    key={message.id}
-                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`flex gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`p-1 rounded-full ${message.role === 'user' ? 'bg-pip-accent-blue' : `bg-pip-bg-secondary ${currentPersonality.color}`}`}>
-                        {message.role === 'user' ? 
-                          <User className="h-3 w-3 text-white" /> : 
-                          <Bot className="h-3 w-3" />
-                        }
-                      </div>
-                      <div className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-pip-accent-blue text-white' : 'bg-pip-bg-secondary'}`}>
-                        <p className="text-xs font-pip-mono whitespace-pre-wrap">
-                          {message.content}
-                        </p>
-                        <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-white' : 'text-pip-text-muted'}`}>
-                          {message.timestamp.toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {isThinking && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="flex gap-2 max-w-[80%]">
-                      <div className={`p-1 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
-                        <Bot className="h-3 w-3" />
-                      </div>
-                      <div className="p-3 rounded-lg bg-pip-bg-secondary">
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-3 w-3 animate-pulse text-pip-accent-amber" />
-                          <p className="text-xs font-pip-mono text-pip-text-muted">
-                            {currentPersonality.name} is thinking...
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </ScrollArea>
-
-          {/* Input Area */}
-          <div className="flex gap-2">
-            <Input
-              placeholder={`Ask ${currentPersonality.name} anything...`}
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !isThinking && sendMessage()}
-              className="font-pip-mono"
-              disabled={isThinking}
-            />
-            <Button 
-              size="sm" 
-              onClick={sendMessage}
-              disabled={!inputMessage.trim() || isThinking}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Stats Footer */}
-          <div className="flex justify-between items-center text-xs text-pip-text-muted font-pip-mono">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <History className="h-3 w-3" />
-                <span>{messages.length} messages</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Brain className="h-3 w-3" />
-                <span>{currentPersonality.name}</span>
-              </div>
-            </div>
-            <div className="text-pip-accent-amber">
-              {aiSettings?.responseLength || 'medium'} responses
+          <div>
+            <div className="text-sm font-pip-mono font-bold">{currentPersonality.name}</div>
+            <div className="text-xs text-pip-text-muted font-pip-mono">
+              {currentPersonality.description}
             </div>
           </div>
         </div>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            <Settings className="h-3 w-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            onClick={clearHistory}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="space-y-3 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/20">
+          <h4 className="text-sm font-pip-mono font-semibold mb-3">AI Personality</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {personalities.map(personality => (
+              <Button
+                key={personality.id}
+                size="sm"
+                variant={currentPersonality.id === personality.id ? "default" : "outline"}
+                className="justify-start font-pip-mono"
+                onClick={() => switchPersonality(personality)}
+              >
+                <div className={personality.color}>
+                  <Brain className="h-3 w-3 mr-1" />
+                </div>
+                {personality.name}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="text-xs font-pip-mono">
+              Context: {aiSettings?.contextAware ? 'ON' : 'OFF'}
+            </Badge>
+            <Badge variant="outline" className="text-xs font-pip-mono">
+              History: {aiSettings?.saveHistory ? 'ON' : 'OFF'}
+            </Badge>
+          </div>
+        </div>
       )}
-    </WidgetContainer>
+
+      {/* Chat Messages */}
+      <ScrollArea className="h-48 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/10">
+        {messages.length === 0 ? (
+          <div className="text-center text-pip-text-muted font-pip-mono py-8">
+            <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>Start a conversation with your AI Oracle</p>
+            <p className="text-xs mt-1">Ask anything - {currentPersonality.name} is here to help</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {messages.map(message => (
+              <div
+                key={message.id}
+                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`p-1 rounded-full ${message.role === 'user' ? 'bg-pip-accent-blue' : `bg-pip-bg-secondary ${currentPersonality.color}`}`}>
+                    {message.role === 'user' ? 
+                      <User className="h-3 w-3 text-white" /> : 
+                      <Bot className="h-3 w-3" />
+                    }
+                  </div>
+                  <div className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-pip-accent-blue text-white' : 'bg-pip-bg-secondary'}`}>
+                    <p className="text-xs font-pip-mono whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-white' : 'text-pip-text-muted'}`}>
+                      {message.timestamp.toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {isThinking && (
+              <div className="flex gap-3 justify-start">
+                <div className="flex gap-2 max-w-[80%]">
+                  <div className={`p-1 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
+                    <Bot className="h-3 w-3" />
+                  </div>
+                  <div className="p-3 rounded-lg bg-pip-bg-secondary">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-3 w-3 animate-pulse text-pip-accent-amber" />
+                      <p className="text-xs font-pip-mono text-pip-text-muted">
+                        {currentPersonality.name} is thinking...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Input Area */}
+      <div className="flex gap-2">
+        <Input
+          placeholder={`Ask ${currentPersonality.name} anything...`}
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && !isThinking && sendMessage()}
+          className="font-pip-mono"
+          disabled={isThinking}
+        />
+        <Button 
+          size="sm" 
+          onClick={sendMessage}
+          disabled={!inputMessage.trim() || isThinking}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Stats Footer */}
+      <div className="flex justify-between items-center text-xs text-pip-text-muted font-pip-mono">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <History className="h-3 w-3" />
+            <span>{messages.length} messages</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Brain className="h-3 w-3" />
+            <span>{currentPersonality.name}</span>
+          </div>
+        </div>
+        <div className="text-pip-accent-amber">
+          {aiSettings?.responseLength || 'medium'} responses
+        </div>
+      </div>
+    </div>
   );
 });
 

@@ -1,6 +1,5 @@
 import { memo, useState, useEffect } from 'react';
 import { BaseWidget, NewsTerminalSettings } from '@/types/widgets';
-import { WidgetContainer } from './WidgetContainer';
 import { useWidgetState } from '@/hooks/useWidgetState';
 
 import { Badge } from '@/components/ui/badge';
@@ -76,7 +75,7 @@ const formatTimeAgo = (timestamp: Date) => {
 };
 
 export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ widget }) => {
-  const { settings, setSettings, collapsed, setCollapsed, isLoading: hookLoading, error: hookError } = useWidgetState(
+  const { settings, setSettings, isLoading: hookLoading, error: hookError } = useWidgetState(
     widget.id,
     widget.settings as NewsTerminalSettings
   );
@@ -129,85 +128,61 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
   }, [settings?.autoRefresh, settings?.refreshInterval]);
 
   if (isLoading && newsItems.length === 0) {
-    return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onSettingsChange={() => {}}
-        onDelete={() => {}}
-        isLoading={true}
-      >
-        <div />
-      </WidgetContainer>
-    );
+    return <div className="flex justify-center items-center h-32 text-pip-text-muted">Loading news...</div>;
   }
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={() => {}}
-      onDelete={() => {}}
-      error={error || hookError}
-    >
-      <div className="space-y-3">
-        <ScrollArea className="h-64 custom-scrollbar">
-          <div className="space-y-3">
-            {newsItems.map((item) => (
-              <div key={item.id} className="pb-3 mb-3 border-b border-pip-border/30 last:border-b-0">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    {getPriorityIcon(item.priority)}
-                    <Badge 
-                      variant="outline" 
-                      className={`${getCategoryColor(item.category)} text-xs font-pip-mono`}
-                    >
-                      {item.category.toUpperCase()}
-                    </Badge>
+    <div className="space-y-3">
+      <ScrollArea className="h-64 custom-scrollbar">
+        <div className="space-y-3">
+          {newsItems.map((item) => (
+            <div key={item.id} className="pb-3 mb-3 border-b border-pip-border/30 last:border-b-0">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  {getPriorityIcon(item.priority)}
+                  <Badge 
+                    variant="outline" 
+                    className={`${getCategoryColor(item.category)} text-xs font-pip-mono`}
+                  >
+                    {item.category.toUpperCase()}
+                  </Badge>
+                </div>
+                {settings?.showTimestamps && (
+                  <div className="flex items-center gap-1 text-xs text-pip-text-muted">
+                    <Clock className="h-3 w-3" />
+                    {formatTimeAgo(item.timestamp)}
                   </div>
-                  {settings?.showTimestamps && (
-                    <div className="flex items-center gap-1 text-xs text-pip-text-muted">
-                      <Clock className="h-3 w-3" />
-                      {formatTimeAgo(item.timestamp)}
-                    </div>
-                  )}
-                </div>
-                
-                <h4 className="text-sm font-semibold text-pip-text-bright mb-1 font-pip-mono">
-                  {item.headline}
-                </h4>
-                
-                <p className="text-xs text-pip-text-secondary leading-relaxed mb-2 font-pip-mono">
-                  {item.content}
-                </p>
-                
-                <div className="text-xs text-pip-text-muted font-pip-mono">
-                  SOURCE: {item.source}
-                </div>
+                )}
               </div>
-            ))}
-          </div>
-        </ScrollArea>
-
-        <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
-          <div className="flex items-center gap-4">
-            <span>{newsItems.length} messages</span>
-            {settings?.autoRefresh && (
-              <span className="text-pip-accent animate-pulse">
-                AUTO-REFRESH: {settings.refreshInterval}s
-              </span>
-            )}
-          </div>
-          <span className="animate-pulse">● LIVE</span>
+              
+              <h4 className="text-sm font-semibold text-pip-text-bright mb-1 font-pip-mono">
+                {item.headline}
+              </h4>
+              
+              <p className="text-xs text-pip-text-secondary leading-relaxed mb-2 font-pip-mono">
+                {item.content}
+              </p>
+              
+              <div className="text-xs text-pip-text-muted font-pip-mono">
+                SOURCE: {item.source}
+              </div>
+            </div>
+          ))}
         </div>
+      </ScrollArea>
+
+      <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
+        <div className="flex items-center gap-4">
+          <span>{newsItems.length} messages</span>
+          {settings?.autoRefresh && (
+            <span className="text-pip-accent animate-pulse">
+              AUTO-REFRESH: {settings.refreshInterval}s
+            </span>
+          )}
+        </div>
+        <span className="animate-pulse">● LIVE</span>
       </div>
-    </WidgetContainer>
+    </div>
   );
 });
 
