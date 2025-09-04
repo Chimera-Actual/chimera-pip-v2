@@ -24,13 +24,36 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
   onSettingsClick
 }) => {
   const { settings, isLoading } = useWidgetState(widget.id, widget.settings);
+  const aiSettings = settings as AiOracleSettings;
+  
+  // AI Agents hook
+  const { 
+    agents, 
+    loading: agentsLoading, 
+    getDefaultAgent 
+  } = useAiAgents();
+  
+  // Local state
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
+  const [inputMessage, setInputMessage] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Conversation hook
+  const {
+    conversation,
+    messages,
+    loading,
+    sendMessage,
+    loadConversation,
+    clearConversation
+  } = useAiConversation();
   
   // Simple state update function for now
   const updateSettings = async (newSettings: Partial<AiOracleSettings>) => {
     // This would normally update the widget settings through the widget system
     console.log('Settings update:', newSettings);
   };
-  const aiSettings = settings as AiOracleSettings;
   
   // Initialize selected agent
   useEffect(() => {
