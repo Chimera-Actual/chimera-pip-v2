@@ -92,7 +92,7 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
       </WidgetContainer>
     </div>
   );
-};
+});
 
 export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, className = '' }) => {
   const { 

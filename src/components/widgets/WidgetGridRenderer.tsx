@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
@@ -18,7 +18,7 @@ interface WidgetGridRendererProps {
   onToggleWidth?: (widget: BaseWidget) => void;
 }
 
-export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
+export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = memo(({
   widgets,
   onToggleCollapse,
   onSettingsChange,
@@ -56,4 +56,4 @@ export const WidgetGridRenderer: React.FC<WidgetGridRendererProps> = ({
       ))}
     </div>
   );
-};
+});

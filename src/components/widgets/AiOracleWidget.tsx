@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ interface AiOracleWidgetProps {
   onSettingsClick?: () => void;
 }
 
-export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
+export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({
   widget,
   onSettingsClick
 }) => {
@@ -320,4 +320,4 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
       </CardContent>
     </Card>
   );
-};
+});

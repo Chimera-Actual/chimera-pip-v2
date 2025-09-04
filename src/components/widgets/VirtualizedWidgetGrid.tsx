@@ -1,7 +1,7 @@
-import React, { useMemo, useCallback, useState, useRef, useLayoutEffect } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useLayoutEffect, memo } from 'react';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
-import { BaseWidget } from '@/types/widgets';
+import { BaseWidget, WidgetType, TabAssignment } from '@/types/widgets';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,7 @@ interface WidgetSettingsUpdate {
 }
 
 // Simple virtualization without external dependencies
-export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = ({
+export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = memo(({
   widgets,
   onUpdate,
   onDelete,
@@ -158,7 +158,7 @@ export const VirtualizedWidgetGrid: React.FC<VirtualizedWidgetGridProps> = ({
       </div>
     </div>
   );
-};
+});
 
 // Hook to determine when to use virtualization
 export const useVirtualization = (itemCount: number, threshold: number = 15) => {
