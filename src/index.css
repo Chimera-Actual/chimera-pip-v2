@@ -337,6 +337,7 @@
   contain: layout style;
   transform-style: preserve-3d;
   gap: 1.5rem !important; /* Ensure 24px spacing between widgets */
+  padding: 0 !important; /* Remove any inherited padding to prevent gap conflicts */
 }
 
 .widget-drag-container {
@@ -345,8 +346,6 @@
   backface-visibility: hidden;
   margin: 0 !important; /* Remove margins that conflict with grid gap */
 }
-}
-
 .widget-drag-overlay {
   contain: layout style paint;
   transform-origin: center;

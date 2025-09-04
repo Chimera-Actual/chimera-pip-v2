@@ -83,7 +83,7 @@ export const AnimatedWidgetGrid: React.FC<AnimatedWidgetGridProps> = memo(({
   return (
     <div 
       className={cn(
-        'grid gap-6 auto-rows-max p-6',
+        'grid auto-rows-max p-4',
         'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
         'widget-grid-stable',
         className
