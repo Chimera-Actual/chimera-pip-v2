@@ -108,8 +108,9 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
 
   // Track memory usage on widget count changes
   const allWidgets = getWidgetsByTab(tab as any);
+  
   React.useEffect(() => {
-    if (allWidgets.length > 10) { // Monitor memory when many widgets
+    if (allWidgets.length > 10) {
       trackMemoryUsage();
     }
   }, [allWidgets.length, trackMemoryUsage]);
@@ -118,8 +119,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
   const [activeId, setActiveId] = useState<string | null>(null);
   
   const isMobile = useIsMobile();
-  
-  // Get widgets for current tab
   const widgets = allWidgets;
 
   const handleAddWidget = useCallback((widgetType: WidgetType) => {
@@ -144,6 +143,72 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     updateWidget(widget.id, { widgetWidth: newWidth });
   }, [updateWidget]);
 
+  // Use simple lazy loading for large collections (>15 widgets)
+  if (widgets.length > 15) {
+    return (
+      <div className={cn('flex flex-col space-y-4', className)}>
+        <div className="mb-2 text-xs text-pip-text-muted font-pip-mono">
+          Rendering {widgets.length} widgets with performance optimization
+        </div>
+        
+        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2')} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          {widgets.map((widget, index) => {
+            // Lazy render widgets not in viewport
+            const isVisible = index < 20 || (index >= 20 && index % 5 === 0); // Show first 20, then every 5th
+            
+            if (!isVisible) {
+              return (
+                <div
+                  key={widget.id}
+                  className={cn(
+                    'bg-pip-bg-secondary/30 border border-pip-border/20 rounded-lg flex items-center justify-center',
+                    widget.widgetWidth === 'full' && !isMobile ? 'col-span-2' : 'col-span-1'
+                  )}
+                  style={{ minHeight: '200px' }}
+                >
+                  <span className="text-xs text-pip-text-muted font-pip-mono">
+                    Widget #{index + 1} (Optimized Loading)
+                  </span>
+                </div>
+              );
+            }
+            
+            return (
+              <SortableWidget
+                key={widget.id}
+                widget={widget}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onArchive={handleArchive}
+                onToggleWidth={handleToggleWidth}
+                isMobile={isMobile}
+              />
+            );
+          })}
+          
+          <div className="col-span-1 flex items-center justify-center">
+            <Button
+              onClick={() => setShowAddWidget(true)}
+              variant="outline"
+              className="w-full h-24 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+            >
+              <Plus className="w-6 h-6 text-primary" />
+            </Button>
+          </div>
+        </div>
+        
+        {showAddWidget && (
+          <AdvancedWidgetCatalog
+            onClose={() => setShowAddWidget(false)}
+            onAddWidget={handleAddWidget}
+            currentTab={tab}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Standard grid for small collections with drag & drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
