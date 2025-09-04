@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { reportError } from '@/lib/errorReporting';
 
 export interface UserPresence {
   userId: string;
@@ -28,7 +29,10 @@ export function usePresence() {
         }
       });
     } catch (error) {
-      console.error('Error updating presence:', error);
+      reportError('Error updating presence', {
+        component: 'usePresence',
+        action: 'updatePresence'
+      }, error);
     }
   }, [user?.id]);
 
@@ -59,7 +63,10 @@ export function usePresence() {
         setPresenceList(presence);
         setOnlineCount(presence.length);
       } catch (error) {
-        console.error('Error loading presence:', error);
+        reportError('Error loading presence', {
+          component: 'usePresence',
+          action: 'loadPresence'  
+        }, error);
       } finally {
         setIsLoading(false);
       }

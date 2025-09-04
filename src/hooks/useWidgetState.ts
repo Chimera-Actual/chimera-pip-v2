@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
-import { reportError } from '@/lib/errorReporting';
+import { reportError, reportWarning } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
 
 interface WidgetStateHookResult<T> {
@@ -48,7 +48,8 @@ export function useWidgetState<T extends Record<string, any>>(
           }
         };
         
-        console.log('Migrated legacy AI Oracle settings:', { from: settings, to: migratedSettings });
+        // Migration applied successfully
+        // Legacy AI Oracle settings have been migrated
         return migratedSettings as unknown as T;
       }
     }
@@ -63,7 +64,10 @@ export function useWidgetState<T extends Record<string, any>>(
         const parsedSettings = JSON.parse(saved);
         return migrateAiOracleSettings(parsedSettings);
       } catch (error) {
-        console.warn('Failed to parse saved widget settings:', error);
+      reportError('Failed to parse saved widget settings', { 
+        widgetId,
+        component: 'useWidgetState' 
+      }, error);
       }
     }
     return defaultSettings;

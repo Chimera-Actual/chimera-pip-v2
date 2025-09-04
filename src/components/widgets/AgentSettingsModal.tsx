@@ -64,9 +64,6 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
   }, [editingAgent, loadAgent, resetForm]);
 
   const handleSubmit = async () => {
-    console.log('handleSubmit called with formData:', formData);
-    console.log('isEditMode:', isEditMode, 'editingAgent:', editingAgent);
-    
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -74,7 +71,6 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
       let success = false;
 
       if (isEditMode && editingAgent) {
-        console.log('Updating agent with ID:', editingAgent.id);
         success = await updateAgent(editingAgent.id, {
           name: formData.name,
           description: formData.description,
@@ -86,7 +82,6 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           isShared: formData.isShared
         });
       } else {
-        console.log('Creating new agent');
         const newAgent = await createAgent({
           name: formData.name,
           description: formData.description,
