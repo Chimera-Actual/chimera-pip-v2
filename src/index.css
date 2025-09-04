@@ -202,6 +202,7 @@
   --chart-2: 0 0% 80%;
   --chart-3: 0 0% 60%;
 }
+}
 
 @layer base {
   * {
@@ -1153,4 +1154,3 @@
 }
 
 /* Consolidated scrollbar styling - uses pip-border for consistency */
-}
