@@ -1,3 +1,7 @@
+// DEPRECATED: This edge function is deprecated in favor of N8N webhooks
+// Use webhookService.callNewsAggregator() instead of calling this function directly
+// This function is kept temporarily for rollback compatibility
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 

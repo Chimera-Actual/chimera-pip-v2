@@ -18,8 +18,9 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { webhookService } from '@/lib/webhookService';
 import { reportError } from '@/lib/errorReporting';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 interface AiOracleWidgetProps {
   widget: BaseWidget;
@@ -126,28 +127,26 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
     setIsThinking(true);
 
     try {
-      // Call real AI API
+      // Call N8N webhook for AI chat
       const conversationHistory = messages.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
 
-      const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: {
-          message: userMessage.content,
-          personality: currentPersonality.id,
-          conversationHistory
-        }
+      const response = await webhookService.callAiChat({
+        message: userMessage.content,
+        personality: currentPersonality.id,
+        conversationHistory
       });
 
-      if (error) {
-        throw new Error('Failed to get AI response');
+      if (!response.success) {
+        throw new Error(response.error || ERROR_MESSAGES.WEBHOOK_FAILED);
       }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response,
+        content: response.data?.response || 'No response received',
         timestamp: new Date(),
         personality: currentPersonality.id,
       };
@@ -155,7 +154,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
         setMessages(prev => [...prev, assistantMessage]);
       } catch (error) {
         toast.error('Failed to get AI response');
-        reportError('AI response error');
+        reportError('AI webhook error', { widgetId: widget.id }, error);
       } finally {
       setIsThinking(false);
     }

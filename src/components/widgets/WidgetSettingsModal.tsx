@@ -3,6 +3,7 @@ import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
 import { Settings, AlertCircle, AlertTriangle, Download, Upload, Copy, Eye, EyeOff, Zap } from 'lucide-react';
 import { useWidgetSettings } from '@/hooks/useWidgetSettings';
 import { cn } from '@/lib/utils';
+import { webhookService } from '@/lib/webhookService';
 
 interface WidgetSettingsModalProps<T = any> {
   widgetId: string;
@@ -417,11 +418,12 @@ export const WidgetSettingsModal = <T extends Record<string, any>>({
 
   const handleTestConnection = async (fieldKey: string, endpoint: string) => {
     try {
-      const response = await fetch(endpoint, { method: 'HEAD' });
-      if (response.ok) {
+      // Use webhook service for testing connection instead of direct fetch
+      const response = await webhookService.testConnection(endpoint);
+      if (response.success) {
         alert('Connection successful!');
       } else {
-        alert('Connection failed: ' + response.status);
+        alert('Connection failed: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
       alert('Connection failed: ' + error);

@@ -3,7 +3,9 @@ import { BaseWidget, WeatherStationSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Cloud, Thermometer, Droplets, Zap, Wind } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { webhookService } from '@/lib/webhookService';
+import { reportError } from '@/lib/errorReporting';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 interface WeatherStationWidgetProps {
   widget: BaseWidget;
@@ -24,30 +26,38 @@ interface WeatherData {
   lastUpdated?: Date;
 }
 
-// Fetch real weather data from API
+// Fetch real weather data from N8N webhook
 const fetchWeatherData = async (location: string, units: string = 'imperial'): Promise<WeatherData> => {
-  const { data, error } = await supabase.functions.invoke('weather-api', {
-    body: { location, units }
-  });
+  try {
+    const response = await webhookService.callWeatherApi({
+      location,
+      units
+    });
 
-  if (error) {
-    throw new Error('Failed to fetch weather data');
+    if (!response.success) {
+      throw new Error(response.error || ERROR_MESSAGES.WEBHOOK_FAILED);
+    }
+
+    const data = response.data!;
+
+    return {
+      temperature: data.temperature,
+      humidity: data.humidity,
+      windSpeed: data.windSpeed,
+      condition: data.description,
+      radiation: data.radiation,
+      airQuality: data.airQuality,
+      location: data.location,
+      country: data.country,
+      feelsLike: data.feelsLike,
+      windDirection: data.windDirection,
+      icon: data.icon,
+      lastUpdated: new Date(data.lastUpdated)
+    };
+  } catch (error) {
+    reportError('Weather fetch error', { location, units }, error);
+    throw error;
   }
-
-  return {
-    temperature: data.temperature,
-    humidity: data.humidity,
-    windSpeed: data.windSpeed,
-    condition: data.description,
-    radiation: data.radiation,
-    airQuality: data.airQuality,
-    location: data.location,
-    country: data.country,
-    feelsLike: data.feelsLike,
-    windDirection: data.windDirection,
-    icon: data.icon,
-    lastUpdated: new Date(data.lastUpdated)
-  };
 };
 
 const getRadiationColor = (radiation: string): string => {

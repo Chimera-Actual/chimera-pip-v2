@@ -85,6 +85,18 @@ export const ERROR_MESSAGES = {
   WIDGET_DELETE_FAILED: 'Failed to remove widget',
   NETWORK_ERROR: 'Network connection error',
   PERMISSION_DENIED: 'Permission denied',
+  WEBHOOK_TIMEOUT: 'N8N webhook request timed out',
+  WEBHOOK_FAILED: 'N8N webhook request failed',
+  WEBHOOK_NOT_CONFIGURED: 'N8N webhook not configured',
+} as const;
+
+// Webhook Timeouts (ms)
+export const WEBHOOK_TIMEOUTS = {
+  AI_CHAT: 45000,
+  NEWS_AGGREGATOR: 30000,
+  WEATHER_API: 20000,
+  CRYPTO_API: 15000,
+  DEFAULT: 30000,
 } as const;
 
 // Success Messages  

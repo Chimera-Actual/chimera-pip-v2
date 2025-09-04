@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
+import { BaseWidget, CryptocurrencySettings } from '@/types/widgets';
+import { useWidgetState } from '@/hooks/useWidgetState';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { webhookService } from '@/lib/webhookService';
+import { reportError } from '@/lib/errorReporting';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 interface CryptoData {
   symbol: string;
@@ -9,52 +14,57 @@ interface CryptoData {
   price: number;
   change24h: number;
   marketCap: number;
+  volume24h: number;
+  lastUpdated: string;
 }
 
-export const CryptocurrencyWidget: React.FC = () => {
+interface CryptocurrencyWidgetProps {
+  widget: BaseWidget;
+}
+
+export const CryptocurrencyWidget: React.FC<CryptocurrencyWidgetProps> = memo(({ widget }) => {
+  const { settings } = useWidgetState(widget.id, widget.settings);
+  const cryptoSettings = settings as CryptocurrencySettings;
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { trackWidgetAction } = useAnalytics();
 
-  useEffect(() => {
-    // Simulate crypto data - in real implementation, this would fetch from a crypto API
-    const mockData: CryptoData[] = [
-      {
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        price: 65432.10,
-        change24h: 2.5,
-        marketCap: 1280000000000
-      },
-      {
-        symbol: 'ETH',
-        name: 'Ethereum',
-        price: 3456.78,
-        change24h: -1.2,
-        marketCap: 416000000000
-      },
-      {
-        symbol: 'ATOM',
-        name: 'Cosmos',
-        price: 12.34,
-        change24h: 5.7,
-        marketCap: 4800000000
-      },
-      {
-        symbol: 'CAPS',
-        name: 'Bottle Caps',
-        price: 0.001,
-        change24h: 15.3,
-        marketCap: 100000000
-      }
-    ];
+  const cryptoSymbols = cryptoSettings?.symbols || ['BTC', 'ETH', 'ATOM', 'CAPS'];
+  const currency = cryptoSettings?.currency || 'USD';
 
-    setTimeout(() => {
-      setCryptoData(mockData);
-      setIsLoading(false);
+  const fetchCryptoData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await webhookService.callCryptoApi({
+        symbols: cryptoSymbols,
+        currency: currency.toLowerCase()
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || ERROR_MESSAGES.WEBHOOK_FAILED);
+      }
+
+      setCryptoData(response.data || []);
       trackWidgetAction('cryptocurrency', 'data_loaded');
-    }, 1000);
-  }, [trackWidgetAction]);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch crypto data';
+      setError(errorMessage);
+      reportError('Crypto fetch error', { widgetId: widget.id, symbols: cryptoSymbols }, error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cryptoSymbols, currency, widget.id, trackWidgetAction]);
+
+  useEffect(() => {
+    fetchCryptoData();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchCryptoData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchCryptoData]);
 
   const formatPrice = useCallback((price: number) => {
     if (price < 1) {
@@ -87,6 +97,16 @@ export const CryptocurrencyWidget: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-4 text-center">
+        <DollarSign className="h-8 w-8 text-pip-text-muted mb-2" />
+        <p className="text-sm text-pip-text-muted font-pip-mono mb-2">Crypto data unavailable</p>
+        <p className="text-xs text-pip-text-muted font-pip-mono">{error}</p>
       </div>
     );
   }
@@ -133,4 +153,6 @@ export const CryptocurrencyWidget: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+CryptocurrencyWidget.displayName = 'CryptocurrencyWidget';

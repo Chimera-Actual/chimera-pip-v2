@@ -5,7 +5,9 @@ import { useWidgetState } from '@/hooks/useWidgetState';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Clock, Radio, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { webhookService } from '@/lib/webhookService';
+import { reportError } from '@/lib/errorReporting';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 interface NewsTerminalWidgetProps {
   widget: BaseWidget;
@@ -23,20 +25,26 @@ interface NewsItem {
   imageUrl?: string;
 }
 
-// Fetch real news data from API
+// Fetch real news data from N8N webhook
 const fetchNewsData = async (categories: string[], maxItems: number): Promise<NewsItem[]> => {
-  const { data, error } = await supabase.functions.invoke('news-aggregator', {
-    body: { categories, maxItems, country: 'us' }
-  });
+  try {
+    const response = await webhookService.callNewsAggregator({
+      categories,
+      maxItems
+    });
 
-  if (error) {
-    throw new Error('Failed to fetch news data');
+    if (!response.success) {
+      throw new Error(response.error || ERROR_MESSAGES.WEBHOOK_FAILED);
+    }
+
+    return (response.data || []).map((item: any) => ({
+      ...item,
+      timestamp: new Date(item.timestamp)
+    }));
+  } catch (error) {
+    reportError('News fetch error', { categories, maxItems }, error);
+    throw error;
   }
-
-  return data.news.map((item: any) => ({
-    ...item,
-    timestamp: new Date(item.timestamp)
-  }));
 };
 
 const getCategoryColor = (category: string) => {

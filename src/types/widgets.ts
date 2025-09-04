@@ -110,6 +110,14 @@ export interface AiOracleSettings {
   saveHistory: boolean;
 }
 
+export interface CryptocurrencySettings {
+  symbols: string[];
+  currency: string;
+  refreshInterval: number;
+  showMarketCap: boolean;
+  showVolume: boolean;
+}
+
 export type WidgetSettings = 
   | CharacterProfileSettings
   | SpecialStatsSettings
@@ -118,4 +126,5 @@ export type WidgetSettings =
   | NewsTerminalSettings
   | CalendarMissionSettings
   | AiOracleSettings
+  | CryptocurrencySettings
   | Record<string, any>; // For widgets without specific settings
