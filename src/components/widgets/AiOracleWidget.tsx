@@ -266,93 +266,89 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
 
           {/* Settings Panel */}
           {showSettings && (
-            <Card className="pip-special-stat">
-              <CardContent className="space-y-3 p-4">
-                <h4 className="text-sm font-pip-mono font-semibold mb-3">AI Personality</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {personalities.map(personality => (
-                    <Button
-                      key={personality.id}
-                      size="sm"
-                      variant={currentPersonality.id === personality.id ? "default" : "outline"}
-                      className="justify-start font-pip-mono"
-                      onClick={() => switchPersonality(personality)}
-                    >
-                      <div className={personality.color}>
-                        <Brain className="h-3 w-3 mr-1" />
-                      </div>
-                      {personality.name}
-                    </Button>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Badge variant="outline" className="text-xs font-pip-mono">
-                    Context: {aiSettings?.contextAware ? 'ON' : 'OFF'}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs font-pip-mono">
-                    History: {aiSettings?.saveHistory ? 'ON' : 'OFF'}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-3 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/20">
+              <h4 className="text-sm font-pip-mono font-semibold mb-3">AI Personality</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {personalities.map(personality => (
+                  <Button
+                    key={personality.id}
+                    size="sm"
+                    variant={currentPersonality.id === personality.id ? "default" : "outline"}
+                    className="justify-start font-pip-mono"
+                    onClick={() => switchPersonality(personality)}
+                  >
+                    <div className={personality.color}>
+                      <Brain className="h-3 w-3 mr-1" />
+                    </div>
+                    {personality.name}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="outline" className="text-xs font-pip-mono">
+                  Context: {aiSettings?.contextAware ? 'ON' : 'OFF'}
+                </Badge>
+                <Badge variant="outline" className="text-xs font-pip-mono">
+                  History: {aiSettings?.saveHistory ? 'ON' : 'OFF'}
+                </Badge>
+              </div>
+            </div>
           )}
 
           {/* Chat Messages */}
-          <Card className="pip-special-stat">
-            <ScrollArea className="h-48 p-4">
-              {messages.length === 0 ? (
-                <div className="text-center text-pip-text-muted font-pip-mono py-8">
-                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>Start a conversation with your AI Oracle</p>
-                  <p className="text-xs mt-1">Ask anything - {currentPersonality.name} is here to help</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map(message => (
-                    <div
-                      key={message.id}
-                      className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className={`p-1 rounded-full ${message.role === 'user' ? 'bg-pip-accent-blue' : `bg-pip-bg-secondary ${currentPersonality.color}`}`}>
-                          {message.role === 'user' ? 
-                            <User className="h-3 w-3 text-white" /> : 
-                            <Bot className="h-3 w-3" />
-                          }
-                        </div>
-                        <div className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-pip-accent-blue text-white' : 'bg-pip-bg-secondary'}`}>
-                          <p className="text-xs font-pip-mono whitespace-pre-wrap">
-                            {message.content}
-                          </p>
-                          <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-white' : 'text-pip-text-muted'}`}>
-                            {message.timestamp.toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {isThinking && (
-                    <div className="flex gap-3 justify-start">
-                      <div className="flex gap-2 max-w-[80%]">
-                        <div className={`p-1 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
+          <ScrollArea className="h-48 p-3 border border-pip-border/30 rounded bg-pip-bg-secondary/10">
+            {messages.length === 0 ? (
+              <div className="text-center text-pip-text-muted font-pip-mono py-8">
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>Start a conversation with your AI Oracle</p>
+                <p className="text-xs mt-1">Ask anything - {currentPersonality.name} is here to help</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`flex gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className={`p-1 rounded-full ${message.role === 'user' ? 'bg-pip-accent-blue' : `bg-pip-bg-secondary ${currentPersonality.color}`}`}>
+                        {message.role === 'user' ? 
+                          <User className="h-3 w-3 text-white" /> : 
                           <Bot className="h-3 w-3" />
-                        </div>
-                        <div className="p-3 rounded-lg bg-pip-bg-secondary">
-                          <div className="flex items-center gap-2">
-                            <Zap className="h-3 w-3 animate-pulse text-pip-accent-amber" />
-                            <p className="text-xs font-pip-mono text-pip-text-muted">
-                              {currentPersonality.name} is thinking...
-                            </p>
-                          </div>
+                        }
+                      </div>
+                      <div className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-pip-accent-blue text-white' : 'bg-pip-bg-secondary'}`}>
+                        <p className="text-xs font-pip-mono whitespace-pre-wrap">
+                          {message.content}
+                        </p>
+                        <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-white' : 'text-pip-text-muted'}`}>
+                          {message.timestamp.toLocaleTimeString()}
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-            </ScrollArea>
-          </Card>
+                  </div>
+                ))}
+                
+                {isThinking && (
+                  <div className="flex gap-3 justify-start">
+                    <div className="flex gap-2 max-w-[80%]">
+                      <div className={`p-1 rounded-full bg-pip-bg-secondary ${currentPersonality.color}`}>
+                        <Bot className="h-3 w-3" />
+                      </div>
+                      <div className="p-3 rounded-lg bg-pip-bg-secondary">
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-3 w-3 animate-pulse text-pip-accent-amber" />
+                          <p className="text-xs font-pip-mono text-pip-text-muted">
+                            {currentPersonality.name} is thinking...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </ScrollArea>
 
           {/* Input Area */}
           <div className="flex gap-2">

@@ -160,37 +160,35 @@ export const NewsTerminalWidget: React.FC<NewsTerminalWidgetProps> = memo(({ wid
         <ScrollArea className="h-64 custom-scrollbar">
           <div className="space-y-3">
             {newsItems.map((item) => (
-              <div key={item.id} className="border border-pip-border bg-pip-bg-secondary/50 rounded-lg pip-special-stat">
-                <div className="p-3">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      {getPriorityIcon(item.priority)}
-                      <Badge 
-                        variant="outline" 
-                        className={`${getCategoryColor(item.category)} text-xs font-pip-mono`}
-                      >
-                        {item.category.toUpperCase()}
-                      </Badge>
+              <div key={item.id} className="pb-3 mb-3 border-b border-pip-border/30 last:border-b-0">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    {getPriorityIcon(item.priority)}
+                    <Badge 
+                      variant="outline" 
+                      className={`${getCategoryColor(item.category)} text-xs font-pip-mono`}
+                    >
+                      {item.category.toUpperCase()}
+                    </Badge>
+                  </div>
+                  {settings?.showTimestamps && (
+                    <div className="flex items-center gap-1 text-xs text-pip-text-muted">
+                      <Clock className="h-3 w-3" />
+                      {formatTimeAgo(item.timestamp)}
                     </div>
-                    {settings?.showTimestamps && (
-                      <div className="flex items-center gap-1 text-xs text-pip-text-muted">
-                        <Clock className="h-3 w-3" />
-                        {formatTimeAgo(item.timestamp)}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <h4 className="text-sm font-semibold text-pip-text-bright mb-1 font-pip-mono">
-                    {item.headline}
-                  </h4>
-                  
-                  <p className="text-xs text-pip-text-secondary leading-relaxed mb-2 font-pip-mono">
-                    {item.content}
-                  </p>
-                  
-                  <div className="text-xs text-pip-text-muted font-pip-mono">
-                    SOURCE: {item.source}
-                  </div>
+                  )}
+                </div>
+                
+                <h4 className="text-sm font-semibold text-pip-text-bright mb-1 font-pip-mono">
+                  {item.headline}
+                </h4>
+                
+                <p className="text-xs text-pip-text-secondary leading-relaxed mb-2 font-pip-mono">
+                  {item.content}
+                </p>
+                
+                <div className="text-xs text-pip-text-muted font-pip-mono">
+                  SOURCE: {item.source}
                 </div>
               </div>
             ))}
