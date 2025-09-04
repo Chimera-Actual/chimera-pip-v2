@@ -51,14 +51,22 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
 
   const { tags } = useTagManager();
   const [showFilters, setShowFilters] = useState(false);
+  const [position, setPosition] = useState({ top: '50%' });
   const isMobile = useIsMobile();
 
   const handleAddWidget = useCallback((widgetType: string) => {
     onAddWidget(widgetType as WidgetType);
   }, [onAddWidget]);
 
-  // Keyboard shortcuts
+  // Viewport-aware positioning and keyboard shortcuts
   useEffect(() => {
+    const updatePosition = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      const centeredTop = scrollY + (viewportHeight / 2);
+      setPosition({ top: `${centeredTop}px` });
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -68,8 +76,34 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
       }
     };
 
+    // Set initial position and handle viewport changes
+    updatePosition();
+    document.body.style.overflow = 'hidden';
+
+    // Update position on scroll (debounced)
+    let timeoutId: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updatePosition, 10);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', updatePosition);
+
+    // Focus management
+    const modal = document.querySelector('[role="dialog"]');
+    if (modal instanceof HTMLElement) {
+      modal.focus();
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updatePosition);
+      clearTimeout(timeoutId);
+    };
   }, [onClose, showFilters]);
 
   const categoryColors = {
@@ -81,11 +115,14 @@ export const AdvancedWidgetCatalog: React.FC<AdvancedWidgetCatalogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-pip-bg-overlay/95 backdrop-blur-sm flex items-center justify-center p-2 md:p-4"
+    <div className="fixed inset-0 z-50 bg-pip-bg-overlay/95 backdrop-blur-sm" 
          role="dialog" 
          aria-modal="true" 
          aria-labelledby="widget-catalog-title">
-      <div className="pip-widget-dialog w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col">
+      <div 
+        className={`pip-widget-dialog w-full ${isMobile ? 'max-w-full h-full' : 'max-w-6xl h-[90vh]'} flex flex-col fixed left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-2 md:p-4`}
+        style={{ top: position.top }}
+      >
         {/* Scanline overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-20 pip-scanlines rounded-lg" />
         {/* Header */}
