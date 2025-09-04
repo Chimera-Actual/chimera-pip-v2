@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
-import { WidgetContainer } from './WidgetContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -191,263 +190,249 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widge
     setVisiblePasswords(newVisible);
   };
 
+  if (isLoading) {
+    return (
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading vault...
+      </div>
+    );
+  }
+
   if (isLocked) {
     return (
-      <WidgetContainer
-        title="Secure Vault"
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        className="pip-widget"
-        widgetId={widget.id}
-        widgetType={widget.type}
-      >
-        {!collapsed && (
-          <div className="text-center space-y-4 py-8">
-            <Lock className="h-12 w-12 text-pip-accent-amber mx-auto" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-pip-mono text-pip-text">Vault Locked</h3>
-              <p className="text-sm text-pip-text-muted font-pip-mono">
-                Enter your master password to access your secure data
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Input
-                type="password"
-                placeholder="Master Password"
-                value={masterPassword}
-                onChange={(e) => setMasterPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && unlock()}
-                className="font-pip-mono"
-              />
-              <Button onClick={unlock} className="w-full">
-                <Unlock className="h-4 w-4 mr-2" />
-                Unlock Vault
-              </Button>
-            </div>
-            <p className="text-xs text-pip-text-muted font-pip-mono">
-              Demo: Use 'vault123' or any 8+ character password
-            </p>
-          </div>
-        )}
-      </WidgetContainer>
+      <div className="text-center space-y-4 py-8">
+        <Lock className="h-12 w-12 text-pip-accent-amber mx-auto" />
+        <div className="space-y-2">
+          <h3 className="text-lg font-pip-mono text-pip-text">Vault Locked</h3>
+          <p className="text-sm text-pip-text-muted font-pip-mono">
+            Enter your master password to access your secure data
+          </p>
+        </div>
+        <div className="space-y-3">
+          <Input
+            type="password"
+            placeholder="Master Password"
+            value={masterPassword}
+            onChange={(e) => setMasterPassword(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && unlock()}
+            className="font-pip-mono"
+          />
+          <Button onClick={unlock} className="w-full">
+            <Unlock className="h-4 w-4 mr-2" />
+            Unlock Vault
+          </Button>
+        </div>
+        <p className="text-xs text-pip-text-muted font-pip-mono">
+          Demo: Use 'vault123' or any 8+ character password
+        </p>
+      </div>
     );
   }
 
   return (
-    <WidgetContainer
-      title="Secure Vault"
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      className="pip-widget"
-      widgetId={widget.id}
-      widgetType={widget.type}
-    >
-      {!collapsed && (
-        <div className="space-y-4">
-          {/* Header Controls */}
-          <div className="flex justify-between items-center">
+    <div className="space-y-4">
+      {/* Header Controls */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Entry
+          </Button>
+        </div>
+        <Button size="sm" variant="outline" onClick={lock}>
+          <Lock className="h-4 w-4 mr-1" />
+          Lock
+        </Button>
+      </div>
+
+      {/* Add Entry Form */}
+      {showAddForm && (
+        <Card className="pip-special-stat">
+          <CardContent className="space-y-3 p-4">
+            <h4 className="text-sm font-pip-mono font-semibold mb-3">Add New Entry</h4>
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
-                <Plus className="h-4 w-4 mr-1" />
+              {(['password', 'note', 'card', 'key'] as const).map(type => (
+                <Badge
+                  key={type}
+                  variant={newEntry.type === type ? "default" : "outline"}
+                  className="cursor-pointer capitalize font-pip-mono"
+                  onClick={() => setNewEntry({ ...newEntry, type })}
+                >
+                  {type}
+                </Badge>
+              ))}
+            </div>
+            <Input
+              placeholder="Entry title"
+              value={newEntry.title}
+              onChange={(e) => setNewEntry({ ...newEntry, title: e.target.value })}
+              className="font-pip-mono"
+            />
+            {newEntry.type === 'password' && (
+              <>
+                <Input
+                  placeholder="Username"
+                  value={newEntry.username}
+                  onChange={(e) => setNewEntry({ ...newEntry, username: e.target.value })}
+                  className="font-pip-mono"
+                />
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={newEntry.password}
+                  onChange={(e) => setNewEntry({ ...newEntry, password: e.target.value })}
+                  className="font-pip-mono"
+                />
+                <Input
+                  placeholder="URL (optional)"
+                  value={newEntry.url}
+                  onChange={(e) => setNewEntry({ ...newEntry, url: e.target.value })}
+                  className="font-pip-mono"
+                />
+              </>
+            )}
+            <Textarea
+              placeholder="Notes"
+              value={newEntry.notes}
+              onChange={(e) => setNewEntry({ ...newEntry, notes: e.target.value })}
+              className="font-pip-mono"
+              rows={3}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={addEntry} disabled={!newEntry.title}>
                 Add Entry
               </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowAddForm(false)}>
+                Cancel
+              </Button>
             </div>
-            <Button size="sm" variant="outline" onClick={lock}>
-              <Lock className="h-4 w-4 mr-1" />
-              Lock
-            </Button>
-          </div>
-
-          {/* Add Entry Form */}
-          {showAddForm && (
-            <Card className="pip-special-stat">
-              <CardContent className="space-y-3 p-4">
-                <h4 className="text-sm font-pip-mono font-semibold mb-3">Add New Entry</h4>
-                <div className="flex gap-2">
-                  {(['password', 'note', 'card', 'key'] as const).map(type => (
-                    <Badge
-                      key={type}
-                      variant={newEntry.type === type ? "default" : "outline"}
-                      className="cursor-pointer capitalize font-pip-mono"
-                      onClick={() => setNewEntry({ ...newEntry, type })}
-                    >
-                      {type}
-                    </Badge>
-                  ))}
-                </div>
-                <Input
-                  placeholder="Entry title"
-                  value={newEntry.title}
-                  onChange={(e) => setNewEntry({ ...newEntry, title: e.target.value })}
-                  className="font-pip-mono"
-                />
-                {newEntry.type === 'password' && (
-                  <>
-                    <Input
-                      placeholder="Username"
-                      value={newEntry.username}
-                      onChange={(e) => setNewEntry({ ...newEntry, username: e.target.value })}
-                      className="font-pip-mono"
-                    />
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={newEntry.password}
-                      onChange={(e) => setNewEntry({ ...newEntry, password: e.target.value })}
-                      className="font-pip-mono"
-                    />
-                    <Input
-                      placeholder="URL (optional)"
-                      value={newEntry.url}
-                      onChange={(e) => setNewEntry({ ...newEntry, url: e.target.value })}
-                      className="font-pip-mono"
-                    />
-                  </>
-                )}
-                <Textarea
-                  placeholder="Notes"
-                  value={newEntry.notes}
-                  onChange={(e) => setNewEntry({ ...newEntry, notes: e.target.value })}
-                  className="font-pip-mono"
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={addEntry} disabled={!newEntry.title}>
-                    Add Entry
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowAddForm(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Entries List */}
-          <div className="space-y-3 max-h-64 overflow-y-auto">
-            {entries.length === 0 ? (
-              <div className="text-center text-pip-text-muted font-pip-mono py-8">
-                No entries in vault
-              </div>
-            ) : (
-              entries.map(entry => {
-                const IconComponent = entryIcons[entry.type];
-                const isPasswordVisible = visiblePasswords.has(entry.id);
-                
-                return (
-                  <Card key={entry.id} className="pip-special-stat">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <IconComponent className="h-4 w-4 text-pip-accent-green" />
-                          <h4 className="text-sm font-pip-mono font-semibold">{entry.title}</h4>
-                          <Badge variant="outline" className="text-xs font-pip-mono capitalize">
-                            {entry.type}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0"
-                            onClick={() => deleteEntry(entry.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      {entry.data.username && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-pip-text-muted font-pip-mono">Username:</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-pip-mono">{entry.data.username}</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-4 w-4 p-0"
-                              onClick={() => copyToClipboard(entry.data.username!, `${entry.id}-username`)}
-                            >
-                              {copiedField === `${entry.id}-username` ? 
-                                <Check className="h-3 w-3 text-pip-accent-green" /> : 
-                                <Copy className="h-3 w-3" />
-                              }
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {entry.data.password && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-pip-text-muted font-pip-mono">Password:</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-pip-mono">
-                              {isPasswordVisible ? entry.data.password : '••••••••'}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-4 w-4 p-0"
-                              onClick={() => togglePasswordVisibility(entry.id)}
-                            >
-                              {isPasswordVisible ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-4 w-4 p-0"
-                              onClick={() => copyToClipboard(entry.data.password!, `${entry.id}-password`)}
-                            >
-                              {copiedField === `${entry.id}-password` ? 
-                                <Check className="h-3 w-3 text-pip-accent-green" /> : 
-                                <Copy className="h-3 w-3" />
-                              }
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {entry.data.apiKey && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-pip-text-muted font-pip-mono">API Key:</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-pip-mono">
-                              {entry.data.apiKey.substring(0, 16)}...
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-4 w-4 p-0"
-                              onClick={() => copyToClipboard(entry.data.apiKey!, `${entry.id}-apikey`)}
-                            >
-                              {copiedField === `${entry.id}-apikey` ? 
-                                <Check className="h-3 w-3 text-pip-accent-green" /> : 
-                                <Copy className="h-3 w-3" />
-                              }
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {entry.data.notes && (
-                        <div className="mt-2 p-2 bg-pip-bg-secondary rounded border border-pip-border">
-                          <p className="text-xs text-pip-text-muted font-pip-mono whitespace-pre-wrap">
-                            {entry.data.notes}
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="text-xs text-pip-text-muted font-pip-mono pt-1">
-                        Last accessed: {entry.lastAccessed.toLocaleString()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
-    </WidgetContainer>
+
+      {/* Entries List */}
+      <div className="space-y-3 max-h-64 overflow-y-auto">
+        {entries.length === 0 ? (
+          <div className="text-center text-pip-text-muted font-pip-mono py-8">
+            No entries in vault
+          </div>
+        ) : (
+          entries.map(entry => {
+            const IconComponent = entryIcons[entry.type];
+            const isPasswordVisible = visiblePasswords.has(entry.id);
+            
+            return (
+              <Card key={entry.id} className="pip-special-stat">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4 text-pip-accent-green" />
+                      <h4 className="text-sm font-pip-mono font-semibold">{entry.title}</h4>
+                      <Badge variant="outline" className="text-xs font-pip-mono capitalize">
+                        {entry.type}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={() => deleteEntry(entry.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  {entry.data.username && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-pip-text-muted font-pip-mono">Username:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-pip-mono">{entry.data.username}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={() => copyToClipboard(entry.data.username!, `${entry.id}-username`)}
+                        >
+                          {copiedField === `${entry.id}-username` ? 
+                            <Check className="h-3 w-3 text-pip-accent-green" /> : 
+                            <Copy className="h-3 w-3" />
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {entry.data.password && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-pip-text-muted font-pip-mono">Password:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-pip-mono">
+                          {isPasswordVisible ? entry.data.password : '••••••••'}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={() => togglePasswordVisibility(entry.id)}
+                        >
+                          {isPasswordVisible ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={() => copyToClipboard(entry.data.password!, `${entry.id}-password`)}
+                        >
+                          {copiedField === `${entry.id}-password` ? 
+                            <Check className="h-3 w-3 text-pip-accent-green" /> : 
+                            <Copy className="h-3 w-3" />
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {entry.data.apiKey && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-pip-text-muted font-pip-mono">API Key:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-pip-mono">
+                          {entry.data.apiKey.substring(0, 16)}...
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={() => copyToClipboard(entry.data.apiKey!, `${entry.id}-apikey`)}
+                        >
+                          {copiedField === `${entry.id}-apikey` ? 
+                            <Check className="h-3 w-3 text-pip-accent-green" /> : 
+                            <Copy className="h-3 w-3" />
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {entry.data.notes && (
+                    <div className="mt-2 p-2 bg-pip-bg-secondary rounded border border-pip-border">
+                      <p className="text-xs text-pip-text-muted font-pip-mono whitespace-pre-wrap">
+                        {entry.data.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-pip-text-muted font-pip-mono pt-1">
+                    Last accessed: {entry.lastAccessed.toLocaleString()}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 });
 

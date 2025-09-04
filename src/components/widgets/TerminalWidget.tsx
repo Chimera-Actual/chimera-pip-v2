@@ -4,7 +4,6 @@ import { Terminal, User } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { BaseWidget } from '@/types/widgets';
-import { WidgetContainer } from './WidgetContainer';
 import { useWidgetState } from '@/hooks/useWidgetState';
 
 interface TerminalWidgetProps {
@@ -169,65 +168,53 @@ export const TerminalWidget: React.FC<TerminalWidgetProps> = memo(({ widget }) =
 
   if (isLoading) {
     return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onSettingsChange={() => {}}
-        onDelete={() => {}}
-        isLoading={true}
-      >
-        <div />
-      </WidgetContainer>
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading terminal...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-destructive font-pip-mono py-4">
+        Error: {error}
+      </div>
     );
   }
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={() => {}}
-      onDelete={() => {}}
-      error={error}
-    >
-      <div className="space-y-3">
-        <div
-          ref={terminalRef}
-          className="flex-1 bg-pip-bg-tertiary/90 rounded-lg p-4 font-pip-mono text-sm overflow-y-auto max-h-64 border border-pip-border"
-          onClick={() => inputRef.current?.focus()}
-        >
-          {lines.map((line) => (
-            <div key={line.id} className={`${getLineColor(line.type)} whitespace-pre-wrap`}>
-              {line.content}
-            </div>
-          ))}
-          <div className="flex items-center text-pip-accent">
-            <User className="w-4 h-4 mr-2" />
-            <span>dweller@pip-boy:~$</span>
+    <div className="space-y-3">
+      <div
+        ref={terminalRef}
+        className="flex-1 bg-pip-bg-tertiary/90 rounded-lg p-4 font-pip-mono text-sm overflow-y-auto max-h-64 border border-pip-border"
+        onClick={() => inputRef.current?.focus()}
+      >
+        {lines.map((line) => (
+          <div key={line.id} className={`${getLineColor(line.type)} whitespace-pre-wrap`}>
+            {line.content}
           </div>
+        ))}
+        <div className="flex items-center text-pip-accent">
+          <User className="w-4 h-4 mr-2" />
+          <span>dweller@pip-boy:~$</span>
         </div>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="flex items-center gap-2">
-            <span className="text-pip-accent font-pip-mono text-sm">{'>'}</span>
-            <Input
-              ref={inputRef}
-              value={currentCommand}
-              onChange={(e) => setCurrentCommand(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter command..."
-              className="font-pip-mono bg-pip-bg-secondary/50 border-pip-border focus:border-pip-accent"
-              autoFocus
-            />
-          </div>
-        </form>
       </div>
-    </WidgetContainer>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center gap-2">
+          <span className="text-pip-accent font-pip-mono text-sm">{'>'}</span>
+          <Input
+            ref={inputRef}
+            value={currentCommand}
+            onChange={(e) => setCurrentCommand(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter command..."
+            className="font-pip-mono bg-pip-bg-secondary/50 border-pip-border focus:border-pip-accent"
+            autoFocus
+          />
+        </div>
+      </form>
+    </div>
   );
 });
 

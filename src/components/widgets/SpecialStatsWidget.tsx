@@ -1,6 +1,5 @@
 import React, { memo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, SpecialStatsSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Progress } from '@/components/ui/progress';
@@ -62,21 +61,27 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = memo(({ wid
     widget.settings as SpecialStatsSettings
   );
 
+  if (isLoading) {
+    return (
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading S.P.E.C.I.A.L. stats...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-destructive font-pip-mono py-4">
+        Error: {error}
+      </div>
+    );
+  }
+
   if (!profile || !profile.special_stats) {
     return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        isLoading={isLoading}
-        error={error}
-      >
-        <div className="flex items-center justify-center h-32 text-pip-text-muted font-pip-mono">
-          No S.P.E.C.I.A.L. data available
-        </div>
-      </WidgetContainer>
+      <div className="flex items-center justify-center h-32 text-pip-text-muted font-pip-mono">
+        No S.P.E.C.I.A.L. data available
+      </div>
     );
   }
 
@@ -144,30 +149,19 @@ export const SpecialStatsWidget: React.FC<SpecialStatsWidgetProps> = memo(({ wid
   }, [userStats, settings.displayStyle, settings.showProgressBars, settings.showTooltips]);
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={setSettings}
-      isLoading={isLoading}
-      error={error}
-    >
-      <div className="space-y-2">
-        {specialStats.map(renderStatRow)}
-        
-        {settings.displayStyle === 'detailed' && (
-          <div className="mt-4 p-3 rounded border border-pip-border/50 bg-pip-bg-tertiary/30">
-            <div className="text-xs text-pip-text-muted font-pip-mono mb-1">
-              TOTAL POINTS
-            </div>
-            <div className="text-lg font-pip-display font-bold text-primary">
-              {specialStats.reduce((total, stat) => total + (userStats[stat.name] || 5), 0)}
-            </div>
+    <div className="space-y-2">
+      {specialStats.map(renderStatRow)}
+      
+      {settings.displayStyle === 'detailed' && (
+        <div className="mt-4 p-3 rounded border border-pip-border/50 bg-pip-bg-tertiary/30">
+          <div className="text-xs text-pip-text-muted font-pip-mono mb-1">
+            TOTAL POINTS
           </div>
-        )}
-      </div>
-    </WidgetContainer>
+          <div className="text-lg font-pip-display font-bold text-primary">
+            {specialStats.reduce((total, stat) => total + (userStats[stat.name] || 5), 0)}
+          </div>
+        </div>
+      )}
+    </div>
   );
 });

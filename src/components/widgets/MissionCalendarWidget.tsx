@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
-import { WidgetContainer } from './WidgetContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -212,254 +211,251 @@ export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(
     return completedDate.toDateString() === today.toDateString();
   });
 
-  return (
-    <WidgetContainer
-      title="Mission Calendar"
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      className="pip-widget"
-      widgetId={widget.id}
-      widgetType={widget.type}
-    >
-      {!collapsed && (
-        <div className="space-y-4">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div className="pip-special-stat p-2">
-              <div className="text-lg font-bold text-pip-accent-blue">{todaysMissions.length}</div>
-              <div className="text-xs text-pip-text-muted font-pip-mono">Today</div>
-            </div>
-            <div className="pip-special-stat p-2">
-              <div className="text-lg font-bold text-pip-accent-amber">{missions.filter(m => m.status === 'active').length}</div>
-              <div className="text-xs text-pip-text-muted font-pip-mono">Active</div>
-            </div>
-            <div className="pip-special-stat p-2">
-              <div className="text-lg font-bold text-pip-accent-red">{overdueMissions.length}</div>
-              <div className="text-xs text-pip-text-muted font-pip-mono">Overdue</div>
-            </div>
-            <div className="pip-special-stat p-2">
-              <div className="text-lg font-bold text-pip-accent-green">{completedToday.length}</div>
-              <div className="text-xs text-pip-text-muted font-pip-mono">Done</div>
-            </div>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading missions...
+      </div>
+    );
+  }
 
-          {/* Controls */}
-          <div className="flex justify-between items-center">
+  return (
+    <div className="space-y-4">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <div className="pip-special-stat p-2">
+          <div className="text-lg font-bold text-pip-accent-blue">{todaysMissions.length}</div>
+          <div className="text-xs text-pip-text-muted font-pip-mono">Today</div>
+        </div>
+        <div className="pip-special-stat p-2">
+          <div className="text-lg font-bold text-pip-accent-amber">{missions.filter(m => m.status === 'active').length}</div>
+          <div className="text-xs text-pip-text-muted font-pip-mono">Active</div>
+        </div>
+        <div className="pip-special-stat p-2">
+          <div className="text-lg font-bold text-pip-accent-red">{overdueMissions.length}</div>
+          <div className="text-xs text-pip-text-muted font-pip-mono">Overdue</div>
+        </div>
+        <div className="pip-special-stat p-2">
+          <div className="text-lg font-bold text-pip-accent-green">{completedToday.length}</div>
+          <div className="text-xs text-pip-text-muted font-pip-mono">Done</div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
+            <Plus className="h-4 w-4 mr-1" />
+            New Mission
+          </Button>
+        </div>
+        <div className="flex gap-1">
+          {(['all', 'pending', 'active', 'completed'] as const).map(status => (
+            <Badge
+              key={status}
+              variant={selectedStatus === status ? "default" : "outline"}
+              className="cursor-pointer capitalize font-pip-mono text-xs"
+              onClick={() => setSelectedStatus(status)}
+            >
+              {status}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Add Mission Form */}
+      {showAddForm && (
+        <Card className="pip-special-stat">
+          <CardContent className="space-y-3 p-4">
+            <h4 className="text-sm font-pip-mono font-semibold mb-3">Create New Mission</h4>
+            <Input
+              placeholder="Mission title"
+              value={newMission.title}
+              onChange={(e) => setNewMission({ ...newMission, title: e.target.value })}
+              className="font-pip-mono"
+            />
+            <Textarea
+              placeholder="Mission description"
+              value={newMission.description}
+              onChange={(e) => setNewMission({ ...newMission, description: e.target.value })}
+              className="font-pip-mono"
+              rows={2}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-pip-text-muted font-pip-mono">Priority</label>
+                <div className="flex gap-1 mt-1">
+                  {(['low', 'medium', 'high', 'critical'] as const).map(priority => (
+                    <Badge
+                      key={priority}
+                      variant={newMission.priority === priority ? "default" : "outline"}
+                      className="cursor-pointer capitalize font-pip-mono text-xs"
+                      onClick={() => setNewMission({ ...newMission, priority })}
+                    >
+                      {priority}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-pip-text-muted font-pip-mono">Category</label>
+                <div className="flex gap-1 mt-1">
+                  {(['main', 'side', 'daily', 'weekly'] as const).map(category => (
+                    <Badge
+                      key={category}
+                      variant={newMission.category === category ? "default" : "outline"}
+                      className="cursor-pointer capitalize font-pip-mono text-xs"
+                      onClick={() => setNewMission({ ...newMission, category })}
+                    >
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-pip-text-muted font-pip-mono">Due Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-start font-pip-mono">
+                      <CalendarIcon className="h-4 w-4 mr-2" />
+                      {format(newMission.dueDate, 'MMM dd, yyyy')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={newMission.dueDate}
+                      onSelect={(date) => date && setNewMission({ ...newMission, dueDate: date })}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <label className="text-xs text-pip-text-muted font-pip-mono">Experience</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={newMission.experience}
+                  onChange={(e) => setNewMission({ ...newMission, experience: parseInt(e.target.value) || 50 })}
+                  className="font-pip-mono"
+                />
+              </div>
+            </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
-                <Plus className="h-4 w-4 mr-1" />
-                New Mission
+              <Button size="sm" onClick={addMission} disabled={!newMission.title}>
+                Create Mission
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowAddForm(false)}>
+                Cancel
               </Button>
             </div>
-            <div className="flex gap-1">
-              {(['all', 'pending', 'active', 'completed'] as const).map(status => (
-                <Badge
-                  key={status}
-                  variant={selectedStatus === status ? "default" : "outline"}
-                  className="cursor-pointer capitalize font-pip-mono text-xs"
-                  onClick={() => setSelectedStatus(status)}
-                >
-                  {status}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Add Mission Form */}
-          {showAddForm && (
-            <Card className="pip-special-stat">
-              <CardContent className="space-y-3 p-4">
-                <h4 className="text-sm font-pip-mono font-semibold mb-3">Create New Mission</h4>
-                <Input
-                  placeholder="Mission title"
-                  value={newMission.title}
-                  onChange={(e) => setNewMission({ ...newMission, title: e.target.value })}
-                  className="font-pip-mono"
-                />
-                <Textarea
-                  placeholder="Mission description"
-                  value={newMission.description}
-                  onChange={(e) => setNewMission({ ...newMission, description: e.target.value })}
-                  className="font-pip-mono"
-                  rows={2}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-pip-text-muted font-pip-mono">Priority</label>
-                    <div className="flex gap-1 mt-1">
-                      {(['low', 'medium', 'high', 'critical'] as const).map(priority => (
-                        <Badge
-                          key={priority}
-                          variant={newMission.priority === priority ? "default" : "outline"}
-                          className="cursor-pointer capitalize font-pip-mono text-xs"
-                          onClick={() => setNewMission({ ...newMission, priority })}
-                        >
-                          {priority}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-pip-text-muted font-pip-mono">Category</label>
-                    <div className="flex gap-1 mt-1">
-                      {(['main', 'side', 'daily', 'weekly'] as const).map(category => (
-                        <Badge
-                          key={category}
-                          variant={newMission.category === category ? "default" : "outline"}
-                          className="cursor-pointer capitalize font-pip-mono text-xs"
-                          onClick={() => setNewMission({ ...newMission, category })}
-                        >
-                          {category}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-pip-text-muted font-pip-mono">Due Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full justify-start font-pip-mono">
-                          <CalendarIcon className="h-4 w-4 mr-2" />
-                          {format(newMission.dueDate, 'MMM dd, yyyy')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={newMission.dueDate}
-                          onSelect={(date) => date && setNewMission({ ...newMission, dueDate: date })}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div>
-                    <label className="text-xs text-pip-text-muted font-pip-mono">Experience</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={newMission.experience}
-                      onChange={(e) => setNewMission({ ...newMission, experience: parseInt(e.target.value) || 50 })}
-                      className="font-pip-mono"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={addMission} disabled={!newMission.title}>
-                    Create Mission
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowAddForm(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Missions List */}
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {filteredMissions.length === 0 ? (
-              <div className="text-center text-pip-text-muted font-pip-mono py-8">
-                No missions found
-              </div>
-            ) : (
-              filteredMissions.map(mission => {
-                const IconComponent = categoryIcons[mission.category];
-                const isOverdue = mission.dueDate < new Date() && mission.status !== 'completed';
-                const hasProgress = mission.progress !== undefined;
-                
-                return (
-                  <Card key={mission.id} className={`pip-special-stat ${isOverdue ? 'border-pip-accent-red' : ''}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <IconComponent className="h-4 w-4 text-pip-accent-green" />
-                          <h4 className="text-sm font-pip-mono font-semibold">{mission.title}</h4>
-                          <Badge variant="outline" className={`text-xs font-pip-mono ${priorityColors[mission.priority]}`}>
-                            {mission.priority}
-                          </Badge>
-                          <Badge variant="outline" className={`text-xs font-pip-mono ${statusColors[mission.status]}`}>
-                            {mission.status}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1">
-                          {mission.status === 'pending' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                              onClick={() => updateMissionStatus(mission.id, 'active')}
-                            >
-                              <Flag className="h-3 w-3" />
-                            </Button>
-                          )}
-                          {mission.status === 'active' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                              onClick={() => updateMissionStatus(mission.id, 'completed')}
-                            >
-                              <CheckCircle className="h-3 w-3" />
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0"
-                            onClick={() => deleteMission(mission.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-pip-text-muted font-pip-mono mb-2">
-                        {mission.description}
-                      </p>
-                      
-                      {hasProgress && mission.status !== 'completed' && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs font-pip-mono">
-                            <span>Progress</span>
-                            <span>{mission.progress}/{mission.maxProgress}</span>
-                          </div>
-                          <Progress 
-                            value={(mission.progress! / mission.maxProgress!) * 100}
-                            className="h-2"
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-center text-xs font-pip-mono">
-                        <div className="flex items-center gap-2">
-                          <span className={isOverdue ? 'text-pip-accent-red' : 'text-pip-text-muted'}>
-                            Due: {format(mission.dueDate, 'MMM dd, yyyy')}
-                          </span>
-                          {isOverdue && <AlertCircle className="h-3 w-3 text-pip-accent-red" />}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-pip-accent-amber" />
-                          <span>{mission.experience} XP</span>
-                        </div>
-                      </div>
-
-                      {mission.completedAt && (
-                        <div className="text-xs text-pip-accent-green font-pip-mono">
-                          Completed: {format(mission.completedAt, 'MMM dd, yyyy HH:mm')}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
-    </WidgetContainer>
+
+      {/* Missions List */}
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {filteredMissions.length === 0 ? (
+          <div className="text-center text-pip-text-muted font-pip-mono py-8">
+            No missions found
+          </div>
+        ) : (
+          filteredMissions.map(mission => {
+            const IconComponent = categoryIcons[mission.category];
+            const isOverdue = mission.dueDate < new Date() && mission.status !== 'completed';
+            const hasProgress = mission.progress !== undefined;
+            
+            return (
+              <Card key={mission.id} className={`pip-special-stat ${isOverdue ? 'border-pip-accent-red' : ''}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4 text-pip-accent-green" />
+                      <h4 className="text-sm font-pip-mono font-semibold">{mission.title}</h4>
+                      <Badge variant="outline" className={`text-xs font-pip-mono ${priorityColors[mission.priority]}`}>
+                        {mission.priority}
+                      </Badge>
+                      <Badge variant="outline" className={`text-xs font-pip-mono ${statusColors[mission.status]}`}>
+                        {mission.status}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      {mission.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={() => updateMissionStatus(mission.id, 'active')}
+                        >
+                          <Flag className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {mission.status === 'active' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={() => updateMissionStatus(mission.id, 'completed')}
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={() => deleteMission(mission.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-pip-text-muted font-pip-mono mb-2">
+                    {mission.description}
+                  </p>
+                  
+                  {hasProgress && mission.status !== 'completed' && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs font-pip-mono">
+                        <span>Progress</span>
+                        <span>{mission.progress}/{mission.maxProgress}</span>
+                      </div>
+                      <Progress 
+                        value={(mission.progress! / mission.maxProgress!) * 100}
+                        className="h-2"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center text-xs font-pip-mono">
+                    <div className="flex items-center gap-2">
+                      <span className={isOverdue ? 'text-pip-accent-red' : 'text-pip-text-muted'}>
+                        Due: {format(mission.dueDate, 'MMM dd, yyyy')}
+                      </span>
+                      {isOverdue && <AlertCircle className="h-3 w-3 text-pip-accent-red" />}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 text-pip-accent-amber" />
+                      <span>{mission.experience} XP</span>
+                    </div>
+                  </div>
+
+                  {mission.completedAt && (
+                    <div className="text-xs text-pip-accent-green font-pip-mono pt-1">
+                      Completed: {format(mission.completedAt, 'MMM dd, yyyy HH:mm')}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 });
 

@@ -1,6 +1,5 @@
 import { memo, useState, useEffect } from 'react';
 import { BaseWidget } from '@/types/widgets';
-import { WidgetContainer } from './WidgetContainer';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -195,199 +194,187 @@ export const AudioPlayerWidget: React.FC<AudioPlayerWidgetProps> = memo(({ widge
 
   if (isLoading) {
     return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onSettingsChange={() => {}}
-        onDelete={() => {}}
-        isLoading={true}
-      >
-        <div />
-      </WidgetContainer>
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading audio player...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-destructive font-pip-mono py-4">
+        Error: {error}
+      </div>
     );
   }
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={() => {}}
-      onDelete={() => {}}
-      error={error}
-    >
-      <div className="space-y-4">
-        {/* Current Track Display */}
-        {currentTrack && (
-          <Card className="border-pip-border bg-pip-bg-secondary/50">
-            <CardContent className="p-3">
-              <div className="flex items-start gap-3">
-                <div className="text-pip-accent">
-                  {getSourceIcon(currentTrack.source)}
+    <div className="space-y-4">
+      {/* Current Track Display */}
+      {currentTrack && (
+        <Card className="border-pip-border bg-pip-bg-secondary/50">
+          <CardContent className="p-3">
+            <div className="flex items-start gap-3">
+              <div className="text-pip-accent">
+                {getSourceIcon(currentTrack.source)}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-pip-text truncate font-mono">
+                  {currentTrack.title}
+                </h4>
+                <p className="text-xs text-pip-text-secondary truncate">
+                  {currentTrack.artist}
+                </p>
+                {currentTrack.album && (
+                  <p className="text-xs text-pip-text-muted truncate">
+                    {currentTrack.album}
+                  </p>
+                )}
+                {currentTrack.frequency && (
+                  <p className="text-xs text-pip-accent font-mono">
+                    {currentTrack.frequency}
+                  </p>
+                )}
+              </div>
+
+              <Badge variant="outline" className={getSourceColor(currentTrack.source)}>
+                {currentTrack.source.toUpperCase()}
+              </Badge>
+            </div>
+
+            {/* Progress Bar */}
+            {currentTrack.duration > 0 && (
+              <div className="mt-3 space-y-2">
+                <Slider
+                  value={[currentTrack.duration > 0 ? (currentTime / currentTrack.duration) * 100 : 0]}
+                  onValueChange={handleSeek}
+                  className="cursor-pointer"
+                  disabled={currentTrack.duration === 0}
+                />
+                <div className="flex justify-between text-xs text-pip-text-muted font-mono">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(currentTrack.duration)}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsShuffled(!isShuffled)}
+          className={`h-8 w-8 p-0 ${isShuffled ? 'text-pip-accent' : ''}`}
+        >
+          <Shuffle className="h-3 w-3" />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePrevious}
+          className="h-8 w-8 p-0"
+        >
+          <SkipBack className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePlayPause}
+          className="h-10 w-10 p-0"
+        >
+          {isPlaying ? (
+            <Pause className="h-5 w-5" />
+          ) : (
+            <Play className="h-5 w-5" />
+          )}
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNext}
+          className="h-8 w-8 p-0"
+        >
+          <SkipForward className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setRepeatMode(
+            repeatMode === 'off' ? 'all' : 
+            repeatMode === 'all' ? 'one' : 'off'
+          )}
+          className={`h-8 w-8 p-0 ${repeatMode !== 'off' ? 'text-pip-accent' : ''}`}
+        >
+          <Repeat className="h-3 w-3" />
+        </Button>
+      </div>
+
+      {/* Volume Control */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleVolumeToggle}
+          className="h-6 w-6 p-0"
+        >
+          {isMuted || volume === 0 ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
+        </Button>
+        
+        <Slider
+          value={[isMuted ? 0 : volume]}
+          onValueChange={handleVolumeChange}
+          max={100}
+          className="flex-1"
+        />
+        
+        <span className="text-xs text-pip-text-muted font-mono w-8">
+          {isMuted ? 0 : volume}%
+        </span>
+      </div>
+
+      {/* Playlist */}
+      <div className="space-y-2">
+        <h5 className="text-xs font-semibold text-pip-text-muted uppercase">Playlist</h5>
+        <ScrollArea className="h-32">
+          <div className="space-y-1">
+            {playlist.map((track) => (
+              <div
+                key={track.id}
+                className={`flex items-center gap-2 p-2 hover:bg-pip-bg-secondary/50 cursor-pointer rounded text-xs ${
+                  currentTrack?.id === track.id ? 'bg-pip-bg-secondary text-pip-accent' : ''
+                }`}
+                onClick={() => playTrack(track)}
+              >
+                <div className="text-pip-text-muted">
+                  {getSourceIcon(track.source)}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-pip-text truncate font-mono">
-                    {currentTrack.title}
-                  </h4>
-                  <p className="text-xs text-pip-text-secondary truncate">
-                    {currentTrack.artist}
-                  </p>
-                  {currentTrack.album && (
-                    <p className="text-xs text-pip-text-muted truncate">
-                      {currentTrack.album}
-                    </p>
-                  )}
-                  {currentTrack.frequency && (
-                    <p className="text-xs text-pip-accent font-mono">
-                      {currentTrack.frequency}
-                    </p>
-                  )}
+                  <div className="font-mono truncate">{track.title}</div>
+                  <div className="text-pip-text-muted truncate">{track.artist}</div>
                 </div>
-
-                <Badge variant="outline" className={getSourceColor(currentTrack.source)}>
-                  {currentTrack.source.toUpperCase()}
-                </Badge>
+                
+                <div className="text-pip-text-muted font-mono">
+                  {formatTime(track.duration)}
+                </div>
               </div>
-
-              {/* Progress Bar */}
-              {currentTrack.duration > 0 && (
-                <div className="mt-3 space-y-2">
-                  <Slider
-                    value={[currentTrack.duration > 0 ? (currentTime / currentTrack.duration) * 100 : 0]}
-                    onValueChange={handleSeek}
-                    className="cursor-pointer"
-                    disabled={currentTrack.duration === 0}
-                  />
-                  <div className="flex justify-between text-xs text-pip-text-muted font-mono">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(currentTrack.duration)}</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsShuffled(!isShuffled)}
-            className={`h-8 w-8 p-0 ${isShuffled ? 'text-pip-accent' : ''}`}
-          >
-            <Shuffle className="h-3 w-3" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevious}
-            className="h-8 w-8 p-0"
-          >
-            <SkipBack className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePlayPause}
-            className="h-10 w-10 p-0"
-          >
-            {isPlaying ? (
-              <Pause className="h-5 w-5" />
-            ) : (
-              <Play className="h-5 w-5" />
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNext}
-            className="h-8 w-8 p-0"
-          >
-            <SkipForward className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setRepeatMode(
-              repeatMode === 'off' ? 'all' : 
-              repeatMode === 'all' ? 'one' : 'off'
-            )}
-            className={`h-8 w-8 p-0 ${repeatMode !== 'off' ? 'text-pip-accent' : ''}`}
-          >
-            <Repeat className="h-3 w-3" />
-          </Button>
-        </div>
-
-        {/* Volume Control */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleVolumeToggle}
-            className="h-6 w-6 p-0"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
-          </Button>
-          
-          <Slider
-            value={[isMuted ? 0 : volume]}
-            onValueChange={handleVolumeChange}
-            max={100}
-            className="flex-1"
-          />
-          
-          <span className="text-xs text-pip-text-muted font-mono w-8">
-            {isMuted ? 0 : volume}%
-          </span>
-        </div>
-
-        {/* Playlist */}
-        <div className="space-y-2">
-          <h5 className="text-xs font-semibold text-pip-text-muted uppercase">Playlist</h5>
-          <ScrollArea className="h-32">
-            <div className="space-y-1">
-              {playlist.map((track) => (
-                <div
-                  key={track.id}
-                  className={`flex items-center gap-2 p-2 hover:bg-pip-bg-secondary/50 cursor-pointer rounded text-xs ${
-                    currentTrack?.id === track.id ? 'bg-pip-bg-secondary text-pip-accent' : ''
-                  }`}
-                  onClick={() => playTrack(track)}
-                >
-                  <div className="text-pip-text-muted">
-                    {getSourceIcon(track.source)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="font-mono truncate">{track.title}</div>
-                    <div className="text-pip-text-muted truncate">{track.artist}</div>
-                  </div>
-                  
-                  <div className="text-pip-text-muted font-mono">
-                    {formatTime(track.duration)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
-    </WidgetContainer>
+    </div>
   );
 });
 

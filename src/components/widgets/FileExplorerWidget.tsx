@@ -1,6 +1,5 @@
 import { memo, useState, useEffect } from 'react';
 import { BaseWidget } from '@/types/widgets';
-import { WidgetContainer } from './WidgetContainer';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -277,58 +276,46 @@ export const FileExplorerWidget: React.FC<FileExplorerWidgetProps> = memo(({ wid
 
   if (isLoading) {
     return (
-      <WidgetContainer
-        widgetId={widget.id}
-        widgetType={widget.type}
-        title={widget.title}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onSettingsChange={() => {}}
-        onDelete={() => {}}
-        isLoading={true}
-      >
-        <div />
-      </WidgetContainer>
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading file system...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-destructive font-pip-mono py-4">
+        Error: {error}
+      </div>
     );
   }
 
   return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={() => {}}
-      onDelete={() => {}}
-      error={error}
-    >
-      <div className="space-y-3">
-        <Card className="border-pip-border bg-pip-bg-secondary/30">
-          <CardContent className="p-0">
-            <ScrollArea className="h-64">
-              <div className="p-2 space-y-1">
-                {fileSystem.children && renderFileTree(fileSystem.children)}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+    <div className="space-y-3">
+      <Card className="border-pip-border bg-pip-bg-secondary/30">
+        <CardContent className="p-0">
+          <ScrollArea className="h-64">
+            <div className="p-2 space-y-1">
+              {fileSystem.children && renderFileTree(fileSystem.children)}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
-          <div className="flex items-center gap-4">
-            <span>
-              {fileSystem.children?.reduce((count, item) => 
-                count + (item.children?.length || 0) + 1, 0
-              )} items
-            </span>
-            <span className="text-pip-accent font-mono">
-              {currentPath.join(' / ')}
-            </span>
-          </div>
-          <span className="animate-pulse">● CONNECTED</span>
+      <div className="flex justify-between items-center text-xs text-pip-text-muted pt-2 border-t border-pip-border">
+        <div className="flex items-center gap-4">
+          <span>
+            {fileSystem.children?.reduce((count, item) => 
+              count + (item.children?.length || 0) + 1, 0
+            )} items
+          </span>
+          <span className="text-pip-accent font-mono">
+            {currentPath.join(' / ')}
+          </span>
         </div>
+        <span className="animate-pulse">● CONNECTED</span>
       </div>
-    </WidgetContainer>
+    </div>
   );
 });
 

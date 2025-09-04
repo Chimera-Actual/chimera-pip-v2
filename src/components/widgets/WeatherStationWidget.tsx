@@ -1,5 +1,4 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { WidgetContainer } from './WidgetContainer';
 import { BaseWidget, WeatherStationSettings } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Cloud, Thermometer, Droplets, Zap, Wind } from 'lucide-react';
@@ -123,111 +122,116 @@ export const WeatherStationWidget: React.FC<WeatherStationWidgetProps> = memo(({
   const temperatureDisplay = weatherData ? convertTemperature(weatherData.temperature) : 0;
   const temperatureUnit = settings.temperatureUnit;
 
-  return (
-    <WidgetContainer
-      widgetId={widget.id}
-      widgetType={widget.type}
-      title={widget.title}
-      collapsed={collapsed}
-      onToggleCollapse={() => setCollapsed(!collapsed)}
-      onSettingsChange={setSettings}
-      isLoading={isLoading || hookLoading}
-      error={error || hookError}
-    >
-      <div className="space-y-4">
-        {weatherData ? (
-          <>
-            {/* Main Temperature Display */}
-            <div className="text-center pip-special-stat p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Thermometer className="h-5 w-5 text-pip-green-primary" />
-                <span className="text-xs text-pip-text-muted font-pip-mono">TEMPERATURE</span>
-              </div>
-              <div className="text-3xl font-pip-display font-bold text-primary pip-text-glow">
-                {temperatureDisplay.toFixed(1)}°{temperatureUnit}
-              </div>
-              <div className="text-sm font-pip-mono text-pip-text-secondary mt-1">
-                {weatherData.condition}
-              </div>
-              {weatherData.location && (
-                <div className="text-xs text-pip-text-muted mt-1">
-                  {weatherData.location}{weatherData.country && `, ${weatherData.country}`}
-                </div>
-              )}
-            </div>
-
-            {/* Environmental Metrics Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Humidity */}
-              <div className="pip-special-stat p-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Droplets className="h-3 w-3 text-pip-green-primary" />
-                  <span className="text-xs text-pip-text-muted font-pip-mono">HUMIDITY</span>
-                </div>
-                <div className="text-lg font-pip-display font-bold text-primary">
-                  {weatherData.humidity.toFixed(0)}%
-                </div>
-              </div>
-
-              {/* Wind Speed */}
-              <div className="pip-special-stat p-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Wind className="h-3 w-3 text-pip-green-primary" />
-                  <span className="text-xs text-pip-text-muted font-pip-mono">WIND</span>
-                </div>
-                <div className="text-lg font-pip-display font-bold text-primary">
-                  {weatherData.windSpeed.toFixed(1)} {settings.temperatureUnit === 'C' ? 'm/s' : 'mph'}
-                </div>
-              </div>
-            </div>
-
-            {/* Radiation Level */}
-            {settings.showRadiation && (
-              <div className="pip-special-stat p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-pip-green-primary" />
-                    <span className="text-xs text-pip-text-muted font-pip-mono">RADIATION</span>
-                  </div>
-                  <Badge 
-                    variant="outline" 
-                    className={`${getRadiationColor(weatherData.radiation)} border-current`}
-                  >
-                    {weatherData.radiation}
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* Air Quality */}
-            {settings.showAirQuality && (
-              <div className="pip-special-stat p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Cloud className="h-4 w-4 text-pip-green-primary" />
-                    <span className="text-xs text-pip-text-muted font-pip-mono">AIR QUALITY</span>
-                  </div>
-                  <Badge 
-                    variant="outline" 
-                    className={`${getAirQualityColor(weatherData.airQuality)} border-current`}
-                  >
-                    {weatherData.airQuality}
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* Status Footer */}
-            <div className="text-center text-xs text-pip-text-muted font-pip-mono pt-2 border-t border-pip-border/30">
-              Environmental Monitor Online • {weatherData.lastUpdated?.toLocaleTimeString() || 'Loading...'}
-            </div>
-          </>
-        ) : !isLoading && (
-          <div className="text-center py-8 text-pip-text-muted">
-            <p className="font-pip-mono">Set location in widget settings to view weather data</p>
-          </div>
-        )}
+  if (isLoading || hookLoading) {
+    return (
+      <div className="text-center text-pip-text-muted font-pip-mono py-4">
+        Loading weather data...
       </div>
-    </WidgetContainer>
+    );
+  }
+
+  if (error || hookError) {
+    return (
+      <div className="text-center text-destructive font-pip-mono py-4">
+        Error: {error || hookError}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {weatherData ? (
+        <>
+          {/* Main Temperature Display */}
+          <div className="text-center pip-special-stat p-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Thermometer className="h-5 w-5 text-pip-green-primary" />
+              <span className="text-xs text-pip-text-muted font-pip-mono">TEMPERATURE</span>
+            </div>
+            <div className="text-3xl font-pip-display font-bold text-primary pip-text-glow">
+              {temperatureDisplay.toFixed(1)}°{temperatureUnit}
+            </div>
+            <div className="text-sm font-pip-mono text-pip-text-secondary mt-1">
+              {weatherData.condition}
+            </div>
+            {weatherData.location && (
+              <div className="text-xs text-pip-text-muted mt-1">
+                {weatherData.location}{weatherData.country && `, ${weatherData.country}`}
+              </div>
+            )}
+          </div>
+
+          {/* Environmental Metrics Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Humidity */}
+            <div className="pip-special-stat p-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Droplets className="h-3 w-3 text-pip-green-primary" />
+                <span className="text-xs text-pip-text-muted font-pip-mono">HUMIDITY</span>
+              </div>
+              <div className="text-lg font-pip-display font-bold text-primary">
+                {weatherData.humidity.toFixed(0)}%
+              </div>
+            </div>
+
+            {/* Wind Speed */}
+            <div className="pip-special-stat p-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Wind className="h-3 w-3 text-pip-green-primary" />
+                <span className="text-xs text-pip-text-muted font-pip-mono">WIND</span>
+              </div>
+              <div className="text-lg font-pip-display font-bold text-primary">
+                {weatherData.windSpeed.toFixed(1)} {settings.temperatureUnit === 'C' ? 'm/s' : 'mph'}
+              </div>
+            </div>
+          </div>
+
+          {/* Radiation Level */}
+          {settings.showRadiation && (
+            <div className="pip-special-stat p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-pip-green-primary" />
+                  <span className="text-xs text-pip-text-muted font-pip-mono">RADIATION</span>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={`${getRadiationColor(weatherData.radiation)} border-current`}
+                >
+                  {weatherData.radiation}
+                </Badge>
+              </div>
+            </div>
+          )}
+
+          {/* Air Quality */}
+          {settings.showAirQuality && (
+            <div className="pip-special-stat p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Cloud className="h-4 w-4 text-pip-green-primary" />
+                  <span className="text-xs text-pip-text-muted font-pip-mono">AIR QUALITY</span>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={`${getAirQualityColor(weatherData.airQuality)} border-current`}
+                >
+                  {weatherData.airQuality}
+                </Badge>
+              </div>
+            </div>
+          )}
+
+          {/* Status Footer */}
+          <div className="text-center text-xs text-pip-text-muted font-pip-mono pt-2 border-t border-pip-border/30">
+            Environmental Monitor Online • {weatherData.lastUpdated?.toLocaleTimeString() || 'Loading...'}
+          </div>
+        </>
+      ) : !isLoading && (
+        <div className="text-center py-8 text-pip-text-muted">
+          <p className="font-pip-mono">Set location in widget settings to view weather data</p>
+        </div>
+      )}
+    </div>
   );
 });
