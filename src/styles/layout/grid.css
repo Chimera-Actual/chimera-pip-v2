@@ -1,0 +1,199 @@
+/* Widget Grid System and Layout */
+@layer base {
+  /* Widget Grid System - Enhanced Stability */
+  .widget-grid {
+    min-height: 400px;
+    position: relative;
+    contain: layout;
+  }
+
+  .widget-grid-main {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .widget-grid-container {
+    position: relative;
+    isolation: isolate;
+    padding: 1.5rem;
+  }
+
+  .widget-grid-stable {
+    position: relative;
+    contain: layout style;
+    transform-style: preserve-3d;
+    gap: 1.5rem !important; /* Ensure 24px spacing between widgets */
+    padding: 0 !important; /* Remove any inherited padding to prevent gap conflicts */
+  }
+
+  .widget-drag-container {
+    contain: layout style paint;
+    transform-origin: center;
+    backface-visibility: hidden;
+    margin: 0 !important; /* Remove margins that conflict with grid gap */
+  }
+
+  .widget-drag-overlay {
+    contain: layout style paint;
+    transform-origin: center;
+    isolation: isolate;
+  }
+
+  /* Widget Grid Auto-fit Enhancement */
+  .widgets-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    align-items: start;
+  }
+
+  .widgets-responsive-grid {
+    /* Dynamic grid that adapts to content and screen size */
+    display: grid;
+    align-items: start;
+    /* Grid properties set dynamically via inline styles */
+  }
+
+  /* Performance optimizations for drag operations */
+  .widgets-responsive-grid .widget-slot {
+    transform-origin: center;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .widgets-responsive-grid .widget-slot.dragging {
+    will-change: transform;
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+
+  /* Improved Widget Grid Layout */
+  .widgets-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .widgets-layout {
+    width: 100%;
+  }
+
+  /* Fine-grained grid enhancements */
+  .grid-overlay {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  .grid-cell {
+    min-width: 20px;
+    min-height: 20px;
+    box-sizing: border-box;
+  }
+
+  /* Grid visualization */
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-line-horizontal,
+  .grid-line-vertical {
+    position: absolute;
+    background: hsl(var(--pip-border) / 0.2);
+  }
+
+  .grid-line-horizontal {
+    height: 1px;
+    width: 100%;
+  }
+
+  .grid-line-vertical {
+    width: 1px;
+    height: 100%;
+  }
+
+  /* Grid Drop Overlay */
+  .grid-drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .grid-drop-cell {
+    border: 2px dashed transparent;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    background: transparent;
+  }
+
+  .grid-drop-cell.valid-drop {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .grid-drop-cell.invalid-drop {
+    border-color: hsl(var(--destructive));
+    background: hsl(var(--destructive) / 0.1);
+  }
+
+  .grid-drop-cell.occupied {
+    background: hsl(var(--muted) / 0.3);
+    border-color: hsl(var(--muted-foreground) / 0.3);
+  }
+
+  /* Widget Drag Ghost */
+  .widget-drag-ghost {
+    transform: rotate(5deg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 2px solid hsl(var(--primary));
+  }
+
+  .widget-drag-ghost .widget-container {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--card) / 0.9);
+  }
+
+  /* Enhanced Widget Drag Styling */
+  .widget-dragging {
+    opacity: 0.6;
+    transform: rotate(1deg) scale(0.98);
+    box-shadow: 
+      0 8px 32px -8px hsl(var(--primary) / 0.4),
+      0 0 0 2px hsl(var(--primary) / 0.3);
+    z-index: 999;
+    contain: layout style paint;
+    will-change: transform, opacity;
+    transition: none !important;
+    animation: drag-lift 0.2s ease-out;
+    z-index: 1000;
+    box-shadow: 
+      0 20px 40px hsl(var(--pip-green-primary) / 0.3),
+      0 0 0 1px hsl(var(--pip-green-primary) / 0.5);
+  }
+
+  .widget-ghost {
+    opacity: 0.5;
+    border: 2px dashed hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .widget-drag-overlay {
+    animation: drag-lift 0.2s ease-out;
+    transform: rotate(5deg) scale(1.1);
+    opacity: 0.9;
+    filter: brightness(1.1);
+  }
+}

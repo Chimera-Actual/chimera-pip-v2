@@ -1,0 +1,74 @@
+/* Animation Utilities and Classes */
+@layer base {
+  .pip-boot-flicker {
+    animation: pip-boot-flicker 0.1s infinite;
+  }
+  
+  .pip-scan-line {
+    animation: pip-scan 2s linear infinite;
+  }
+
+  /* Modal animation utilities */
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .fade-in-0 {
+    animation-name: fade-in-0;
+  }
+
+  .zoom-in-95 {
+    animation-name: zoom-in-95;
+  }
+
+  .duration-300 {
+    animation-duration: 300ms;
+  }
+
+  .duration-200 {
+    animation-duration: 200ms;
+  }
+
+  .duration-500 {
+    animation-duration: 500ms;
+  }
+
+  /* Modal backdrop animations */
+  .modal-backdrop-enter {
+    animation: fade-in-0 300ms ease-out;
+  }
+
+  .modal-backdrop-exit {
+    animation: fade-in-0 300ms ease-out reverse;
+  }
+
+  .modal-content-enter {
+    animation: fade-in-0 300ms ease-out, zoom-in-95 300ms ease-out;
+  }
+
+  .modal-content-exit {
+    animation: fade-in-0 300ms ease-out reverse, zoom-in-95 300ms ease-out reverse;
+  }
+
+  /* Security and Rate Limiting UI */
+  .security-lockout {
+    @apply animate-pulse border-destructive bg-destructive/10;
+  }
+
+  .security-warning {
+    @apply text-destructive text-sm font-mono pip-text-glow;
+    animation: security-blink 1s infinite;
+  }
+
+  /* Pattern Lock Canvas */
+  .pattern-canvas {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Biometric Animation */
+  .biometric-scan {
+    animation: biometric-pulse 2s ease-in-out infinite;
+  }
+}

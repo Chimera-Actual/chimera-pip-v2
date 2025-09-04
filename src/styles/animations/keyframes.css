@@ -1,0 +1,88 @@
+/* Animation Keyframes */
+@layer base {
+  @keyframes pip-boot-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  @keyframes pip-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  @keyframes pip-glow {
+    0% { 
+      text-shadow: 0 0 10px hsl(var(--pip-green-primary) / 0.5);
+      box-shadow: 0 0 20px hsl(var(--pip-green-primary) / 0.2);
+    }
+    100% { 
+      text-shadow: 0 0 20px hsl(var(--pip-green-primary) / 0.8);
+      box-shadow: 0 0 40px hsl(var(--pip-green-primary) / 0.4);
+    }
+  }
+
+  @keyframes pip-pulse {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Advanced drag animations */
+  @keyframes drag-lift {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.05) rotate(2deg); }
+  }
+
+  @keyframes drag-drop {
+    0% { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  /* Animation keyframes for smooth UI transitions */
+  @keyframes fade-in-0 {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes zoom-in-95 {
+    from { transform: scale(0.95); }
+    to { transform: scale(1); }
+  }
+
+  @keyframes slide-in-from-bottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes slide-in-from-top {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes long-press-glow {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1); }
+  }
+
+  @keyframes security-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+  }
+
+  @keyframes biometric-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 0 20px hsl(var(--primary) / 0);
+      transform: scale(1.05);
+    }
+  }
+}

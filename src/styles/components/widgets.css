@@ -1,0 +1,96 @@
+/* Widget Container and System Styles */
+@layer base {
+  /* Widget Container Variants */
+  .pip-widget-standard {
+    @apply pip-terminal pip-glow pip-border-heavy;
+    backdrop-filter: blur(8px);
+  }
+
+  .pip-widget-dialog {
+    @apply bg-pip-bg-primary pip-border-heavy rounded-lg pip-glow pip-terminal pip-scanlines;
+  }
+
+  .pip-widget {
+    @apply pip-terminal pip-glow;
+    border: 2px solid hsl(var(--pip-border-bright) / 0.3);
+    backdrop-filter: blur(8px);
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.15s ease-out;
+    /* Ensure transforms work properly */
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+
+  .pip-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -8px hsl(var(--primary) / 0.3);
+  }
+
+  .pip-widget.sortable-dragging {
+    /* Enhanced dragging styles */
+    transform-origin: center;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .widget-container {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .widget-container:hover {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Widget Content Area */
+  .widget-content-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Critical for proper flexbox behavior */
+  }
+
+  /* Enhanced Widget System Styles for Simplified Grid */
+  .widget-content {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+  }
+
+  .widget-content > div:first-child {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Enhanced Touch Targets */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    position: relative;
+  }
+
+  .drag-handle {
+    /* Ensure drag handle is properly interactive */
+    position: relative;
+    z-index: 10;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .drag-handle:active {
+    transform: scale(0.95);
+    background-color: hsl(var(--primary) / 0.2);
+  }
+}

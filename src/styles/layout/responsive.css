@@ -1,0 +1,186 @@
+/* Responsive Design and Mobile Optimizations */
+@layer base {
+  @media (min-width: 1200px) {
+    .widgets-grid {
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .widgets-grid {
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+  }
+
+  /* Grid density responsive adjustments */
+  @media (max-width: 640px) {
+    .widgets-responsive-grid {
+      padding: 0.5rem;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .widgets-responsive-grid {
+      padding: 1rem;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    .widgets-responsive-grid {
+      padding: 1.5rem;
+    }
+  }
+
+  /* Mobile Enhancements */
+  @media (max-width: 768px) {
+    .widgets-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .widgets-layout {
+      gap: 16px;
+    }
+    
+    .widget-container {
+      min-width: 100%;
+    }
+    
+    .pip-special-stat {
+      padding: 0.75rem;
+    }
+    
+    /* Touch-friendly controls */
+    .collapse-button,
+    .widget-control-button {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 8px;
+    }
+    
+    .drag-handle {
+      min-width: 48px;
+      min-height: 48px;
+      cursor: grab;
+      touch-action: manipulation;
+    }
+    
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    
+    /* Pull-to-refresh indicator */
+    .pull-to-refresh {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: hsl(var(--pip-text-secondary));
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: all 0.3s ease;
+    }
+    
+    .pull-to-refresh.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Improved text readability on small screens */
+    .widget-title {
+      font-size: 12px;
+    }
+    
+    /* Mobile-specific grid layouts */
+    .character-info-grid,
+    .system-monitor-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    
+    .forecast-grid {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+
+  /* Touch device optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    .hover\:bg-pip-green-primary\/20:hover {
+      background-color: transparent;
+    }
+    
+    /* Touch feedback animations */
+    .touch-feedback:active {
+      background-color: hsl(var(--pip-green-primary) / 0.3);
+      transform: scale(0.95);
+      transition: all 0.1s ease;
+    }
+    
+    .collapse-button:active,
+    .widget-control-button:active {
+      background-color: hsl(var(--pip-green-primary) / 0.3);
+      transform: scale(0.98);
+    }
+    
+    /* Long press indicator */
+    .long-press-indicator {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .long-press-indicator::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, hsl(var(--pip-green-primary) / 0.2) 0%, transparent 70%);
+      opacity: 0;
+      animation: long-press-glow 0.4s ease-out;
+    }
+  }
+
+  /* High DPI display optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .pip-text-glow {
+      text-shadow: 
+        0 0 2px currentColor,
+        0 0 4px currentColor,
+        0 0 6px currentColor;
+    }
+    
+    .pip-glow {
+      box-shadow: 
+        0 0 5px hsl(var(--pip-green-primary) / 0.3),
+        0 0 10px hsl(var(--pip-green-primary) / 0.2),
+        0 0 15px hsl(var(--pip-green-primary) / 0.1),
+        inset 0 0 1px hsl(var(--pip-green-primary) / 0.1);
+    }
+  }
+
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    :root {
+      --pip-border: 120 100% 50%;
+      --pip-border-bright: 120 100% 70%;
+      --pip-text-primary: 120 100% 95%;
+      --pip-text-secondary: 120 100% 85%;
+    }
+  }
+
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .pip-boot-flicker,
+    .pip-scan-line {
+      animation: none;
+    }
+  }
+}
