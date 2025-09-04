@@ -75,7 +75,7 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
           "transition-all duration-200 ease-in-out",
           isDragging && "widget-dragging",
           widget.widgetWidth === 'full' 
-            ? 'col-span-full md:col-span-2' 
+            ? 'col-span-full lg:col-span-3 md:col-span-2' 
             : 'col-span-1'
         )}
       >
@@ -253,10 +253,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <AnimatedWidgetGrid className={cn(
-            'widget-grid-main gap-4 auto-rows-max',
-            isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
-          )}>
+          <AnimatedWidgetGrid className="widget-grid-main">
             {widgets.length === 0 ? (
               <EmptyGridState onAddWidget={() => setShowAddWidget(true)} />
             ) : (
