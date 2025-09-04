@@ -81,15 +81,22 @@ export const AnimatedWidgetGrid: React.FC<AnimatedWidgetGridProps> = memo(({
   className
 }) => {
   return (
-    <StaggeredContainer 
-      stagger={150}
+    <div 
       className={cn(
-        'grid gap-4 auto-rows-max grid-cols-1 md:grid-cols-2',
+        'grid gap-6 auto-rows-max p-4',
+        'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        'widget-grid-stable',
         className
       )}
+      style={{
+        contain: 'layout',
+        minHeight: '400px'
+      }}
     >
-      {children}
-    </StaggeredContainer>
+      <StaggeredContainer stagger={150}>
+        {children}
+      </StaggeredContainer>
+    </div>
   );
 });
 

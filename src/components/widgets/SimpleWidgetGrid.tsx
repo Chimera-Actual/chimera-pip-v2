@@ -67,14 +67,18 @@ const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, upda
   }, [widget.id, onUpdate]);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "relative",
-        widget.widgetWidth === 'full' ? 'col-span-2' : 'col-span-1'
-      )}
-    >
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={cn(
+          "relative widget-drag-container",
+          "transition-all duration-200 ease-in-out",
+          isDragging && "widget-dragging",
+          widget.widgetWidth === 'full' 
+            ? 'col-span-full md:col-span-2' 
+            : 'col-span-1'
+        )}
+      >
       <WidgetContainer
         widgetId={widget.id}
         widgetType={widget.type}
@@ -152,10 +156,7 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     const newWidth: WidgetWidth = widget.widgetWidth === 'full' ? 'half' : 'full';
     console.log(`Toggling widget ${widget.id} from ${widget.widgetWidth} to ${newWidth}`);
     updateWidget(widget.id, { widgetWidth: newWidth });
-    
-    // Force re-render by updating the widget through handleUpdate as well
-    handleUpdate(widget.id, { widgetWidth: newWidth });
-  }, [updateWidget, handleUpdate]);
+  }, [updateWidget]);
 
   // Use simple lazy loading for large collections (>15 widgets)
   if (widgets.length > 15) {
@@ -165,7 +166,10 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
           Rendering {widgets.length} widgets with performance optimization
         </div>
         
-        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2')} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        <div className={cn(
+          'grid gap-4 auto-rows-max widget-grid-container',
+          isMobile ? 'grid-cols-1' : 'grid-cols-2'
+        )} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {widgets.map((widget, index) => {
             // Lazy render widgets not in viewport
             const isVisible = index < 20 || (index >= 20 && index % 5 === 0); // Show first 20, then every 5th
@@ -250,8 +254,8 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
           <AnimatedWidgetGrid className={cn(
-            'auto-rows-max',
-            isMobile ? 'grid-cols-1' : 'grid-cols-2'
+            'widget-grid-main gap-4 auto-rows-max',
+            isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
           )}>
             {widgets.length === 0 ? (
               <EmptyGridState onAddWidget={() => setShowAddWidget(true)} />

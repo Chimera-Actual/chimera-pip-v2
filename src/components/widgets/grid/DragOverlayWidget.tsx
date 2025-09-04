@@ -21,9 +21,18 @@ export const DragOverlayWidget: React.FC<DragOverlayWidgetProps> = memo(({
 }) => {
   return (
     <div className={cn(
-      "bg-background border border-border rounded-lg shadow-lg opacity-80",
-      widget.widgetWidth === 'full' ? 'w-full' : 'w-1/2'
-    )}>
+      "widget-drag-overlay",
+      "bg-pip-bg-secondary/90 border-2 border-pip-border-bright/60",
+      "rounded-lg shadow-pip-glow backdrop-blur-sm",
+      "transform rotate-2 scale-105 opacity-90",
+      "transition-none pointer-events-none",
+      widget.widgetWidth === 'full' ? 'w-full max-w-2xl' : 'w-96'
+    )}
+    style={{
+      contain: 'layout style paint',
+      willChange: 'transform',
+      zIndex: 1000
+    }}>
       <WidgetContainer
         widgetId={widget.id}
         widgetType={widget.type}
