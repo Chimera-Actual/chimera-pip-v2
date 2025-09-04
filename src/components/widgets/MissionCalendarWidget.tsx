@@ -268,10 +268,8 @@ export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(
           {/* Add Mission Form */}
           {showAddForm && (
             <Card className="pip-special-stat">
-              <CardHeader>
-                <CardTitle className="text-sm font-pip-mono">Create New Mission</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-4">
+                <h4 className="text-sm font-pip-mono font-semibold mb-3">Create New Mission</h4>
                 <Input
                   placeholder="Mission title"
                   value={newMission.title}
@@ -375,11 +373,11 @@ export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(
                 
                 return (
                   <Card key={mission.id} className={`pip-special-stat ${isOverdue ? 'border-pip-accent-red' : ''}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <IconComponent className="h-4 w-4 text-pip-accent-green" />
-                          <CardTitle className="text-sm font-pip-mono">{mission.title}</CardTitle>
+                          <h4 className="text-sm font-pip-mono font-semibold">{mission.title}</h4>
                           <Badge variant="outline" className={`text-xs font-pip-mono ${priorityColors[mission.priority]}`}>
                             {mission.priority}
                           </Badge>
@@ -418,9 +416,7 @@ export const MissionCalendarWidget: React.FC<MissionCalendarWidgetProps> = memo(
                           </Button>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0 space-y-2">
-                      <p className="text-xs text-pip-text-muted font-pip-mono">
+                      <p className="text-xs text-pip-text-muted font-pip-mono mb-2">
                         {mission.description}
                       </p>
                       

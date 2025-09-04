@@ -261,10 +261,8 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widge
           {/* Add Entry Form */}
           {showAddForm && (
             <Card className="pip-special-stat">
-              <CardHeader>
-                <CardTitle className="text-sm font-pip-mono">Add New Entry</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-4">
+                <h4 className="text-sm font-pip-mono font-semibold mb-3">Add New Entry</h4>
                 <div className="flex gap-2">
                   {(['password', 'note', 'card', 'key'] as const).map(type => (
                     <Badge
@@ -338,11 +336,11 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widge
                 
                 return (
                   <Card key={entry.id} className="pip-special-stat">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <IconComponent className="h-4 w-4 text-pip-accent-green" />
-                          <CardTitle className="text-sm font-pip-mono">{entry.title}</CardTitle>
+                          <h4 className="text-sm font-pip-mono font-semibold">{entry.title}</h4>
                           <Badge variant="outline" className="text-xs font-pip-mono capitalize">
                             {entry.type}
                           </Badge>
@@ -358,8 +356,6 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widge
                           </Button>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0 space-y-2">
                       {entry.data.username && (
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-pip-text-muted font-pip-mono">Username:</span>

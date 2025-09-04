@@ -267,10 +267,8 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = memo(({ widget }) =
           {/* Settings Panel */}
           {showSettings && (
             <Card className="pip-special-stat">
-              <CardHeader>
-                <CardTitle className="text-sm font-pip-mono">AI Personality</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-4">
+                <h4 className="text-sm font-pip-mono font-semibold mb-3">AI Personality</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {personalities.map(personality => (
                     <Button

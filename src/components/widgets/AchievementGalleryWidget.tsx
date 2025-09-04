@@ -195,15 +195,15 @@ export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> =
                 
                 return (
                   <Card key={achievement.id} className={`pip-special-stat ${isUnlocked ? '' : 'opacity-60'}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <IconComponent 
                             className={`h-5 w-5 ${isUnlocked ? rarityColors[achievement.achievement_data.rarity] : 'text-pip-text-muted'}`}
                           />
-                          <CardTitle className="text-sm font-pip-mono">
+                          <h4 className="text-sm font-pip-mono font-semibold">
                             {achievement.achievement_data.title}
-                          </CardTitle>
+                          </h4>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs font-pip-mono">
@@ -212,8 +212,6 @@ export const AchievementGalleryWidget: React.FC<AchievementGalleryWidgetProps> =
                           {isUnlocked && <Trophy className="h-4 w-4 text-pip-accent-amber" />}
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
                       <p className="text-xs text-pip-text-muted font-pip-mono mb-2">
                         {achievement.achievement_data.description}
                       </p>
