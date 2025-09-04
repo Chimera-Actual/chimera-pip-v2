@@ -39,15 +39,6 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
         </div>
       </div>
 
-      {/* Center: System Info */}
-      <div className="flex items-center space-x-6">
-        <div className="text-center">
-          <div className="text-sm text-primary font-pip-mono pip-text-glow">
-            {profile?.vault_number?.toString().padStart(3, '0') || '000'}
-          </div>
-        </div>
-      </div>
-
       {/* Right: Controls */}
       <div className="flex items-center space-x-3">
         {/* Sound Toggle */}
