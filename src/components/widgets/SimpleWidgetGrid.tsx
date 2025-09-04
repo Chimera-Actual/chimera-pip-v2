@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
@@ -38,7 +38,7 @@ export interface SimpleWidgetGridProps {
 }
 
 // Sortable Widget Component
-const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onArchive: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = ({ widget, onUpdate, onDelete, onArchive, onToggleWidth, isMobile }) => {
+const SortableWidget: React.FC<{ widget: BaseWidget; onUpdate: (id: string, updates: Partial<BaseWidget>) => void; onDelete: (id: string) => void; onArchive: (id: string) => void; onToggleWidth: (widget: BaseWidget) => void; isMobile: boolean }> = memo(({ widget, onUpdate, onDelete, onArchive, onToggleWidth, isMobile }) => {
   const {
     attributes,
     listeners,
