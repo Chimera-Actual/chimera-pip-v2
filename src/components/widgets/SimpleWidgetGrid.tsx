@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
+  closestCorners,
   KeyboardSensor,
   PointerSensor,
   TouchSensor,
@@ -9,7 +10,10 @@ import {
   useSensors,
   DragEndEvent,
   DragOverlay,
-  DragStartEvent
+  DragStartEvent,
+  DragOverEvent,
+  CollisionDetection,
+  rectIntersection
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -68,6 +72,7 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
   const [showAddWidget, setShowAddWidget] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragOverBlankArea, setDragOverBlankArea] = useState(false);
   
   const isMobile = useIsMobile();
   const widgets = getWidgetsByTab(tab as any);
@@ -121,32 +126,111 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     setIsDragging(true);
+    setDragOverBlankArea(false);
+  }, []);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { over } = event;
+    // Set blank area state when not hovering over a widget
+    setDragOverBlankArea(!over?.id);
+  }, []);
+
+  // Custom collision detection that handles blank areas
+  const customCollisionDetection: CollisionDetection = useCallback((args) => {
+    // First try the standard collision detection
+    const closestCornersCollisions = closestCorners(args);
+    
+    if (closestCornersCollisions.length > 0) {
+      return closestCornersCollisions;
+    }
+
+    // If no collisions found, try rect intersection for broader detection
+    const rectCollisions = rectIntersection(args);
+    
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+
+    // If still no collisions and we're dragging, create a virtual drop zone
+    // This allows dropping at the end of the list
+    return [];
   }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over, delta } = event;
     
     setActiveId(null);
     setIsDragging(false);
+    setDragOverBlankArea(false); // Clear blank area state
 
-    if (active.id !== over?.id && over?.id) {
-      const oldIndex = widgets.findIndex(w => w.id === active.id);
-      const newIndex = widgets.findIndex(w => w.id === over.id);
+    const draggedWidgetId = active.id as string;
+    const oldIndex = widgets.findIndex(w => w.id === draggedWidgetId);
+    
+    if (oldIndex === -1) return;
+
+    let newIndex = oldIndex;
+    let reorderedWidgets: BaseWidget[] = [];
+
+    if (over?.id && over.id !== active.id) {
+      // Standard widget-to-widget reordering
+      const targetIndex = widgets.findIndex(w => w.id === over.id);
+      if (targetIndex !== -1) {
+        newIndex = targetIndex;
+        reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+      }
+    } else if (!over?.id) {
+      // Handle blank area drops - calculate position based on drag distance/direction
+      const moveThreshold = 50; // Minimum movement to trigger reorder
       
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+      if (Math.abs(delta.y) > moveThreshold || Math.abs(delta.x) > moveThreshold) {
+        // Determine if moving forward or backward in the grid
+        const isMovingDown = delta.y > moveThreshold;
+        const isMovingRight = delta.x > moveThreshold;
+        const isMovingUp = delta.y < -moveThreshold;
+        const isMovingLeft = delta.x < -moveThreshold;
         
-        // Create batch updates for all affected widgets
-        const widgetUpdates = reorderedWidgets.map((widget, index) => ({
-          id: widget.id,
-          updates: { order: index }
-        }));
-
-        // Use debounced batch update
-        debouncedBatchUpdate(widgetUpdates);
+        if (isMovingDown || (isMovingRight && !isMobile)) {
+          // Move towards end of list
+          newIndex = Math.min(widgets.length - 1, oldIndex + 1);
+        } else if (isMovingUp || (isMovingLeft && !isMobile)) {
+          // Move towards beginning of list
+          newIndex = Math.max(0, oldIndex - 1);
+        }
+        
+        // Special case: if dragged far enough, move to end/beginning
+        if (Math.abs(delta.y) > 200 || Math.abs(delta.x) > 200) {
+          newIndex = isMovingDown || isMovingRight ? widgets.length - 1 : 0;
+        }
+        
+        if (newIndex !== oldIndex) {
+          reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+        }
       }
     }
-  }, [widgets, debouncedBatchUpdate]);
+
+    // Apply reordering if position changed
+    if (newIndex !== oldIndex && reorderedWidgets.length > 0) {
+      const widgetUpdates = reorderedWidgets.map((widget, index) => ({
+        id: widget.id,
+        updates: { order: index }
+      }));
+
+      debouncedBatchUpdate(widgetUpdates);
+      
+      // Show success feedback
+      toast({
+        title: 'Widget Moved',
+        description: `Moved "${widgets[oldIndex].title}" to position ${newIndex + 1}`,
+      });
+    } else if (!over?.id) {
+      // Provide feedback when dropping in blank area doesn't result in movement
+      toast({
+        title: 'Drop Area',
+        description: 'Drag further to reorder widgets, or drop on another widget to swap positions',
+        variant: 'default',
+      });
+    }
+  }, [widgets, debouncedBatchUpdate, isMobile]);
 
   const activeWidget = useMemo(() => 
     widgets.find(w => w.id === activeId),
@@ -193,16 +277,29 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
     <div className={cn('flex flex-col space-y-4', className)}>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
           <div className={cn(
-            'grid gap-4 auto-rows-max transition-all duration-200',
+            'grid gap-4 auto-rows-max transition-all duration-200 relative',
             isMobile ? 'grid-cols-1' : 'grid-cols-2',
-            isDragging && 'pointer-events-none select-none'
+            isDragging && 'pointer-events-none select-none',
+            dragOverBlankArea && isDragging && 'bg-pip-green-primary/5 border-2 border-dashed border-pip-green-primary/30 rounded-lg'
           )}>
+            {/* Blank area drop indicator */}
+            {dragOverBlankArea && isDragging && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div className="bg-pip-bg/90 border border-pip-green-primary/50 rounded-lg px-4 py-2 backdrop-blur-sm">
+                  <span className="text-pip-green-primary font-pip-mono text-sm pip-text-glow">
+                    Drop here to reorder widget
+                  </span>
+                </div>
+              </div>
+            )}
+            
             <WidgetGridControls
               onShowAddWidget={() => setShowAddWidget(true)}
               widgetCount={widgets.length}
