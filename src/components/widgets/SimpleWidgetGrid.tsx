@@ -37,18 +37,6 @@ export interface SimpleWidgetGridProps {
   className?: string;
 }
 
-// Debounce utility for batch operations
-const useDebouncedCallback = (callback: (...args: any[]) => void, delay: number) => {
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
-  
-  return useCallback((...args: any[]) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => callback(...args), delay);
-  }, [callback, delay]);
-};
-
 export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, className = '' }) => {
   const { getWidgetsByTab, updateMultipleWidgets } = useWidgets();
   const { 
@@ -106,23 +94,6 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
     })
   );
 
-  // Debounced batch update for reordering
-  const debouncedBatchUpdate = useDebouncedCallback(
-    async (widgetUpdates: Array<{id: string; updates: Partial<BaseWidget>}>) => {
-      try {
-        await updateMultipleWidgets(widgetUpdates);
-        toast({
-          title: 'Widgets Reordered',
-          description: 'Widget order updated successfully.',
-        });
-      } catch (error) {
-        // Error handling is already done in updateMultipleWidgets with rollback
-        console.error('Failed to update widget order:', error);
-      }
-    },
-    300 // 300ms delay to batch rapid changes
-  );
-
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     setIsDragging(true);
@@ -156,7 +127,7 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
     return [];
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over, delta } = event;
     
     setActiveId(null);
@@ -215,13 +186,17 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
         updates: { order: index }
       }));
 
-      debouncedBatchUpdate(widgetUpdates);
-      
-      // Show success feedback
-      toast({
-        title: 'Widget Moved',
-        description: `Moved "${widgets[oldIndex].title}" to position ${newIndex + 1}`,
-      });
+      // Call updateMultipleWidgets directly - no debouncing needed
+      try {
+        await updateMultipleWidgets(widgetUpdates);
+        toast({
+          title: 'Widget Moved',
+          description: `Moved "${widgets[oldIndex].title}" to position ${newIndex + 1}`,
+        });
+      } catch (error) {
+        console.error('Failed to reorder widgets:', error);
+        // Error handling and rollback is already done in updateMultipleWidgets
+      }
     } else if (!over?.id) {
       // Provide feedback when dropping in blank area doesn't result in movement
       toast({
@@ -230,7 +205,7 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
         variant: 'default',
       });
     }
-  }, [widgets, debouncedBatchUpdate, isMobile]);
+  }, [widgets, updateMultipleWidgets, isMobile]);
 
   const activeWidget = useMemo(() => 
     widgets.find(w => w.id === activeId),

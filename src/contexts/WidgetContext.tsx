@@ -66,67 +66,43 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         throw fetchError;
       }
 
-      // First, group widgets by tab assignment and sort by order_position
-      const widgetsByTab = (data || []).reduce((acc, widget) => {
-        const tabAssignment = widget.tab_assignment as TabAssignment;
-        if (!acc[tabAssignment]) acc[tabAssignment] = [];
-        acc[tabAssignment].push(widget);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      // Process each tab's widgets and assign sequential order positions
-      const allWidgets: BaseWidget[] = [];
-      Object.entries(widgetsByTab).forEach(([tab, tabWidgets]) => {
-        // Sort widgets within tab by existing order_position, then by created_at
-        const sortedTabWidgets = tabWidgets.sort((a, b) => {
-          if (a.order_position !== null && b.order_position !== null) {
-            return a.order_position - b.order_position;
-          }
-          if (a.order_position !== null) return -1;
-          if (b.order_position !== null) return 1;
-          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        });
-
-        // Map widgets with guaranteed unique order positions
-        sortedTabWidgets.forEach((widget, index) => {
-          try {
-            const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
-            const widgetType = widget.widget_type as WidgetType;
-            
-            // Validate widget type exists
-            const definition = WidgetFactory.getDefinition(widgetType);
-            
-            const processedWidget: BaseWidget = {
-              id: widget.id,
-              type: widgetType,
-              title: widgetConfig?.title || definition.title,
-              customIcon: widgetConfig?.customIcon || undefined,
-              collapsed: widget.is_collapsed || false,
-              archived: widget.is_archived || false,
-              order: index, // Use array index to ensure unique sequential order
-              widgetWidth: (widget.widget_width as WidgetWidth) || 'half',
-              tabAssignment: widget.tab_assignment as TabAssignment,
-              settings: widgetConfig?.settings || definition.defaultSettings,
-              userId: widget.user_id,
-              createdAt: new Date(widget.created_at || Date.now()),
-              updatedAt: new Date(widget.updated_at || Date.now()),
-            };
-
-            allWidgets.push(processedWidget);
-          } catch (widgetError) {
-            reportWarning(
-              'Failed to parse widget data',
-              { 
-                widgetId: widget.id, 
-                userId: user.id,
-                component: 'WidgetContext',
-                action: 'loadWidgets'
-              }
-            );
-            // Skip invalid widgets - don't add them to the array
-          }
-        });
-      });
+      // Process widgets directly - trust the database order positions since they're now guaranteed to be unique
+      const allWidgets: BaseWidget[] = (data || []).map(widget => {
+        try {
+          const widgetConfig = widget.widget_config as unknown as WidgetConfigDB;
+          const widgetType = widget.widget_type as WidgetType;
+          
+          // Validate widget type exists
+          const definition = WidgetFactory.getDefinition(widgetType);
+          
+          return {
+            id: widget.id,
+            type: widgetType,
+            title: widgetConfig?.title || definition.title,
+            customIcon: widgetConfig?.customIcon || undefined,
+            collapsed: widget.is_collapsed || false,
+            archived: widget.is_archived || false,
+            order: widget.order_position || 0, // Use actual database order_position
+            widgetWidth: (widget.widget_width as WidgetWidth) || 'half',
+            tabAssignment: widget.tab_assignment as TabAssignment,
+            settings: widgetConfig?.settings || definition.defaultSettings,
+            userId: widget.user_id,
+            createdAt: new Date(widget.created_at || Date.now()),
+            updatedAt: new Date(widget.updated_at || Date.now()),
+          } as BaseWidget;
+        } catch (widgetError) {
+          reportWarning(
+            'Failed to parse widget data',
+            { 
+              widgetId: widget.id, 
+              userId: user.id,
+              component: 'WidgetContext',
+              action: 'loadWidgets'
+            }
+          );
+          return null;
+        }
+      }).filter((widget): widget is BaseWidget => widget !== null);
 
       // Separate active and archived widgets
       const activeWidgets = allWidgets.filter(w => !w.archived);
