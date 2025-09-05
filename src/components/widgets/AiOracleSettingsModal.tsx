@@ -230,10 +230,7 @@ export const AiOracleSettingsModal = ({
                       <Label>Default Agent for this Widget</Label>
                       <Select 
                         value={settings.selectedAgentId || ''} 
-                        onValueChange={(value) => {
-                          console.log('Agent selection change:', { value, currentSettings: settings });
-                          onSettingsChange({ selectedAgentId: value });
-                        }}
+                        onValueChange={(value) => onSettingsChange({ selectedAgentId: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select an agent" />

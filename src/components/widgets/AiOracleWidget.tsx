@@ -53,12 +53,11 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
   
   // Settings update function
   const handleSettingsChange = useCallback((newSettings: Partial<AiOracleSettings>) => {
-    console.log('AiOracleWidget handleSettingsChange:', { newSettings, currentSettings: aiSettings });
     setAiSettings(prev => ({
       ...prev,
       ...newSettings
     }));
-  }, [setAiSettings, aiSettings]);
+  }, [setAiSettings]);
   
   // Initialize selected agent with fallback behavior
   useEffect(() => {
@@ -91,16 +90,9 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
 
   // Listen for agent selection changes from settings modal
   useEffect(() => {
-    console.log('Agent selection effect:', { 
-      isInitialized, 
-      selectedAgentId: aiSettings?.selectedAgentId, 
-      currentAgentId: selectedAgentId, 
-      agentsCount: agents.length 
-    });
     if (isInitialized && aiSettings?.selectedAgentId && agents.length > 0) {
       const agentExists = agents.find(a => a.id === aiSettings.selectedAgentId);
       if (agentExists && selectedAgentId !== aiSettings.selectedAgentId) {
-        console.log('Switching agent from', selectedAgentId, 'to', aiSettings.selectedAgentId);
         setSelectedAgentId(aiSettings.selectedAgentId);
         loadConversation(widget.id, aiSettings.selectedAgentId);
       }

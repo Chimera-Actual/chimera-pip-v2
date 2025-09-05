@@ -35,15 +35,33 @@ class LocalStorageService {
       const item = localStorage.getItem(key);
       if (item === null) return null;
 
-      const value = deserialize(item);
+      // First try to deserialize as JSON
+      try {
+        const value = deserialize(item);
+        
+        if (validator && !validator(value)) {
+          console.warn(`Invalid value in localStorage for key "${key}"`);
+          this.remove(key);
+          return null;
+        }
 
-      if (validator && !validator(value)) {
-        console.warn(`Invalid value in localStorage for key "${key}"`);
+        return value as T;
+      } catch (parseError) {
+        // If JSON parsing fails, check if it's a simple string value for themes
+        if (key === 'pip-boy-theme' && typeof item === 'string') {
+          // Handle legacy theme storage (raw string instead of JSON)
+          const validThemes = ['green', 'amber', 'blue', 'red', 'white'];
+          if (validThemes.includes(item)) {
+            // Migrate to proper JSON storage
+            this.set(key, item as T, options);
+            return item as T;
+          }
+        }
+        
+        console.warn(`Error parsing localStorage key "${key}", removing corrupted data:`, parseError);
         this.remove(key);
         return null;
       }
-
-      return value as T;
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
       return null;
