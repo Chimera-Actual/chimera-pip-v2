@@ -201,6 +201,7 @@ export class WidgetFactory {
       id: crypto.randomUUID(),
       type,
       title: definition.title,
+      name: definition.title,
       collapsed: false,
       archived: false,
       order: 0,

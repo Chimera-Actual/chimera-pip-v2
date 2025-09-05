@@ -11,7 +11,7 @@ export interface ServiceWorkerConfig {
 
 class ServiceWorkerManager {
   private registration: ServiceWorkerRegistration | null = null;
-  private updateInterval: NodeJS.Timer | null = null;
+  private updateInterval: number | null = null;
   private config: ServiceWorkerConfig = {
     enabled: import.meta.env.PROD, // Only enable in production by default
     updateInterval: 60 * 60 * 1000, // Check for updates every hour
@@ -34,7 +34,7 @@ class ServiceWorkerManager {
 
       // Check for updates periodically
       if (this.config.updateInterval && this.config.updateInterval > 0) {
-        this.updateInterval = setInterval(() => {
+        this.updateInterval = window.setInterval(() => {
           this.registration?.update();
         }, this.config.updateInterval);
       }
@@ -166,7 +166,7 @@ class ServiceWorkerManager {
 
   private scheduleCacheCleanup() {
     // Schedule cache cleanup every 24 hours
-    setInterval(() => {
+    window.setInterval(() => {
       if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
           type: 'CLEANUP_CACHES',
@@ -205,7 +205,7 @@ class ServiceWorkerManager {
     try {
       // Clear update interval
       if (this.updateInterval) {
-        clearInterval(this.updateInterval);
+        window.clearInterval(this.updateInterval);
         this.updateInterval = null;
       }
 

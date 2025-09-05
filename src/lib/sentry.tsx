@@ -205,7 +205,7 @@ class SentryManager {
   // Wrap React components with error boundary
   withErrorBoundary<P extends object>(
     Component: React.ComponentType<P>,
-    errorBoundaryOptions?: Sentry.ErrorBoundaryOptions
+    errorBoundaryOptions?: Sentry.ErrorBoundaryProps
   ) {
     if (!this.initialized) {
       return Component;

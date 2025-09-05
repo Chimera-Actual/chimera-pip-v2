@@ -3,11 +3,7 @@ import { useEffect } from 'react';
 
 declare global {
   interface Window {
-    gtag?: (
-      command: string,
-      eventName: string,
-      config?: Record<string, any>
-    ) => void;
+    gtag?: (...args: any[]) => void;
   }
 }
 

@@ -31,7 +31,7 @@ export const SpecialStatsSection = ({
   specialStats,
   onAdjustStat,
   availablePoints
-}) => {
+}: SpecialStatsSectionProps) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -44,7 +44,9 @@ export const SpecialStatsSection = ({
       </div>
       
       <div className="grid grid-cols-1 gap-4">
-        {Object.entries(specialStats).map(([stat, value]) => (
+        {Object.entries(specialStats).map(([stat, value]) => {
+          const statValue = value as number;
+          return (
           <div key={stat} className="pip-special-stat p-4 rounded">
             <div className="flex justify-between items-center mb-2">
               <div>
@@ -61,29 +63,30 @@ export const SpecialStatsSection = ({
                   variant="outline"
                   size="sm"
                   onClick={() => onAdjustStat(stat as keyof SpecialStats, -1)}
-                  disabled={value <= 1}
+                  disabled={statValue <= 1}
                   className="pip-terminal border-pip-border hover:border-primary font-mono"
                 >
                   -
                 </Button>
                 <span className="font-mono font-bold text-primary text-xl min-w-[2ch] text-center">
-                  {value}
+                  {statValue}
                 </span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => onAdjustStat(stat as keyof SpecialStats, 1)}
-                  disabled={value >= 10 || availablePoints <= 0}
+                  disabled={statValue >= 10 || availablePoints <= 0}
                   className="pip-terminal border-pip-border hover:border-primary font-mono"
                 >
                   +
                 </Button>
               </div>
             </div>
-            <Progress value={(value / 10) * 100} className="h-2" />
+            <Progress value={(statValue / 10) * 100} className="h-2" />
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

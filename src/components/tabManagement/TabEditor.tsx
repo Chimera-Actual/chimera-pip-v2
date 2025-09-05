@@ -46,7 +46,7 @@ const colorOptions = [
   { value: 'hsl(180 100% 55%)', label: 'Cyan', color: 'hsl(180 100% 55%)' },
 ];
 
-export const TabEditor = memo(({ tab, isOpen, onClose, onSave }) => {
+export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',

@@ -23,6 +23,7 @@ export interface BaseWidget {
   id: string;
   type: WidgetType;
   title: string;
+  name: string;
   customIcon?: string; // Custom icon override for this widget instance
   collapsed: boolean;
   archived: boolean;
