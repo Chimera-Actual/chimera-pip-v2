@@ -304,7 +304,7 @@ class ThemeManager {
         this.currentMode = config.mode;
       }
     } catch (error) {
-      console.warn('Failed to load theme config:', error);
+      // Failed to load theme config
     }
   }
 
@@ -315,14 +315,14 @@ class ThemeManager {
         mode: this.currentMode,
       });
     } catch (error) {
-      console.warn('Failed to save theme config:', error);
+      // Failed to save theme config
     }
   }
 
   private applyTheme() {
     const theme = AVAILABLE_THEMES[this.currentTheme];
     if (!theme) {
-      console.warn(`Theme '${this.currentTheme}' not found`);
+      // Theme not found
       return;
     }
 
@@ -366,7 +366,7 @@ class ThemeManager {
 
   setTheme(themeId: string, persist = true): boolean {
     if (!AVAILABLE_THEMES[themeId]) {
-      console.warn(`Theme '${themeId}' not found`);
+      // Theme not found
       return false;
     }
 
@@ -404,7 +404,7 @@ class ThemeManager {
   // Custom theme support
   addCustomTheme(theme: PipTheme): boolean {
     if (AVAILABLE_THEMES[theme.id]) {
-      console.warn(`Theme '${theme.id}' already exists`);
+      // Theme already exists
       return false;
     }
 
@@ -419,7 +419,7 @@ class ThemeManager {
     }
 
     if (theme.isDefault) {
-      console.warn('Cannot remove default theme');
+      // Cannot remove default theme
       return false;
     }
 

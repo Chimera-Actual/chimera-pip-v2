@@ -19,4 +19,55 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Split vendor chunks for better caching
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@radix-ui') || id.includes('@dnd-kit')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('lodash') || id.includes('date-fns')) {
+              return 'vendor-utils';
+            }
+            if (id.includes('recharts') || id.includes('react-markdown')) {
+              return 'vendor-charts';
+            }
+            return 'vendor-misc';
+          }
+          // Split widget components
+          if (id.includes('src/components/widgets')) {
+            return 'widgets';
+          }
+          // Split UI components
+          if (id.includes('src/components/ui')) {
+            return 'ui-components';
+          }
+        },
+      },
+    },
+    // Enable minification optimizations
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        drop_debugger: true,
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : [],
+      },
+    },
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    // Generate source maps for production debugging
+    sourcemap: mode === 'development',
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
 }));

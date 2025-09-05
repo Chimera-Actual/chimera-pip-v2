@@ -147,7 +147,7 @@ const SortableTab = React.memo<{
   );
 });
 
-export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange }) => {
+export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange }) => {
   const { tabs, createTab, reorderTabs, isLoading } = useTabManager();
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<TabConfiguration | null>(null);
@@ -306,4 +306,4 @@ export const PipBoyTabs: React.FC<PipBoyTabsProps> = ({ currentTab, onTabChange 
       )}
     </>
   );
-};
+});

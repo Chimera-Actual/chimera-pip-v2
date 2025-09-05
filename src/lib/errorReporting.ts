@@ -19,7 +19,7 @@ interface ErrorReport {
 }
 
 class ErrorReporter {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.DEV;
 
   /**
    * Report an error with context information

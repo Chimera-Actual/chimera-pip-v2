@@ -1,4 +1,3 @@
-import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Check, X } from 'lucide-react';
 
@@ -6,7 +5,7 @@ interface PasswordStrengthIndicatorProps {
   password: string;
 }
 
-export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
+export const PasswordStrengthIndicator = ({
   password
 }) => {
   const getPasswordStrength = (password: string): number => {

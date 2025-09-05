@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { Check } from 'lucide-react';
 import { TabConfiguration } from '@/types/tabManagement';
 import { reportError } from '@/lib/errorReporting';
@@ -46,7 +46,7 @@ const colorOptions = [
   { value: 'hsl(180 100% 55%)', label: 'Cyan', color: 'hsl(180 100% 55%)' },
 ];
 
-export const TabEditor: React.FC<TabEditorProps> = memo(({ tab, isOpen, onClose, onSave }) => {
+export const TabEditor = memo(({ tab, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +29,7 @@ interface DashboardModalsProps {
   onDeleteTab: () => void;
 }
 
-export const DashboardModals: React.FC<DashboardModalsProps> = ({
+export const DashboardModals = ({
   showAdvancedCatalog,
   onCloseAdvancedCatalog,
   onAddWidget,

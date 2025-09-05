@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,20 +10,24 @@ import { CanvasProvider } from "@/contexts/CanvasContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PerformanceProvider, OptimizedWidgetProvider } from "@/features/state-management";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { VaultLogin } from "@/components/auth/VaultLogin";
-import { VaultRegistration } from "@/components/auth/VaultRegistration";
-import { CharacterCreation } from "@/components/auth/CharacterCreation";
-import { EmailVerification } from "@/components/auth/EmailVerification";
-import { AuthMethodSelector } from "@/components/auth/AuthMethodSelector";
-import { PinLogin } from "@/components/auth/PinLogin";
-import { PatternLogin } from "@/components/auth/PatternLogin";
-import { BiometricLogin } from "@/components/auth/BiometricLogin";
-import { Landing } from "./pages/Landing";
-import Index from "./pages/Index";
-import WidgetDemo from "./pages/WidgetDemo";
-import NotFound from "./pages/NotFound";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+
+// Lazy load auth components
+const VaultLogin = lazy(() => import("@/components/auth/VaultLogin").then(m => ({ default: m.VaultLogin })));
+const VaultRegistration = lazy(() => import("@/components/auth/VaultRegistration").then(m => ({ default: m.VaultRegistration })));
+const CharacterCreation = lazy(() => import("@/components/auth/CharacterCreation").then(m => ({ default: m.CharacterCreation })));
+const EmailVerification = lazy(() => import("@/components/auth/EmailVerification").then(m => ({ default: m.EmailVerification })));
+const AuthMethodSelector = lazy(() => import("@/components/auth/AuthMethodSelector").then(m => ({ default: m.AuthMethodSelector })));
+const PinLogin = lazy(() => import("@/components/auth/PinLogin").then(m => ({ default: m.PinLogin })));
+const PatternLogin = lazy(() => import("@/components/auth/PatternLogin").then(m => ({ default: m.PatternLogin })));
+const BiometricLogin = lazy(() => import("@/components/auth/BiometricLogin").then(m => ({ default: m.BiometricLogin })));
+
+// Lazy load pages
+const Landing = lazy(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
+const Index = lazy(() => import("./pages/Index"));
+const WidgetDemo = lazy(() => import("./pages/WidgetDemo"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -36,7 +40,7 @@ const App = () => {
             <WidgetProvider>
               <CanvasProvider>
                 <OptimizedWidgetProvider>
-                  <PerformanceProvider enableByDefault={process.env.NODE_ENV === 'development'}>
+                  <PerformanceProvider enableByDefault={import.meta.env.DEV}>
                   <ErrorBoundary>
                 <BrowserRouter>
                   <div className="min-h-screen bg-background font-pip-mono antialiased">

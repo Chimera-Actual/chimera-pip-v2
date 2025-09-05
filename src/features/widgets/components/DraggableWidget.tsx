@@ -15,7 +15,7 @@ interface DraggableWidgetProps {
   isMobile: boolean;
 }
 
-export const DraggableWidget: React.FC<DraggableWidgetProps> = ({ 
+export const DraggableWidget = ({ 
   widget, 
   onUpdate, 
   onDelete, 

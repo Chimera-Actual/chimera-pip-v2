@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu,
@@ -17,7 +16,7 @@ interface TabActionsMenuProps {
   isDefaultTab: boolean;
 }
 
-export const TabActionsMenu: React.FC<TabActionsMenuProps> = ({
+export const TabActionsMenu = ({
   onShowCatalog,
   onShowTabEditor,
   onArchiveTab,

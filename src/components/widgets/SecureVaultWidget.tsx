@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useRef } from 'react';
 import { BaseWidget } from '@/types/widgets';
 import { useWidgetState } from '@/hooks/useWidgetState';
 import { Button } from '@/components/ui/button';
@@ -169,16 +169,33 @@ export const SecureVaultWidget: React.FC<SecureVaultWidgetProps> = memo(({ widge
     toast.success('Entry deleted from vault');
   };
 
+  const copyTimeoutRef = useRef<NodeJS.Timeout>();
+  
   const copyToClipboard = async (text: string, field: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 2000);
+      
+      // Clear any existing timeout
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      
+      copyTimeoutRef.current = setTimeout(() => setCopiedField(null), 2000);
       toast.success('Copied to clipboard');
     } catch (error) {
       toast.error('Failed to copy');
     }
   };
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const togglePasswordVisibility = (entryId: string) => {
     const newVisible = new Set(visiblePasswords);

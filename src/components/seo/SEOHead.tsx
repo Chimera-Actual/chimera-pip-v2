@@ -1,4 +1,3 @@
-import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 interface SEOHeadProps {
@@ -12,7 +11,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
-export const SEOHead: React.FC<SEOHeadProps> = ({
+export const SEOHead = ({
   title,
   description,
   keywords = [],

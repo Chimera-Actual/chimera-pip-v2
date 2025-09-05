@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ interface AiOracleSettingsModalProps {
 }
 
 
-export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
+export const AiOracleSettingsModal = ({
   isOpen,
   onClose,
   widget,

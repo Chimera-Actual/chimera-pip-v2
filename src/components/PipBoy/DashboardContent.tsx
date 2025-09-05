@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { useWidgets } from '@/contexts/WidgetContext';
@@ -10,7 +10,7 @@ interface DashboardContentProps {
   className?: string;
 }
 
-export const DashboardContent: React.FC<DashboardContentProps> = ({
+export const DashboardContent = memo<DashboardContentProps>(({
   activeTab,
   className
 }) => {
@@ -23,31 +23,30 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
   
   const currentTab = tabs.find(tab => tab.name === activeTab);
 
-  const handleAddWidget = async (type: WidgetType) => {
+  const handleAddWidget = useCallback(async (type: WidgetType) => {
     await addWidget(type, activeTab as any);
     setShowAdvancedCatalog(false);
-  };
+  }, [addWidget, activeTab]);
 
-
-  const handleArchiveTab = async () => {
+  const handleArchiveTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
       await archiveTab(currentTab.id);
     }
-  };
+  }, [currentTab, archiveTab]);
 
-  const handleDeleteTab = async () => {
+  const handleDeleteTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
       await deleteTab(currentTab.id);
       setShowDeleteConfirm(false);
     }
-  };
+  }, [currentTab, deleteTab]);
 
-  const handleSaveTab = async (tabData: any) => {
+  const handleSaveTab = useCallback(async (tabData: any) => {
     if (currentTab) {
       await updateTab(currentTab.id, tabData);
       setShowTabEditor(false);
     }
-  };
+  }, [currentTab, updateTab]);
 
 
   return (
@@ -81,4 +80,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
       />
     </main>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.activeTab === nextProps.activeTab &&
+         prevProps.className === nextProps.className;
+});

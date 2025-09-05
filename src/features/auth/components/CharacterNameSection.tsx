@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
@@ -13,7 +12,7 @@ interface CharacterNameSectionProps {
   vaultNumber?: number;
 }
 
-export const CharacterNameSection: React.FC<CharacterNameSectionProps> = ({
+export const CharacterNameSection = ({
   register,
   errors,
   vaultNumber

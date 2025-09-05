@@ -29,7 +29,7 @@ serve(async (req) => {
       throw new Error('OpenWeather API key is not configured');
     }
 
-    console.log(`Fetching weather data for: ${location}`);
+    // Fetching weather data for location
 
     // Get current weather data
     const weatherResponse = await fetch(
@@ -37,7 +37,7 @@ serve(async (req) => {
     );
 
     if (!weatherResponse.ok) {
-      console.error(`Weather API HTTP error: ${weatherResponse.status} ${weatherResponse.statusText}`);
+      // Weather API HTTP error
       throw new Error(`Weather API error: ${weatherResponse.status}`);
     }
 
@@ -73,13 +73,13 @@ serve(async (req) => {
       units
     };
 
-    console.log('Weather data successfully fetched and formatted');
+    // Weather data successfully fetched and formatted
 
     return new Response(JSON.stringify(formattedWeatherData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in weather-api function:', error);
+    // Error in weather-api function
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

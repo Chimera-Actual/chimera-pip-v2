@@ -59,7 +59,7 @@ interface MobileWidgetContainerProps {
   className?: string;
 }
 
-export const MobileWidgetContainer: React.FC<MobileWidgetContainerProps> = ({
+export const MobileWidgetContainer = ({
   widgetId,
   widgetType,
   title,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
@@ -28,7 +27,7 @@ const SPECIAL_DESCRIPTIONS = {
   luck: 'Critical hit chance and random encounters',
 };
 
-export const SpecialStatsSection: React.FC<SpecialStatsSectionProps> = ({
+export const SpecialStatsSection = ({
   specialStats,
   onAdjustStat,
   availablePoints

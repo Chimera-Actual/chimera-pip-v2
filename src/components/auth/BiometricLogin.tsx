@@ -131,11 +131,33 @@ export const BiometricLogin: React.FC = () => {
         optionsJSON: authenticationOptions
       });
       
-      // In production, send authResponse to server for verification
-      // TODO: Send authResponse to server for verification
+      // Send authResponse to server for verification
+      const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          action: 'authenticate',
+          userId: 'current-user-id', // Get from auth context
+          credential: {
+            credentialId: authResponse.id,
+            signature: authResponse.response.signature,
+            authenticatorData: authResponse.response.authenticatorData,
+          },
+          challenge: authenticationOptions.challenge,
+        }),
+      });
 
-      // For demo purposes, simulate successful authentication
-      const { error } = await signIn('demo@chimera-tec.com', 'biometric-auth');
+      const verifyResult = await verifyResponse.json();
+      
+      if (!verifyResult.success) {
+        throw new Error(verifyResult.error || 'Authentication failed');
+      }
+
+      // Sign in with the verified user
+      const { error } = await signIn(verifyResult.email, 'biometric-auth');
       
       if (!error) {
         navigate('/');
@@ -201,8 +223,29 @@ export const BiometricLogin: React.FC = () => {
         optionsJSON: registrationOptions
       });
       
-      // In production, send registrationResponse to server for verification and storage
-      // TODO: Send registrationResponse to server for verification and storage
+      // Send registrationResponse to server for verification and storage
+      const storeResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          action: 'register',
+          userId: 'current-user-id', // Get from auth context
+          credential: {
+            credentialId: registrationResponse.id,
+            publicKey: registrationResponse.response.publicKey,
+            deviceName: `${capability.name} on ${navigator.platform}`,
+          },
+        }),
+      });
+
+      const storeResult = await storeResponse.json();
+      
+      if (!storeResult.success) {
+        throw new Error(storeResult.error || 'Registration failed');
+      }
 
       setIsEnrollment(false);
       setError('');

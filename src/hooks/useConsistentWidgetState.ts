@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
 import { reportError } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
+import { localStorageService } from '@/services/storage/localStorageService';
 
 export interface ConsistentWidgetState<T = Record<string, any>> {
   settings: T;
@@ -47,13 +48,13 @@ export function useConsistentWidgetState<T extends Record<string, any>>(
   // Initialize state from localStorage with fallbacks
   const [state, setState] = useState<ConsistentWidgetState<T>>(() => {
     try {
-      const savedSettings = localStorage.getItem(`widget-${widgetId}-settings`);
-      const savedCollapsed = localStorage.getItem(`widget-${widgetId}-collapsed`);
-      const savedLastSynced = localStorage.getItem(`widget-${widgetId}-lastSynced`);
+      const savedSettings = localStorageService.get<T>(`widget-${widgetId}-settings`);
+      const savedCollapsed = localStorageService.get<boolean>(`widget-${widgetId}-collapsed`);
+      const savedLastSynced = localStorageService.get<string>(`widget-${widgetId}-lastSynced`);
       
       return {
-        settings: savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings,
-        collapsed: savedCollapsed === 'true',
+        settings: savedSettings ? { ...defaultSettings, ...savedSettings } : defaultSettings,
+        collapsed: savedCollapsed || false,
         isLoading: false,
         error: null,
         lastSynced: savedLastSynced ? new Date(savedLastSynced) : null
@@ -78,10 +79,10 @@ export function useConsistentWidgetState<T extends Record<string, any>>(
   // Persistent storage effect
   useEffect(() => {
     try {
-      localStorage.setItem(`widget-${widgetId}-settings`, JSON.stringify(state.settings));
-      localStorage.setItem(`widget-${widgetId}-collapsed`, state.collapsed.toString());
+      localStorageService.set(`widget-${widgetId}-settings`, state.settings);
+      localStorageService.set(`widget-${widgetId}-collapsed`, state.collapsed);
       if (state.lastSynced) {
-        localStorage.setItem(`widget-${widgetId}-lastSynced`, state.lastSynced.toISOString());
+        localStorageService.set(`widget-${widgetId}-lastSynced`, state.lastSynced.toISOString());
       }
     } catch (error) {
       reportError('Widget localStorage save failed', {

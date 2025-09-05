@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { debounce } from 'lodash';
 import { reportError } from '@/lib/errorReporting';
 import { INTERACTION_DELAYS, ERROR_MESSAGES } from '@/lib/constants';
+import { localStorageService } from '@/services/storage/localStorageService';
 
 interface WidgetStateHookResult<T> {
   settings: T;
@@ -48,7 +49,7 @@ export function useWidgetState<T extends Record<string, any>>(
           }
         };
         
-        console.log('Migrated legacy AI Oracle settings:', { from: settings, to: migratedSettings });
+        // Migrated legacy AI Oracle settings
         return migratedSettings as unknown as T;
       }
     }
@@ -57,21 +58,19 @@ export function useWidgetState<T extends Record<string, any>>(
   }, [defaultSettings]);
   
   const [settings, setSettingsState] = useState<T>(() => {
-    const saved = localStorage.getItem(`widget-${widgetId}-settings`);
+    const saved = localStorageService.get<any>(`widget-${widgetId}-settings`);
     if (saved) {
       try {
-        const parsedSettings = JSON.parse(saved);
-        return migrateAiOracleSettings(parsedSettings);
+        return migrateAiOracleSettings(saved);
       } catch (error) {
-        console.warn('Failed to parse saved widget settings:', error);
+        // Failed to parse saved widget settings
       }
     }
     return defaultSettings;
   });
 
   const [collapsed, setCollapsedState] = useState(() => {
-    const saved = localStorage.getItem(`widget-${widgetId}-collapsed`);
-    return saved === 'true';
+    return localStorageService.get<boolean>(`widget-${widgetId}-collapsed`) || false;
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -79,11 +78,11 @@ export function useWidgetState<T extends Record<string, any>>(
 
   // Auto-save to localStorage
   useEffect(() => {
-    localStorage.setItem(`widget-${widgetId}-settings`, JSON.stringify(settings));
+    localStorageService.set(`widget-${widgetId}-settings`, settings);
   }, [widgetId, settings]);
 
   useEffect(() => {
-    localStorage.setItem(`widget-${widgetId}-collapsed`, collapsed.toString());
+    localStorageService.set(`widget-${widgetId}-collapsed`, collapsed);
   }, [widgetId, collapsed]);
 
   // Debounced sync to Supabase

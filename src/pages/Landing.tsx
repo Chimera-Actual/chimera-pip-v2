@@ -1,10 +1,9 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, Zap, Users, Database } from 'lucide-react';
 
-export const Landing: React.FC = () => {
+export const Landing = () => {
   return (
     <div className="min-h-screen pip-scanlines bg-pip-bg-primary">
       <div className="container mx-auto px-4 py-8">

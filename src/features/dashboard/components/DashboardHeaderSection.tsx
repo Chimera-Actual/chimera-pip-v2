@@ -1,4 +1,3 @@
-import React from 'react';
 import { TabActionsMenu } from './TabActionsMenu';
 
 interface DashboardHeaderSectionProps {
@@ -10,7 +9,7 @@ interface DashboardHeaderSectionProps {
   isDefaultTab: boolean;
 }
 
-export const DashboardHeaderSection: React.FC<DashboardHeaderSectionProps> = ({
+export const DashboardHeaderSection = ({
   activeTab,
   onShowCatalog,
   onShowTabEditor,

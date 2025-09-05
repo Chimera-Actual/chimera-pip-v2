@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { localStorageService } from '@/services/storage/localStorageService';
 
 export type PipBoyTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
 
@@ -30,23 +31,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   defaultTheme = 'green' 
 }) => {
   const [currentTheme, setCurrentTheme] = useState<PipBoyTheme>(() => {
-    const saved = localStorage.getItem('pip-boy-theme');
-    return (saved as PipBoyTheme) || defaultTheme;
+    const saved = localStorageService.get<PipBoyTheme>('pip-boy-theme');
+    return saved || defaultTheme;
   });
 
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('pip-boy-sound-enabled');
-    return saved !== null ? JSON.parse(saved) : true;
+    return localStorageService.get<boolean>('pip-boy-sound-enabled') ?? true;
   });
 
   const setTheme = useCallback((theme: PipBoyTheme) => {
     setCurrentTheme(theme);
-    localStorage.setItem('pip-boy-theme', theme);
+    localStorageService.set('pip-boy-theme', theme);
   }, []);
 
   const handleSetSoundEnabled = useCallback((enabled: boolean) => {
     setSoundEnabled(enabled);
-    localStorage.setItem('pip-boy-sound-enabled', JSON.stringify(enabled));
+    localStorageService.set('pip-boy-sound-enabled', enabled);
   }, []);
 
   const toggleSound = useCallback(() => {

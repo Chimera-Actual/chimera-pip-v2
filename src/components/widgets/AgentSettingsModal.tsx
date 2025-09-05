@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,7 @@ const avatarColors = [
   '#ff00ff', '#00ffff', '#88ff88', '#ff8888'
 ];
 
-export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
+export const AgentSettingsModal = ({
   isOpen,
   onClose,
   editingAgent,

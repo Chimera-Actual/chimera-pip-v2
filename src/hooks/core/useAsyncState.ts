@@ -14,12 +14,12 @@ export interface UseAsyncStateOptions {
   retryDelay?: number;
 }
 
-export function useAsyncState<T>(
-  asyncFunction: (...args: any[]) => Promise<T>,
+export function useAsyncState<T, TArgs extends any[] = any[]>(
+  asyncFunction: (...args: TArgs) => Promise<T>,
   options: UseAsyncStateOptions = {}
 ): [
   AsyncState<T>,
-  (...args: any[]) => Promise<T | null>,
+  (...args: TArgs) => Promise<T | null>,
   () => void,
   (data: T) => void
 ] {
@@ -41,7 +41,7 @@ export function useAsyncState<T>(
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const execute = useCallback(
-    async (...args: any[]): Promise<T | null> => {
+    async (...args: TArgs): Promise<T | null> => {
       // Cancel any ongoing request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();

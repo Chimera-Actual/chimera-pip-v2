@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
 import { WidgetFactory } from '@/lib/widgetFactory';
 import { CharacterProfileWidget } from '@/components/widgets/CharacterProfileWidget';
@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Palette, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const WidgetDemo: React.FC = () => {
+const WidgetDemo = () => {
   const { currentTheme, setTheme, soundEnabled, toggleSound } = useTheme();
   
   // Generate demo widgets with mock data

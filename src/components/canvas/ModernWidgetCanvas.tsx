@@ -21,7 +21,7 @@ interface DragState {
   dragStartIndex: number | null;
 }
 
-export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({ 
+export const ModernWidgetCanvas = ({ 
   tab, 
   className = '' 
 }) => {

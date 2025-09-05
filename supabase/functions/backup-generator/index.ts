@@ -21,7 +21,7 @@ serve(async (req) => {
 
     const { userId, includeAnalytics = false } = await req.json();
 
-    console.log('Generating backup for user:', userId);
+    // Generating backup for user
 
     // Get user profile
     const { data: userProfile, error: profileError } = await supabaseClient
@@ -102,7 +102,7 @@ serve(async (req) => {
       }
     };
 
-    console.log('Backup generated successfully for user:', userId);
+    // Backup generated successfully
 
     return new Response(
       JSON.stringify({
@@ -119,7 +119,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in backup-generator function:', error);
+    // Error in backup-generator function
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,7 +7,7 @@ interface WidgetGridControlsProps {
   widgetCount: number;
 }
 
-export const WidgetGridControls: React.FC<WidgetGridControlsProps> = ({
+export const WidgetGridControls = ({
   onShowAddWidget,
   widgetCount
 }) => {
