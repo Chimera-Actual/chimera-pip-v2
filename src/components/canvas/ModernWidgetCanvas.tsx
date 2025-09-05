@@ -3,7 +3,7 @@ import { BaseWidget, WidgetType } from '@/types/widgets';
 import { WidgetContainer } from '@/components/widgets/WidgetContainer';
 import { WidgetRenderer } from '@/components/widgets/WidgetRegistry';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
-import { useWidgets } from '@/contexts/WidgetContext';
+import { useCanvas } from '@/contexts/CanvasContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
@@ -25,7 +25,14 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
   tab, 
   className = '' 
 }) => {
-  const { getWidgetsByTab, addWidget, updateWidget, removeWidget, archiveWidget } = useWidgets();
+  const { 
+    getCanvasWidgets, 
+    optimisticAdd, 
+    optimisticUpdate, 
+    optimisticDelete, 
+    optimisticArchive,
+    optimisticReorder 
+  } = useCanvas();
   const [showAddWidget, setShowAddWidget] = useState(false);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
@@ -39,8 +46,8 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
   
   // Get widgets for current tab, sorted by display_order
   const widgets = useMemo(() => {
-    return getWidgetsByTab(tab as any).sort((a, b) => (a.order || 0) - (b.order || 0));
-  }, [getWidgetsByTab, tab]);
+    return getCanvasWidgets(tab as any).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [getCanvasWidgets, tab]);
 
   // Handle drag start
   const handleDragStart = useCallback((e: React.DragEvent, widget: BaseWidget, index: number) => {
@@ -98,30 +105,16 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
     }
 
     try {
-      // Create new order array
-      const newWidgets = [...widgets];
+      const success = await optimisticReorder(tab as any, dragStartIndex, dropIndex);
       
-      // Remove dragged widget from its original position
-      newWidgets.splice(dragStartIndex, 1);
-      
-      // Insert at new position
-      newWidgets.splice(dropIndex, 0, draggedWidget);
-      
-      // Calculate new display_order values with gaps
-      const updatePromises = newWidgets.map((widget, index) => {
-        const newDisplayOrder = index * 100;
-        if (widget.order !== newDisplayOrder) {
-          return updateWidget(widget.id, { order: newDisplayOrder });
-        }
-        return Promise.resolve();
-      });
-
-      await Promise.all(updatePromises);
-
-      toast({
-        title: 'Widget Moved',
-        description: `Moved "${draggedWidget.title}" to position ${dropIndex + 1}`,
-      });
+      if (success) {
+        toast({
+          title: 'Widget Moved',
+          description: `Moved "${draggedWidget.title}" to position ${dropIndex + 1}`,
+        });
+      } else {
+        throw new Error('Reorder operation failed');
+      }
     } catch (error) {
       console.error('Failed to reorder widgets:', error);
       toast({
@@ -130,12 +123,12 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
         variant: 'destructive',
       });
     }
-  }, [dragState, widgets, updateWidget]);
+  }, [dragState, tab, optimisticReorder]);
 
   // Handle widget actions
   const handleAddWidget = useCallback(async (widgetType: WidgetType) => {
     try {
-      await addWidget(widgetType, tab as any);
+      const newWidget = await optimisticAdd(tab as any, widgetType);
       setShowAddWidget(false);
       toast({
         title: 'Widget Added',
@@ -149,11 +142,11 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
         variant: 'destructive',
       });
     }
-  }, [addWidget, tab]);
+  }, [optimisticAdd, tab]);
 
   const handleUpdateWidget = useCallback(async (widgetId: string, updates: Partial<BaseWidget>) => {
     try {
-      await updateWidget(widgetId, updates);
+      await optimisticUpdate(widgetId, updates);
     } catch (error) {
       console.error('Failed to update widget:', error);
       toast({
@@ -162,11 +155,11 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
         variant: 'destructive',
       });
     }
-  }, [updateWidget]);
+  }, [optimisticUpdate]);
 
   const handleDeleteWidget = useCallback(async (widgetId: string) => {
     try {
-      await removeWidget(widgetId);
+      await optimisticDelete(widgetId);
       toast({
         title: 'Widget Deleted',
         description: 'Widget has been permanently removed.',
@@ -179,11 +172,11 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
         variant: 'destructive',
       });
     }
-  }, [removeWidget]);
+  }, [optimisticDelete]);
 
   const handleArchiveWidget = useCallback(async (widgetId: string) => {
     try {
-      await archiveWidget(widgetId);
+      await optimisticArchive(widgetId);
       toast({
         title: 'Widget Archived',
         description: 'Widget has been moved to archive.',
@@ -196,7 +189,7 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
         variant: 'destructive',
       });
     }
-  }, [archiveWidget]);
+  }, [optimisticArchive]);
 
   const handleToggleWidth = useCallback(async (widgetId: string, currentWidth: 'half' | 'full') => {
     const newWidth = currentWidth === 'half' ? 'full' : 'half';

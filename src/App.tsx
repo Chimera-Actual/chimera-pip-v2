@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+import { CanvasProvider } from "@/contexts/CanvasContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PerformanceProvider, OptimizedWidgetProvider } from "@/features/state-management";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -33,8 +34,9 @@ const App = () => {
         <ThemeProvider>
           <AuthProvider>
             <WidgetProvider>
-              <OptimizedWidgetProvider>
-                <PerformanceProvider enableByDefault={process.env.NODE_ENV === 'development'}>
+              <CanvasProvider>
+                <OptimizedWidgetProvider>
+                  <PerformanceProvider enableByDefault={process.env.NODE_ENV === 'development'}>
                   <ErrorBoundary>
                 <BrowserRouter>
                   <div className="min-h-screen bg-background font-pip-mono antialiased">
@@ -90,6 +92,7 @@ const App = () => {
                   </ErrorBoundary>
                 </PerformanceProvider>
               </OptimizedWidgetProvider>
+              </CanvasProvider>
             </WidgetProvider>
           </AuthProvider>
         </ThemeProvider>
