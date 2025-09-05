@@ -128,15 +128,15 @@ export const AgentSettingsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col my-8" viewportAware={false}>
-        <DialogHeader>
+      <DialogContent className="max-w-3xl h-[85vh] flex flex-col my-8" viewportAware={false}>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
             {isEditMode ? 'Edit Agent' : 'Create New Agent'}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="flex-1 overflow-hidden pr-4">
           <div className="space-y-6 pb-6">
             {/* Basic Information */}
             <Card>
