@@ -178,18 +178,19 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
   return (
     <Card className="w-full h-full flex flex-col">
       {/* Chat Messages */}
-      <CardContent className="flex-1 flex flex-col p-1 gap-1">
-        <ScrollArea className="flex-1 pr-2">
-          <div className="space-y-2">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-center">
-                <MessageCircle className="h-8 w-8 text-pip-text-muted mb-2" />
-                <p className="text-pip-text-muted text-sm">
-                  {currentAgent ? `Start a conversation with ${currentAgent.name}` : 'Select an agent to start chatting'}
-                </p>
-              </div>
-            ) : (
-              messages.map((message, index) => (
+      <CardContent className="flex-1 flex flex-col p-1 min-h-0">
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full pr-2">
+            <div className="space-y-2 p-1">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-32 text-center">
+                  <MessageCircle className="h-8 w-8 text-pip-text-muted mb-2" />
+                  <p className="text-pip-text-muted text-sm">
+                    {currentAgent ? `Start a conversation with ${currentAgent.name}` : 'Select an agent to start chatting'}
+                  </p>
+                </div>
+              ) : (
+                messages.map((message, index) => (
                 <div 
                   key={index}
                   className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
@@ -276,11 +277,12 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+      </div>
 
-        <Separator />
+        <Separator className="my-2" />
 
         {/* Input Area */}
-        <div className="space-y-2">
+        <div className="flex-shrink-0 space-y-2">
           <div className="flex gap-2">
             <Input
               value={inputMessage}
