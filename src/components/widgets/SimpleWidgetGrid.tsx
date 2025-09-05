@@ -26,6 +26,7 @@ import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { BaseWidget, WidgetType } from '@/types/widgets';
+import { calculateNewPosition, needsReorganization } from '@/lib/widgetPositioning';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { useOptimizedPerformance } from '@/features/state-management';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -135,19 +136,18 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
     setDragOverBlankArea(false); // Clear blank area state
 
     const draggedWidgetId = active.id as string;
+    const draggedWidget = widgets.find(w => w.id === draggedWidgetId);
     const oldIndex = widgets.findIndex(w => w.id === draggedWidgetId);
     
-    if (oldIndex === -1) return;
+    if (oldIndex === -1 || !draggedWidget) return;
 
-    let newIndex = oldIndex;
-    let reorderedWidgets: BaseWidget[] = [];
+    let targetIndex = oldIndex;
 
     if (over?.id && over.id !== active.id) {
       // Standard widget-to-widget reordering
-      const targetIndex = widgets.findIndex(w => w.id === over.id);
-      if (targetIndex !== -1) {
-        newIndex = targetIndex;
-        reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+      const overIndex = widgets.findIndex(w => w.id === over.id);
+      if (overIndex !== -1) {
+        targetIndex = overIndex;
       }
     } else if (!over?.id) {
       // Handle blank area drops - calculate position based on drag distance/direction
@@ -162,37 +162,41 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
         
         if (isMovingDown || (isMovingRight && !isMobile)) {
           // Move towards end of list
-          newIndex = Math.min(widgets.length - 1, oldIndex + 1);
+          targetIndex = Math.min(widgets.length - 1, oldIndex + 1);
         } else if (isMovingUp || (isMovingLeft && !isMobile)) {
           // Move towards beginning of list
-          newIndex = Math.max(0, oldIndex - 1);
+          targetIndex = Math.max(0, oldIndex - 1);
         }
         
         // Special case: if dragged far enough, move to end/beginning
         if (Math.abs(delta.y) > 200 || Math.abs(delta.x) > 200) {
-          newIndex = isMovingDown || isMovingRight ? widgets.length - 1 : 0;
-        }
-        
-        if (newIndex !== oldIndex) {
-          reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+          targetIndex = isMovingDown || isMovingRight ? widgets.length - 1 : 0;
         }
       }
     }
 
     // Apply reordering if position changed
-    if (newIndex !== oldIndex && reorderedWidgets.length > 0) {
-      const widgetUpdates = reorderedWidgets.map((widget, index) => ({
-        id: widget.id,
-        updates: { order: index }
-      }));
-
-      // Call updateMultipleWidgets directly - no debouncing needed
+    if (targetIndex !== oldIndex) {
       try {
-        await updateMultipleWidgets(widgetUpdates);
+        // Calculate safe position for the dragged widget
+        const newPosition = calculateNewPosition(widgets, draggedWidget, targetIndex);
+        
+        // Only update the dragged widget's position
+        await updateMultipleWidgets([{
+          id: draggedWidget.id,
+          updates: { order: newPosition }
+        }]);
+        
         toast({
           title: 'Widget Moved',
-          description: `Moved "${widgets[oldIndex].title}" to position ${newIndex + 1}`,
+          description: `Moved "${draggedWidget.title}" to position ${targetIndex + 1}`,
         });
+        
+        // Check if we need to reorganize positions to prevent them from getting too dense
+        if (needsReorganization(widgets)) {
+          // The WidgetContext will handle reorganization automatically
+          console.log('Position reorganization may be needed');
+        }
       } catch (error) {
         console.error('Failed to reorder widgets:', error);
         // Error handling and rollback is already done in updateMultipleWidgets

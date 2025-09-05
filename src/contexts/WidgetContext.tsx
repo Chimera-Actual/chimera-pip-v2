@@ -6,6 +6,7 @@ import { WidgetFactory } from '@/lib/widgetFactory';
 import { toast } from '@/hooks/use-toast';
 import { reportError, reportWarning } from '@/lib/errorReporting';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
+import { migrateToGapBasedPositions, needsReorganization, generateGapBasedPositions } from '@/lib/widgetPositioning';
 // Removed grid validation imports - using simple ordering now
 
 export interface WidgetContextType {
@@ -110,6 +111,43 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       
       setWidgets(activeWidgets);
       setArchivedWidgets(archived);
+      
+      // Check if we need to migrate to gap-based positioning
+      // This happens automatically for users with old consecutive positioning
+      if (activeWidgets.length > 0 && needsReorganization(activeWidgets)) {
+        console.log('Migrating widgets to gap-based positioning...');
+        try {
+          const migrationUpdates = migrateToGapBasedPositions(activeWidgets);
+          
+          // Perform migration in background without affecting UI
+          const updatePromises = migrationUpdates.map(async ({ id, updates }) => {
+            const { error } = await supabase
+              .from('user_widgets')
+              .update({ 
+                order_position: updates.order,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', id)
+              .eq('user_id', user.id);
+            
+            if (error) throw error;
+          });
+          
+          await Promise.all(updatePromises);
+          
+          // Update local state with new positions
+          const updatesMap = new Map(migrationUpdates.map(({ id, updates }) => [id, updates.order]));
+          setWidgets(prev => prev.map(widget => ({
+            ...widget,
+            order: updatesMap.get(widget.id) ?? widget.order
+          })));
+          
+          console.log('Successfully migrated to gap-based positioning');
+        } catch (migrationError) {
+          console.warn('Failed to migrate to gap-based positioning:', migrationError);
+          // Migration failure is not critical - widgets will still work with old positioning
+        }
+      }
     } catch (err) {
       reportError(
         ERROR_MESSAGES.WIDGET_LOAD_FAILED,
@@ -176,9 +214,10 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     try {
       const widget = WidgetFactory.createWidget(type, user.id, tabAssignment);
 
-      // Find next order position for new widget in this tab
+      // Find next gap-based order position for new widget in this tab
       const existingWidgets = widgets.filter(w => w.tabAssignment === widget.tabAssignment);
-      const nextOrder = Math.max(...existingWidgets.map(w => w.order), -1) + 1;
+      const maxOrder = existingWidgets.length > 0 ? Math.max(...existingWidgets.map(w => w.order)) : -1000;
+      const nextOrder = maxOrder + 1000; // Use gap-based positioning
       widget.order = nextOrder;
 
       const { data, error: insertError } = await supabase
