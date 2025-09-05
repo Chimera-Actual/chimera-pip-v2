@@ -53,15 +53,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Enable minification optimizations
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: true,
-        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : [],
-      },
-    },
+    // Use esbuild for minification (default)
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,
     // Generate source maps for production debugging
@@ -69,5 +61,8 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
+  },
+  worker: {
+    format: 'es',
   },
 }));

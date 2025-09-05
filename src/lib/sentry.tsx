@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { 
   useLocation, 
   useNavigationType, 

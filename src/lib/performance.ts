@@ -1,4 +1,15 @@
 // Performance monitoring and reporting utilities
+import { useEffect } from 'react';
+
+declare global {
+  interface Window {
+    gtag?: (
+      command: string,
+      eventName: string,
+      config?: Record<string, any>
+    ) => void;
+  }
+}
 
 interface PerformanceMetrics {
   // Core Web Vitals
@@ -199,8 +210,8 @@ class PerformanceMonitor {
     // In production, send to analytics service
     if (import.meta.env.PROD) {
       // Example: send to Google Analytics
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'performance', {
+      if (typeof window.gtag !== 'undefined') {
+        window.gtag('event', 'performance', {
           event_category: 'Web Vitals',
           event_label: name,
           value: Math.round(value),
