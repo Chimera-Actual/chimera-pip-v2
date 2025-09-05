@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Loader2, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { CharacterNameSection, SpecialStatsSection } from '@/features/auth';
 
 interface CharacterFormData {
   character_name: string;
@@ -22,16 +20,6 @@ interface SpecialStats {
   agility: number;
   luck: number;
 }
-
-const SPECIAL_DESCRIPTIONS = {
-  strength: 'Raw physical power and melee damage',
-  perception: 'Awareness and accuracy in combat',
-  endurance: 'Health points and resistance to damage',
-  charisma: 'Speech success and companion affinity',
-  intelligence: 'Experience points gained and hacking ability',
-  agility: 'Action points and movement speed',
-  luck: 'Critical hit chance and random encounters',
-};
 
 export const CharacterCreation: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -114,108 +102,18 @@ export const CharacterCreation: React.FC = () => {
     <div className="min-h-screen pip-scanlines bg-pip-bg-primary flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <Card variant="pip-terminal" className="p-pip-lg">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <User className="h-12 w-12 text-primary pip-text-glow" />
-            </div>
-            <h1 className="text-2xl font-display font-bold text-pip-text-bright pip-text-glow">
-              CHARACTER CREATION
-            </h1>
-            <p className="text-pip-text-secondary mt-2 font-mono text-sm">
-              Define your vault identity and optionally customize your S.P.E.C.I.A.L. attributes
-            </p>
-            {profile && (
-              <p className="text-primary font-mono text-lg mt-2">
-                VAULT {profile.vault_number.toString().padStart(3, '0')}
-              </p>
-            )}
-          </div>
-
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Character Name */}
-            <div className="space-y-2">
-              <Label htmlFor="character_name" className="text-pip-text-primary font-mono">
-                VAULT DWELLER NAME
-              </Label>
-              <Input
-                id="character_name"
-                type="text"
-                placeholder="Enter your character name"
-                className="pip-terminal border-pip-border focus:border-primary focus:ring-primary font-mono"
-                {...register('character_name', {
-                  required: 'Character name is required',
-                  minLength: {
-                    value: 2,
-                    message: 'Name must be at least 2 characters',
-                  },
-                  maxLength: {
-                    value: 50,
-                    message: 'Name must be less than 50 characters',
-                  },
-                })}
-              />
-              {errors.character_name && (
-                <p className="text-destructive text-sm font-mono">
-                  {errors.character_name.message}
-                </p>
-              )}
-            </div>
+            <CharacterNameSection 
+              register={register}
+              errors={errors}
+              vaultNumber={profile?.vault_number}
+            />
 
-            {/* S.P.E.C.I.A.L. Stats */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-display font-bold text-pip-text-bright">
-                  S.P.E.C.I.A.L. ATTRIBUTES
-                </h2>
-                <span className="font-mono text-pip-text-secondary">
-                  Points Remaining: <span className="text-primary font-bold">{availablePoints}</span>
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4">
-                {Object.entries(specialStats).map(([stat, value]) => (
-                  <div key={stat} className="pip-special-stat p-4 rounded">
-                    <div className="flex justify-between items-center mb-2">
-                      <div>
-                        <h3 className="font-display font-bold text-pip-text-bright uppercase">
-                          {stat}
-                        </h3>
-                        <p className="text-xs text-pip-text-secondary font-mono">
-                          {SPECIAL_DESCRIPTIONS[stat as keyof typeof SPECIAL_DESCRIPTIONS]}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => adjustStat(stat as keyof SpecialStats, -1)}
-                          disabled={value <= 1}
-                          className="pip-terminal border-pip-border hover:border-primary font-mono"
-                        >
-                          -
-                        </Button>
-                        <span className="font-mono font-bold text-primary text-xl min-w-[2ch] text-center">
-                          {value}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => adjustStat(stat as keyof SpecialStats, 1)}
-                          disabled={value >= 10 || availablePoints <= 0}
-                          className="pip-terminal border-pip-border hover:border-primary font-mono"
-                        >
-                          +
-                        </Button>
-                      </div>
-                    </div>
-                    <Progress value={(value / 10) * 100} className="h-2" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SpecialStatsSection
+              specialStats={specialStats}
+              onAdjustStat={adjustStat}
+              availablePoints={availablePoints}
+            />
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">

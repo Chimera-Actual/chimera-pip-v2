@@ -1,26 +1,6 @@
 import React, { useState } from 'react';
 import { WidgetGrid } from '@/components/widgets/WidgetGrid';
-import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Settings, Plus, Pencil, Archive, Trash2 } from 'lucide-react';
-import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
-import { TabEditor } from '@/components/tabManagement/TabEditor';
+import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { useTabManager } from '@/hooks/useTabManager';
 import { WidgetType } from '@/types/widgets';
@@ -48,9 +28,6 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
     setShowAdvancedCatalog(false);
   };
 
-  const handleTabSettings = () => {
-    setShowTabEditor(true);
-  };
 
   const handleArchiveTab = async () => {
     if (currentTab && !currentTab.isDefault) {
@@ -72,117 +49,36 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
     }
   };
 
-  const getTabDescription = (tab: string) => {
-    const descriptions: Record<string, string> = {
-      'STAT': 'Character Statistics & System Status',
-      'INV': 'Digital Inventory & File Management', 
-      'DATA': 'Information & Communication Hub',
-      'MAP': 'Location Services & Navigation',
-      'RADIO': 'Media & Entertainment Center'
-    };
-    return descriptions[tab] || 'Custom dashboard tab';
-  };
 
   return (
     <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
-      {/* Content Header */}
-      <div className="flex justify-between items-center pb-3 mb-4 border-b border-pip-border">
-        <div className="flex items-baseline gap-4">
-          <h2 className="text-3xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
-            {activeTab}
-          </h2>
-          <span className="text-sm text-pip-text-secondary font-pip-mono opacity-70">
-            {getTabDescription(activeTab)}
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 transition-all duration-200 font-pip-mono text-xs border border-pip-border hover:border-primary hover:bg-pip-bg-secondary/50"
-                title="Tab Settings"
-              >
-                <Settings className="pip-icon-sm" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => setShowAdvancedCatalog(true)}>
-                <Plus className="pip-icon-sm" />
-                Add Widget
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleTabSettings}>
-                <Pencil className="pip-icon-sm" />
-                Tab Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleArchiveTab}
-                disabled={currentTab?.isDefault}
-              >
-                <Archive className="pip-icon-sm" />
-                Archive Tab
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={currentTab?.isDefault}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="pip-icon-sm" />
-                Delete Tab
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      <DashboardHeaderSection
+        activeTab={activeTab}
+        onShowCatalog={() => setShowAdvancedCatalog(true)}
+        onShowTabEditor={() => setShowTabEditor(true)}
+        onArchiveTab={handleArchiveTab}
+        onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+        isDefaultTab={currentTab?.isDefault || false}
+      />
 
       {/* Widget Grid */}
       <div className="widget-content">
         <WidgetGrid tab={activeTab} />
       </div>
 
-      {/* Advanced Widget Catalog Modal */}
-      {showAdvancedCatalog && (
-        <AdvancedWidgetCatalog
-          onClose={() => setShowAdvancedCatalog(false)}
-          onAddWidget={handleAddWidget}
-          currentTab={activeTab as any}
-        />
-      )}
-
-      {/* Tab Editor Modal */}
-      {showTabEditor && currentTab && (
-        <TabEditor
-          tab={currentTab}
-          isOpen={showTabEditor}
-          onClose={() => setShowTabEditor(false)}
-          onSave={handleSaveTab}
-        />
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Tab</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{currentTab?.name}"? This action cannot be undone. 
-              All widgets in this tab will be moved to the INV tab.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteTab}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete Tab
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DashboardModals
+        showAdvancedCatalog={showAdvancedCatalog}
+        onCloseAdvancedCatalog={() => setShowAdvancedCatalog(false)}
+        onAddWidget={handleAddWidget}
+        activeTab={activeTab}
+        showTabEditor={showTabEditor}
+        onCloseTabEditor={() => setShowTabEditor(false)}
+        onSaveTab={handleSaveTab}
+        currentTab={currentTab}
+        showDeleteConfirm={showDeleteConfirm}
+        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+        onDeleteTab={handleDeleteTab}
+      />
     </main>
   );
 };
