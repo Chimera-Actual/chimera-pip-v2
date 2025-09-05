@@ -13,6 +13,7 @@ interface CanvasContextType {
   // State
   getCanvasWidgets: (tab: TabAssignment) => BaseWidget[];
   isPending: (widgetId: string) => boolean;
+  canvasState: CanvasState; // Expose canvas state for dependency tracking
   
   // Optimistic operations
   optimisticReorder: (tab: TabAssignment, fromIndex: number, toIndex: number) => Promise<boolean>;
@@ -426,6 +427,7 @@ export const CanvasProvider: React.FC<CanvasProviderProps> = ({ children }) => {
     optimisticArchive,
     syncToDatabase,
     rollbackChanges,
+    canvasState, // Expose canvas state for dependency tracking
   };
 
   return (

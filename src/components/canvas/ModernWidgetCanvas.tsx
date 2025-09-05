@@ -31,7 +31,8 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
     optimisticUpdate, 
     optimisticDelete, 
     optimisticArchive,
-    optimisticReorder 
+    optimisticReorder,
+    canvasState
   } = useCanvas();
   const [showAddWidget, setShowAddWidget] = useState(false);
   const [dragState, setDragState] = useState<DragState>({
@@ -47,7 +48,7 @@ export const ModernWidgetCanvas: React.FC<ModernWidgetCanvasProps> = ({
   // Get widgets for current tab, sorted by display_order
   const widgets = useMemo(() => {
     return getCanvasWidgets(tab as any).sort((a, b) => (a.order || 0) - (b.order || 0));
-  }, [getCanvasWidgets, tab]);
+  }, [getCanvasWidgets, tab, canvasState.optimisticWidgets[tab as any]]);
 
   // Handle drag start
   const handleDragStart = useCallback((e: React.DragEvent, widget: BaseWidget, index: number) => {
