@@ -21,7 +21,7 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy
 } from '@dnd-kit/sortable';
-import { WidgetGridControls, DraggableWidget, useWidgetActions } from '@/features/widgets';
+import { DraggableWidget, useWidgetActions } from '@/features/widgets';
 import { WidgetContainer } from './WidgetContainer';
 import { WidgetRenderer } from './WidgetRegistry';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
@@ -300,10 +300,6 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
               </div>
             )}
             
-            <WidgetGridControls
-              onShowAddWidget={() => setShowAddWidget(true)}
-              widgetCount={widgets.length}
-            />
             
             {widgets.map((widget) => (
               <DraggableWidget
