@@ -85,7 +85,7 @@ export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
@@ -93,15 +93,15 @@ export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="agents">Agents ({agents.length})</TabsTrigger>
             <TabsTrigger value="widget">Widget Settings</TabsTrigger>
           </TabsList>
 
           {/* Agents Management Tab */}
-          <TabsContent value="agents" className="space-y-4">
-            <div className="flex justify-between items-center">
+          <TabsContent value="agents" className="flex-1 flex flex-col space-y-4 overflow-hidden">
+            <div className="flex justify-between items-center flex-shrink-0">
               <h3 className="text-lg font-semibold">AI Agents</h3>
               <Button onClick={handleAddAgent} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -109,7 +109,7 @@ export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
               </Button>
             </div>
             
-            <ScrollArea className="h-[450px] pr-4">
+            <ScrollArea className="flex-1 pr-4">
               <div className="space-y-3">
                 {agentsLoading ? (
                   <div className="flex items-center justify-center h-32">
@@ -218,8 +218,8 @@ export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
 
 
           {/* Widget Settings Tab */}
-          <TabsContent value="widget" className="space-y-4">
-            <ScrollArea className="h-[500px] pr-4">
+          <TabsContent value="widget" className="flex-1 flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1 pr-4">
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
