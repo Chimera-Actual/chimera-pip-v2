@@ -88,6 +88,17 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
     }
   }, [agentsLoading, agents, aiSettings?.selectedAgentId, getDefaultAgent, widget.id, loadConversation, isInitialized, handleSettingsChange]);
 
+  // Listen for agent selection changes from settings modal
+  useEffect(() => {
+    if (isInitialized && aiSettings?.selectedAgentId && agents.length > 0) {
+      const agentExists = agents.find(a => a.id === aiSettings.selectedAgentId);
+      if (agentExists && selectedAgentId !== aiSettings.selectedAgentId) {
+        setSelectedAgentId(aiSettings.selectedAgentId);
+        loadConversation(widget.id, aiSettings.selectedAgentId);
+      }
+    }
+  }, [isInitialized, aiSettings?.selectedAgentId, agents, selectedAgentId, widget.id, loadConversation]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
