@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { PerformanceProvider, OptimizedWidgetProvider } from "@/features/state-management";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VaultLogin } from "@/components/auth/VaultLogin";
 import { VaultRegistration } from "@/components/auth/VaultRegistration";
@@ -32,7 +33,9 @@ const App = () => {
         <ThemeProvider>
           <AuthProvider>
             <WidgetProvider>
-              <ErrorBoundary>
+              <OptimizedWidgetProvider>
+                <PerformanceProvider enableByDefault={process.env.NODE_ENV === 'development'}>
+                  <ErrorBoundary>
                 <BrowserRouter>
                   <div className="min-h-screen bg-background font-pip-mono antialiased">
                     <Suspense fallback={
@@ -84,7 +87,9 @@ const App = () => {
                     <Sonner />
                   </div>
                 </BrowserRouter>
-              </ErrorBoundary>
+                  </ErrorBoundary>
+                </PerformanceProvider>
+              </OptimizedWidgetProvider>
             </WidgetProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -22,7 +22,7 @@ import { WidgetRenderer } from './WidgetRegistry';
 import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { BaseWidget, WidgetType } from '@/types/widgets';
 import { useWidgets } from '@/contexts/WidgetContext';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { useOptimizedPerformance } from '@/features/state-management';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -31,7 +31,7 @@ export interface SimpleWidgetGridProps {
   className?: string;
 }
 
-export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, className = '' }) => {
+export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, className = '' }) => {
   const { getWidgetsByTab } = useWidgets();
   const { 
     handleAddWidget,
@@ -41,10 +41,11 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     handleToggleWidth
   } = useWidgetActions(tab);
   
-  // Performance monitoring
-  const { markRenderStart, markRenderEnd, trackMemoryUsage } = usePerformanceMonitor('SimpleWidgetGrid');
+  const { markRenderStart, markRenderEnd, trackMemoryUsage } = useOptimizedPerformance({ 
+    componentName: 'SimpleWidgetGrid',
+    trackMemory: true 
+  });
   
-  // Track render performance
   React.useLayoutEffect(() => {
     markRenderStart();
     return markRenderEnd;
@@ -56,7 +57,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
   const isMobile = useIsMobile();
   const widgets = getWidgetsByTab(tab as any);
 
-  // Track memory usage on widget count changes
   React.useEffect(() => {
     if (widgets.length > 10) {
       trackMemoryUsage();
@@ -68,67 +68,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
     setShowAddWidget(false);
   }, [handleAddWidget]);
 
-  // Use simple lazy loading for large collections (>15 widgets)
-  if (widgets.length > 15) {
-    return (
-      <div className={cn('flex flex-col space-y-4', className)}>
-        <div className="mb-2 text-xs text-pip-text-muted font-pip-mono">
-          Rendering {widgets.length} widgets with performance optimization
-        </div>
-        
-        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2')} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-          {widgets.map((widget, index) => {
-            // Lazy render widgets not in viewport
-            const isVisible = index < 20 || (index >= 20 && index % 5 === 0); // Show first 20, then every 5th
-            
-            if (!isVisible) {
-              return (
-                <div
-                  key={widget.id}
-                  className={cn(
-                    'bg-pip-bg-secondary/30 border border-pip-border/20 rounded-lg flex items-center justify-center',
-                    widget.widgetWidth === 'full' && !isMobile ? 'col-span-2' : 'col-span-1'
-                  )}
-                  style={{ minHeight: '200px' }}
-                >
-                  <span className="text-xs text-pip-text-muted font-pip-mono">
-                    Widget #{index + 1} (Optimized Loading)
-                  </span>
-                </div>
-              );
-            }
-            
-            return (
-              <DraggableWidget
-                key={widget.id}
-                widget={widget}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-                onArchive={handleArchive}
-                onToggleWidth={handleToggleWidth}
-                isMobile={isMobile}
-              />
-            );
-          })}
-          
-          <WidgetGridControls
-            onShowAddWidget={() => setShowAddWidget(true)}
-            widgetCount={widgets.length}
-          />
-        </div>
-        
-        {showAddWidget && (
-          <AdvancedWidgetCatalog
-            onClose={() => setShowAddWidget(false)}
-            onAddWidget={handleWidgetAddAction}
-            currentTab={tab}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Standard grid for small collections with drag & drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -149,7 +88,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       
       const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
       
-      // Update positions
       reorderedWidgets.forEach((widget, index) => {
         handleUpdate(widget.id, { order: index });
       });
@@ -169,44 +107,29 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <div className={cn(
-            'grid gap-4 auto-rows-max',
-            isMobile ? 'grid-cols-1' : 'grid-cols-2'
-          )}>
+          <div className={cn('grid gap-4 auto-rows-max', isMobile ? 'grid-cols-1' : 'grid-cols-2')}>
             <WidgetGridControls
               onShowAddWidget={() => setShowAddWidget(true)}
               widgetCount={widgets.length}
             />
             
-            {widgets.length > 0 && (
-              <>
-                {widgets.map((widget) => (
-                  <DraggableWidget
-                    key={widget.id}
-                    widget={widget}
-                    onUpdate={handleUpdate}
-                    onDelete={handleDelete}
-                    onArchive={handleArchive}
-                    onToggleWidth={handleToggleWidth}
-                    isMobile={isMobile}
-                  />
-                ))}
-                
-                <WidgetGridControls
-                  onShowAddWidget={() => setShowAddWidget(true)}
-                  widgetCount={widgets.length}
-                />
-              </>
-            )}
+            {widgets.map((widget) => (
+              <DraggableWidget
+                key={widget.id}
+                widget={widget}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onArchive={handleArchive}
+                onToggleWidth={handleToggleWidth}
+                isMobile={isMobile}
+              />
+            ))}
           </div>
         </SortableContext>
 
         <DragOverlay>
           {activeWidget ? (
-            <div className={cn(
-              "bg-background border border-border rounded-lg shadow-lg opacity-80",
-              activeWidget.widgetWidth === 'full' ? 'w-full' : 'w-1/2'
-            )}>
+            <div className={cn("bg-background border border-border rounded-lg shadow-lg opacity-80", activeWidget.widgetWidth === 'full' ? 'w-full' : 'w-1/2')}>
               <WidgetContainer
                 widgetId={activeWidget.id}
                 widgetType={activeWidget.type}
@@ -239,4 +162,6 @@ export const SimpleWidgetGrid: React.FC<SimpleWidgetGridProps> = ({ tab, classNa
       )}
     </div>
   );
-};
+});
+
+SimpleWidgetGrid.displayName = 'SimpleWidgetGrid';

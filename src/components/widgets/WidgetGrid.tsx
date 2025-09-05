@@ -1,6 +1,6 @@
 import React, { Suspense, memo } from 'react';
 import { SimpleWidgetGrid } from './SimpleWidgetGrid';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { useOptimizedPerformance } from '@/features/state-management';
 
 export interface WidgetGridProps {
   tab: string;
@@ -8,7 +8,10 @@ export interface WidgetGridProps {
 }
 
 export const WidgetGrid: React.FC<WidgetGridProps> = memo(({ tab, className }) => {
-  const { markRenderStart, markRenderEnd } = usePerformanceMonitor('WidgetGrid');
+  const { markRenderStart, markRenderEnd } = useOptimizedPerformance({ 
+    componentName: 'WidgetGrid',
+    trackMemory: true 
+  });
   
   React.useLayoutEffect(() => {
     markRenderStart();
