@@ -67,7 +67,13 @@ export const AgentSettingsModal = ({
     console.log('handleSubmit called with formData:', formData);
     console.log('isEditMode:', isEditMode, 'editingAgent:', editingAgent);
     
-    if (!validateForm()) return;
+    const isValid = validateForm();
+    console.log('Form validation result:', isValid);
+    
+    if (!isValid) {
+      console.log('Form validation failed, stopping submission');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -86,7 +92,17 @@ export const AgentSettingsModal = ({
           isShared: formData.isShared
         });
       } else {
-        console.log('Creating new agent');
+        console.log('Creating new agent with data:', {
+          name: formData.name,
+          description: formData.description,
+          webhookUrl: formData.webhookUrl,
+          systemMessage: formData.systemMessage,
+          modelParameters: formData.modelParameters,
+          avatarConfig: formData.avatarConfig,
+          isDefault: formData.isDefault,
+          isShared: formData.isShared,
+          isActive: true
+        });
         const newAgent = await createAgent({
           name: formData.name,
           description: formData.description,
@@ -99,6 +115,7 @@ export const AgentSettingsModal = ({
           isActive: true
         });
         success = !!newAgent;
+        console.log('Create agent result:', newAgent, 'success:', success);
       }
 
       if (success) {
@@ -111,6 +128,7 @@ export const AgentSettingsModal = ({
         onClose();
       }
     } catch (error) {
+      console.error('Error in handleSubmit:', error);
       toast({
         title: "Error",
         description: `Failed to ${isEditMode ? 'update' : 'create'} agent. Please try again.`,
@@ -152,6 +170,7 @@ export const AgentSettingsModal = ({
                       value={formData.name}
                       onChange={(e) => updateField('name', e.target.value)}
                       placeholder="e.g., Technical Assistant"
+                      className={!formData.name.trim() ? 'border-red-500' : ''}
                     />
                   </div>
                   <div>
@@ -161,7 +180,11 @@ export const AgentSettingsModal = ({
                       value={formData.webhookUrl}
                       onChange={(e) => updateField('webhookUrl', e.target.value)}
                       placeholder="https://your-n8n-instance.com/webhook/..."
+                      className={!formData.webhookUrl.trim() ? 'border-red-500' : ''}
                     />
+                    <p className="text-xs text-pip-text-muted mt-1">
+                      Required: The webhook URL where your AI agent is hosted
+                    </p>
                   </div>
                 </div>
                 
