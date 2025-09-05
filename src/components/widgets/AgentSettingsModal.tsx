@@ -128,7 +128,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col my-8">
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col my-8" viewportAware={false}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />

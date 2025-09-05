@@ -85,7 +85,7 @@ export const AiOracleSettingsModal: React.FC<AiOracleSettingsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col my-8">
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col my-8" viewportAware={false}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
