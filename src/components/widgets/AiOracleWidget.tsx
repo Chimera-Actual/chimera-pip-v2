@@ -178,8 +178,8 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
   return (
     <Card className="w-full h-full flex flex-col">
       {/* Chat Messages */}
-      <CardContent className="flex-1 flex flex-col p-1 min-h-0">
-        <div className="flex-1 min-h-0">
+      <CardContent className="flex-1 flex flex-col p-2 min-h-0">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <ScrollArea className="h-full pr-2">
             <div className="space-y-2 p-1">
               {messages.length === 0 ? (
@@ -277,12 +277,10 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
-      </div>
+        </div>
 
-        <Separator className="my-2" />
-
-        {/* Input Area */}
-        <div className="flex-shrink-0 space-y-2">
+        {/* Input Area - Fixed at bottom */}
+        <div className="border-t border-pip-border pt-2 mt-2">
           <div className="flex gap-2">
             <Input
               value={inputMessage}
@@ -316,7 +314,7 @@ export const AiOracleWidget: React.FC<AiOracleWidgetProps> = ({
           </div>
 
           {/* Footer Info */}
-          <div className="flex items-center justify-between text-xs text-pip-text-muted">
+          <div className="flex items-center justify-between text-xs text-pip-text-muted mt-2">
             <div className="flex items-center gap-4">
               {conversation?.metadata?.requestCount && (
                 <span>{conversation.metadata.requestCount} messages</span>
