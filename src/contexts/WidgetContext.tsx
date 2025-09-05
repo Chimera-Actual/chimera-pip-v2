@@ -383,6 +383,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
         const dbUpdate: any = {
           id,
+          user_id: user.id, // Always include user_id for RLS compliance
           updated_at: new Date().toISOString(),
         };
 
@@ -405,14 +406,20 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
       if (dbUpdates.length === 0) return;
 
-      // Perform batch update using upsert
-      const { error: batchError } = await supabase
-        .from('user_widgets')
-        .upsert(dbUpdates, { onConflict: 'id' });
+      // Use proper UPDATE operations instead of upsert to avoid RLS violations
+      // Since we're only updating existing widgets, we don't need upsert behavior
+      const updatePromises = dbUpdates.map(async (update) => {
+        const { error } = await supabase
+          .from('user_widgets')
+          .update(update)
+          .eq('id', update.id)
+          .eq('user_id', user.id); // Double-check ownership in WHERE clause
+        
+        if (error) throw error;
+        return update;
+      });
 
-      if (batchError) {
-        throw batchError;
-      }
+      await Promise.all(updatePromises);
     } catch (err) {
       // Rollback optimistic updates on error
       setWidgets(originalWidgets);
