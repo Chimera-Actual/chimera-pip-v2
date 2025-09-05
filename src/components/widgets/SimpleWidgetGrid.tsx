@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -25,14 +26,27 @@ import { useWidgets } from '@/contexts/WidgetContext';
 import { useOptimizedPerformance } from '@/features/state-management';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 export interface SimpleWidgetGridProps {
   tab: string;
   className?: string;
 }
 
+// Debounce utility for batch operations
+const useDebouncedCallback = (callback: (...args: any[]) => void, delay: number) => {
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  
+  return useCallback((...args: any[]) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]);
+};
+
 export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, className = '' }) => {
-  const { getWidgetsByTab } = useWidgets();
+  const { getWidgetsByTab, updateMultipleWidgets } = useWidgets();
   const { 
     handleAddWidget,
     handleDelete,
@@ -53,6 +67,7 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
 
   const [showAddWidget, setShowAddWidget] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   const isMobile = useIsMobile();
   const widgets = getWidgetsByTab(tab as any);
@@ -68,35 +83,111 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
     setShowAddWidget(false);
   }, [handleAddWidget]);
 
+  // Enhanced sensors for better mobile and desktop experience
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before drag starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms press delay for mobile
+        tolerance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
+  // Debounced batch update for reordering
+  const debouncedBatchUpdate = useDebouncedCallback(
+    async (widgetUpdates: Array<{id: string; updates: Partial<BaseWidget>}>) => {
+      try {
+        await updateMultipleWidgets(widgetUpdates);
+        toast({
+          title: 'Widgets Reordered',
+          description: 'Widget order updated successfully.',
+        });
+      } catch (error) {
+        // Error handling is already done in updateMultipleWidgets with rollback
+        console.error('Failed to update widget order:', error);
+      }
+    },
+    300 // 300ms delay to batch rapid changes
+  );
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+    setIsDragging(true);
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      const oldIndex = widgets.findIndex(w => w.id === active.id);
-      const newIndex = widgets.findIndex(w => w.id === over?.id);
-      
-      const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
-      
-      reorderedWidgets.forEach((widget, index) => {
-        handleUpdate(widget.id, { order: index });
-      });
-    }
     
     setActiveId(null);
-  };
+    setIsDragging(false);
 
-  const activeWidget = widgets.find(w => w.id === activeId);
+    if (active.id !== over?.id && over?.id) {
+      const oldIndex = widgets.findIndex(w => w.id === active.id);
+      const newIndex = widgets.findIndex(w => w.id === over.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedWidgets = arrayMove(widgets, oldIndex, newIndex);
+        
+        // Create batch updates for all affected widgets
+        const widgetUpdates = reorderedWidgets.map((widget, index) => ({
+          id: widget.id,
+          updates: { order: index }
+        }));
+
+        // Use debounced batch update
+        debouncedBatchUpdate(widgetUpdates);
+      }
+    }
+  }, [widgets, debouncedBatchUpdate]);
+
+  const activeWidget = useMemo(() => 
+    widgets.find(w => w.id === activeId),
+    [widgets, activeId]
+  );
+
+  // Improved DragOverlay with better styling and visual feedback
+  const dragOverlay = useMemo(() => {
+    if (!activeWidget) return null;
+    
+    return (
+      <div className={cn(
+        "transform rotate-3 scale-105 transition-transform",
+        "bg-pip-bg/95 border-2 border-pip-green-primary/80 rounded-lg shadow-2xl shadow-pip-green-primary/30",
+        "backdrop-blur-sm pip-glow",
+        activeWidget.widgetWidth === 'full' ? 'w-[400px]' : 'w-[300px]'
+      )}>
+        <WidgetContainer
+          widgetId={activeWidget.id}
+          widgetType={activeWidget.type}
+          title={activeWidget.title}
+          customIcon={activeWidget.customIcon}
+          widgetWidth={activeWidget.widgetWidth}
+          collapsed={activeWidget.collapsed}
+          onToggleCollapse={() => {}}
+          onSettingsChange={() => {}}
+          onTitleChange={() => {}}
+          onIconChange={() => {}}
+          onToggleWidth={() => {}}
+          onDelete={() => {}}
+          onArchive={() => {}}
+          onMove={undefined}
+          className="pointer-events-none"
+        >
+          <div className="opacity-60">
+            <WidgetRenderer widget={activeWidget} />
+          </div>
+        </WidgetContainer>
+      </div>
+    );
+  }, [activeWidget]);
 
   return (
     <div className={cn('flex flex-col space-y-4', className)}>
@@ -107,7 +198,11 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <div className={cn('grid gap-4 auto-rows-max', isMobile ? 'grid-cols-1' : 'grid-cols-2')}>
+          <div className={cn(
+            'grid gap-4 auto-rows-max transition-all duration-200',
+            isMobile ? 'grid-cols-1' : 'grid-cols-2',
+            isDragging && 'pointer-events-none select-none'
+          )}>
             <WidgetGridControls
               onShowAddWidget={() => setShowAddWidget(true)}
               widgetCount={widgets.length}
@@ -127,29 +222,11 @@ export const SimpleWidgetGrid = React.memo<SimpleWidgetGridProps>(({ tab, classN
           </div>
         </SortableContext>
 
-        <DragOverlay>
-          {activeWidget ? (
-            <div className={cn("bg-background border border-border rounded-lg shadow-lg opacity-80", activeWidget.widgetWidth === 'full' ? 'w-full' : 'w-1/2')}>
-              <WidgetContainer
-                widgetId={activeWidget.id}
-                widgetType={activeWidget.type}
-                title={activeWidget.title}
-                customIcon={activeWidget.customIcon}
-                widgetWidth={activeWidget.widgetWidth}
-                collapsed={activeWidget.collapsed}
-                onToggleCollapse={() => handleUpdate(activeWidget.id, { collapsed: !activeWidget.collapsed })}
-                onSettingsChange={(settings) => handleUpdate(activeWidget.id, { settings })}
-                onTitleChange={(newTitle) => handleUpdate(activeWidget.id, { title: newTitle })}
-                onIconChange={(newIcon) => handleUpdate(activeWidget.id, { customIcon: newIcon })}
-                onToggleWidth={() => handleToggleWidth(activeWidget)}
-                onDelete={() => handleDelete(activeWidget.id)}
-                onArchive={() => handleArchive(activeWidget.id)}
-                onMove={undefined}
-              >
-                <WidgetRenderer widget={activeWidget} />
-              </WidgetContainer>
-            </div>
-          ) : null}
+        <DragOverlay dropAnimation={{
+          duration: 300,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+        }}>
+          {dragOverlay}
         </DragOverlay>
       </DndContext>
 

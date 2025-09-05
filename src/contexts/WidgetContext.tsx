@@ -18,6 +18,7 @@ interface WidgetContextType {
   archiveWidget: (widgetId: string) => Promise<void>;
   restoreWidget: (widgetId: string) => Promise<void>;
   updateWidget: (widgetId: string, updates: Partial<BaseWidget>) => Promise<void>;
+  updateMultipleWidgets: (widgetUpdates: Array<{id: string; updates: Partial<BaseWidget>}>) => Promise<void>;
   getWidgetsByTab: (tab: TabAssignment) => BaseWidget[];
   refreshWidgets: () => Promise<void>;
 }
@@ -260,16 +261,37 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     }
   }, [user?.id]);
 
-  // Update a widget
+  // Update a widget with optimistic updates
   const updateWidget = useCallback(async (widgetId: string, updates: Partial<BaseWidget>): Promise<void> => {
     if (!user?.id) return;
 
-    try {
-      const currentWidget = widgets.find(w => w.id === widgetId);
-      if (!currentWidget) {
-        throw new Error('Widget not found');
-      }
+    const currentWidget = widgets.find(w => w.id === widgetId) || archivedWidgets.find(w => w.id === widgetId);
+    if (!currentWidget) {
+      toast({
+        title: 'Error',
+        description: 'Widget not found.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    try {
+      // Optimistic update - update UI immediately
+      const optimisticUpdate = { ...updates, updatedAt: new Date() };
+      
+      setWidgets(prev => prev.map(widget => 
+        widget.id === widgetId 
+          ? { ...widget, ...optimisticUpdate }
+          : widget
+      ));
+      
+      setArchivedWidgets(prev => prev.map(widget => 
+        widget.id === widgetId 
+          ? { ...widget, ...optimisticUpdate }
+          : widget
+      ));
+
+      // Prepare database updates
       const dbUpdates: any = {
         updated_at: new Date().toISOString(),
       };
@@ -288,6 +310,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       if (updates.archived !== undefined) dbUpdates.is_archived = updates.archived;
       if (updates.tabAssignment !== undefined) dbUpdates.tab_assignment = updates.tabAssignment;
 
+      // Update database
       const { error: updateError } = await supabase
         .from('user_widgets')
         .update(dbUpdates)
@@ -297,22 +320,20 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       if (updateError) {
         throw updateError;
       }
-
-      // Update widgets in appropriate array
-      const updatedWidget = { ...updates, updatedAt: new Date() };
-      
+    } catch (err) {
+      // Rollback optimistic update on error
       setWidgets(prev => prev.map(widget => 
         widget.id === widgetId 
-          ? { ...widget, ...updatedWidget }
+          ? currentWidget 
           : widget
       ));
       
       setArchivedWidgets(prev => prev.map(widget => 
         widget.id === widgetId 
-          ? { ...widget, ...updatedWidget }
+          ? currentWidget 
           : widget
       ));
-    } catch (err) {
+
       reportError(
         'Failed to update widget',
         {
@@ -326,11 +347,95 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
       );
       toast({
         title: 'Error',
-        description: 'Failed to update widget. Please try again.',
+        description: 'Failed to update widget. Changes have been reverted.',
         variant: 'destructive',
       });
+      throw err; // Re-throw so calling code knows the update failed
     }
-  }, [user?.id, widgets]);
+  }, [user?.id, widgets, archivedWidgets]);
+
+  // Batch update multiple widgets (for reordering)
+  const updateMultipleWidgets = useCallback(async (widgetUpdates: Array<{id: string; updates: Partial<BaseWidget>}>): Promise<void> => {
+    if (!user?.id || widgetUpdates.length === 0) return;
+
+    // Store original widgets for rollback
+    const originalWidgets = [...widgets];
+    const originalArchivedWidgets = [...archivedWidgets];
+
+    try {
+      // Optimistic update - update UI immediately
+      const updatesMap = new Map(widgetUpdates.map(({id, updates}) => [id, updates]));
+      
+      setWidgets(prev => prev.map(widget => {
+        const update = updatesMap.get(widget.id);
+        return update ? { ...widget, ...update, updatedAt: new Date() } : widget;
+      }));
+      
+      setArchivedWidgets(prev => prev.map(widget => {
+        const update = updatesMap.get(widget.id);
+        return update ? { ...widget, ...update, updatedAt: new Date() } : widget;
+      }));
+
+      // Prepare batch database updates
+      const dbUpdates = widgetUpdates.map(({id, updates}) => {
+        const currentWidget = originalWidgets.find(w => w.id === id) || originalArchivedWidgets.find(w => w.id === id);
+        if (!currentWidget) return null;
+
+        const dbUpdate: any = {
+          id,
+          updated_at: new Date().toISOString(),
+        };
+
+        if (updates.title !== undefined || updates.settings !== undefined || updates.customIcon !== undefined) {
+          dbUpdate.widget_config = {
+            title: updates.title || currentWidget.title,
+            customIcon: updates.customIcon !== undefined ? updates.customIcon : currentWidget.customIcon,
+            settings: updates.settings || currentWidget.settings,
+          };
+        }
+
+        if (updates.order !== undefined) dbUpdate.order_position = updates.order;
+        if (updates.widgetWidth !== undefined) dbUpdate.widget_width = updates.widgetWidth;
+        if (updates.collapsed !== undefined) dbUpdate.is_collapsed = updates.collapsed;
+        if (updates.archived !== undefined) dbUpdate.is_archived = updates.archived;
+        if (updates.tabAssignment !== undefined) dbUpdate.tab_assignment = updates.tabAssignment;
+
+        return dbUpdate;
+      }).filter(Boolean);
+
+      if (dbUpdates.length === 0) return;
+
+      // Perform batch update using upsert
+      const { error: batchError } = await supabase
+        .from('user_widgets')
+        .upsert(dbUpdates, { onConflict: 'id' });
+
+      if (batchError) {
+        throw batchError;
+      }
+    } catch (err) {
+      // Rollback optimistic updates on error
+      setWidgets(originalWidgets);
+      setArchivedWidgets(originalArchivedWidgets);
+
+      reportError(
+        'Failed to update multiple widgets',
+        {
+          userId: user.id,
+          component: 'WidgetContext',
+          action: 'updateMultipleWidgets',
+          metadata: { widgetCount: widgetUpdates.length }
+        },
+        err
+      );
+      toast({
+        title: 'Error',
+        description: 'Failed to reorder widgets. Changes have been reverted.',
+        variant: 'destructive',
+      });
+      throw err;
+    }
+  }, [user?.id, widgets, archivedWidgets]);
 
   // Archive a widget
   const archiveWidget = useCallback(async (widgetId: string): Promise<void> => {
@@ -419,6 +524,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
     archiveWidget,
     restoreWidget,
     updateWidget,
+    updateMultipleWidgets,
     getWidgetsByTab,
     refreshWidgets,
   };
