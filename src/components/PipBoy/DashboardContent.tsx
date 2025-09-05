@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WidgetGrid } from '@/components/widgets/WidgetGrid';
+import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { useWidgets } from '@/contexts/WidgetContext';
 import { useTabManager } from '@/hooks/useTabManager';
@@ -61,9 +61,9 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
         isDefaultTab={currentTab?.isDefault || false}
       />
 
-      {/* Widget Grid */}
+      {/* Modern Widget Canvas */}
       <div className="widget-content">
-        <WidgetGrid tab={activeTab} />
+        <CanvasIntegration tab={activeTab} />
       </div>
 
       <DashboardModals
