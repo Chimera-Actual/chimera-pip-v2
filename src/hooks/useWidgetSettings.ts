@@ -123,16 +123,19 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
           .from('widget_settings_schemas')
           .select('*')
           .eq('widget_type', widgetType)
-          .single();
+          .maybeSingle();
 
         // Handle schema loading with fallback to defaults
         let parsedSchema: WidgetSettingsSchema<T>;
         
-        if (schemaError || !schemaData) {
-        console.warn('Schema load error, using fallback:', schemaError);
+        if (schemaError) {
+          console.error('Schema load error:', schemaError);
+          // Use fallback schema for common widget types
+          parsedSchema = getFallbackSchema<T>(widgetType);
+        } else if (!schemaData) {
+          console.warn('No schema found for widget type, using fallback:', widgetType);
           // Fallback schema for common widget types
-          const fallbackSchemas = getFallbackSchema<T>(widgetType);
-          parsedSchema = fallbackSchemas;
+          parsedSchema = getFallbackSchema<T>(widgetType);
         } else {
           parsedSchema = {
             widgetType: schemaData.widget_type,
@@ -145,12 +148,17 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
         setSchema(parsedSchema);
         
         // Load instance settings or create with defaults
-        const { data: instanceData } = await supabase
+        const { data: instanceData, error: instanceError } = await supabase
           .from('widget_instance_settings')
           .select('*')
           .eq('widget_id', widgetId)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+
+        if (instanceError) {
+          console.error('Error loading instance settings:', instanceError);
+          // Continue with default settings on error
+        }
 
         if (instanceData) {
           setSettings(instanceData.settings_merged as T);

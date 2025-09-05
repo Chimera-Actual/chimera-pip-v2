@@ -73,10 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        reportError('Error fetching profile', { component: 'AuthContext' });
+        reportError('Error fetching profile', { component: 'AuthContext', userId });
+        return;
+      }
+
+      // Handle case where user profile doesn't exist yet
+      if (!data) {
+        console.warn('User profile not found, user may need to complete registration');
         return;
       }
 

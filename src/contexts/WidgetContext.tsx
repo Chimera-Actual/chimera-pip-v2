@@ -154,8 +154,19 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
   const addWidget = useCallback(async (type: WidgetType, tabAssignment?: TabAssignment): Promise<BaseWidget | null> => {
     if (!user?.id) {
       toast({
-        title: 'Error', 
-        description: 'You must be logged in to add widgets.',
+        title: 'Authentication Required', 
+        description: 'Please log in to add widgets to your vault.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    // Double-check authentication before database operation
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser || currentUser.id !== user.id) {
+      toast({
+        title: 'Session Expired',
+        description: 'Please log in again to continue.',
         variant: 'destructive',
       });
       return null;
@@ -223,7 +234,25 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
   // Remove a widget
   const removeWidget = useCallback(async (widgetId: string): Promise<void> => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to remove widgets.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Verify authentication before database operation
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser || currentUser.id !== user.id) {
+      toast({
+        title: 'Session Expired',
+        description: 'Please log in again to continue.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     try {
       const { error: deleteError } = await supabase
@@ -263,7 +292,25 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
   // Update a widget with optimistic updates
   const updateWidget = useCallback(async (widgetId: string, updates: Partial<BaseWidget>): Promise<void> => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to update widgets.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Verify current authentication state
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser || currentUser.id !== user.id) {
+      toast({
+        title: 'Session Expired',
+        description: 'Please log in again to continue.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const currentWidget = widgets.find(w => w.id === widgetId) || archivedWidgets.find(w => w.id === widgetId);
     if (!currentWidget) {
@@ -356,7 +403,27 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
 
   // Batch update multiple widgets (for reordering)
   const updateMultipleWidgets = useCallback(async (widgetUpdates: Array<{id: string; updates: Partial<BaseWidget>}>): Promise<void> => {
-    if (!user?.id || widgetUpdates.length === 0) return;
+    if (!user?.id || widgetUpdates.length === 0) {
+      if (!user?.id) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to reorder widgets.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+
+    // Double-check authentication for batch operations
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser || currentUser.id !== user.id) {
+      toast({
+        title: 'Session Expired',
+        description: 'Please log in again to continue.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     // Store original widgets for rollback
     const originalWidgets = [...widgets];

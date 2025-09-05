@@ -43,11 +43,21 @@ class SupabaseService {
 
       // Execute query
       const { data, error } = config.single 
-        ? await query.single()
+        ? await query.maybeSingle()
         : await query;
 
       if (error) {
         throw createApiError(error.message, 'SUPABASE_ERROR', { config });
+      }
+
+      // Handle case where no data found for single query
+      if (config.single && !data) {
+        return {
+          data: null as T,
+          error: 'No data found',
+          success: false,
+          timestamp: new Date().toISOString(),
+        };
       }
 
       // Cache successful response
