@@ -61,7 +61,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
         .from('user_widgets')
         .select('*')
         .eq('user_id', user.id)
-        .order('order_position', { ascending: true });
+        .order('display_order', { ascending: true });
 
       if (fetchError) {
         throw fetchError;
@@ -83,7 +83,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             customIcon: widgetConfig?.customIcon || undefined,
             collapsed: widget.is_collapsed || false,
             archived: widget.is_archived || false,
-            order: widget.order_position || 0, // Use actual database order_position
+            order: widget.display_order || 0, // Use actual database display_order
             widgetWidth: (widget.widget_width as WidgetWidth) || 'half',
             tabAssignment: widget.tab_assignment as TabAssignment,
             settings: widgetConfig?.settings || definition.defaultSettings,
@@ -124,7 +124,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             const { error } = await supabase
               .from('user_widgets')
               .update({ 
-                order_position: updates.order,
+                display_order: updates.order,
                 updated_at: new Date().toISOString()
               })
               .eq('id', id)
@@ -232,7 +232,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
             customIcon: getDefaultWidgetIcon(widget.type),
             settings: widget.settings
           } as any,
-          order_position: widget.order,
+          display_order: widget.order,
           widget_width: widget.widgetWidth,
           is_collapsed: widget.collapsed,
           is_archived: widget.archived,
@@ -502,7 +502,7 @@ export const WidgetProvider: React.FC<WidgetProviderProps> = ({ children }) => {
           };
         }
 
-        if (updates.order !== undefined) dbUpdate.order_position = updates.order;
+        if (updates.order !== undefined) dbUpdate.display_order = updates.order;
         if (updates.widgetWidth !== undefined) dbUpdate.widget_width = updates.widgetWidth;
         if (updates.collapsed !== undefined) dbUpdate.is_collapsed = updates.collapsed;
         if (updates.archived !== undefined) dbUpdate.is_archived = updates.archived;
