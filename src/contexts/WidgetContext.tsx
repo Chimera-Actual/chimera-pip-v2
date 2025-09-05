@@ -8,7 +8,7 @@ import { reportError, reportWarning } from '@/lib/errorReporting';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
 // Removed grid validation imports - using simple ordering now
 
-interface WidgetContextType {
+export interface WidgetContextType {
   widgets: BaseWidget[];
   archivedWidgets: BaseWidget[];
   isLoading: boolean;

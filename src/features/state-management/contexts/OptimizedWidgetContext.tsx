@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { useWidgets as useBaseWidgets } from '@/contexts/WidgetContext';
+import { useWidgets as useBaseWidgets, WidgetContextType } from '@/contexts/WidgetContext';
 import { BaseWidget, TabAssignment } from '@/types/widgets';
 
 interface OptimizedWidgetContextType {
@@ -29,7 +29,19 @@ interface OptimizedWidgetProviderProps {
 }
 
 export const OptimizedWidgetProvider: React.FC<OptimizedWidgetProviderProps> = ({ children }) => {
-  const { widgets, updateWidget } = useBaseWidgets();
+  // Use a try-catch approach to safely access the widget context
+  let widgetContext: WidgetContextType | null = null;
+  
+  try {
+    widgetContext = useBaseWidgets();
+  } catch (error) {
+    // If WidgetContext is not available, render children directly
+    console.warn('OptimizedWidgetProvider: WidgetContext not available, rendering children directly:', error);
+    return <>{children}</>;
+  }
+
+  // Now we can safely use the widgets context
+  const { widgets, updateWidget } = widgetContext;
 
   // Memoized widget lookup by tab
   const widgetsByTab = useMemo(() => {
