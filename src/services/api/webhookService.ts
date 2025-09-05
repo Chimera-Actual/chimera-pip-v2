@@ -23,10 +23,12 @@ class WebhookService {
     let lastError: any = null;
     
     for (let attempt = 0; attempt <= retries; attempt++) {
+      let timeoutId: NodeJS.Timeout | undefined;
+      
       try {
         // Create abort controller if not provided
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        timeoutId = setTimeout(() => controller.abort(), timeout);
         const requestSignal = signal || controller.signal;
 
         const response = await fetch(config.url, {
