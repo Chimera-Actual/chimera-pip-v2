@@ -22,34 +22,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Split vendor chunks for better caching
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            if (id.includes('@radix-ui') || id.includes('@dnd-kit')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('supabase')) {
-              return 'vendor-supabase';
-            }
-            if (id.includes('lodash') || id.includes('date-fns')) {
-              return 'vendor-utils';
-            }
-            if (id.includes('recharts') || id.includes('react-markdown')) {
-              return 'vendor-charts';
-            }
-            return 'vendor-misc';
-          }
-          // Split widget components
-          if (id.includes('src/components/widgets')) {
-            return 'widgets';
-          }
-          // Split UI components
-          if (id.includes('src/components/ui')) {
-            return 'ui-components';
-          }
+        manualChunks: {
+          // Keep React together with react-dom in a single chunk
+          'react-vendor': ['react', 'react-dom'],
         },
       },
     },
@@ -60,7 +35,31 @@ export default defineConfig(({ mode }) => ({
     sourcemap: mode === 'development',
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+    ],
+    esbuildOptions: {
+      // Ensure React is treated as external in development but bundled in production
+      define: {
+        global: 'globalThis',
+      },
+    },
   },
   worker: {
     format: 'es',
