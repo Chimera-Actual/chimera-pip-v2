@@ -341,10 +341,11 @@ export type Database = {
       user_widgets: {
         Row: {
           created_at: string | null
+          display_order: number
           id: string
           is_archived: boolean | null
           is_collapsed: boolean | null
-          order_position: number
+          sequence_order: number
           tab_assignment: string
           updated_at: string | null
           user_id: string
@@ -354,10 +355,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          display_order?: number
           id?: string
           is_archived?: boolean | null
           is_collapsed?: boolean | null
-          order_position?: number
+          sequence_order?: number
           tab_assignment: string
           updated_at?: string | null
           user_id: string
@@ -367,10 +369,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          display_order?: number
           id?: string
           is_archived?: boolean | null
           is_collapsed?: boolean | null
-          order_position?: number
+          sequence_order?: number
           tab_assignment?: string
           updated_at?: string | null
           user_id?: string
