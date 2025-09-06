@@ -109,7 +109,7 @@ export const AiOracleSettingsModal = ({
               </Button>
             </div>
             
-            <div className="flex-1 min-h-0 overflow-auto pr-4">
+            <div className="flex-1 min-h-0 overflow-auto pr-4 pip-scrollbar">
               <div className="space-y-3">
                 {agentsLoading ? (
                   <div className="flex items-center justify-center h-32">
@@ -219,7 +219,7 @@ export const AiOracleSettingsModal = ({
 
           {/* Widget Settings Tab */}
           <TabsContent value="widget" className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 min-h-0 overflow-auto pr-4">
+            <div className="flex-1 min-h-0 overflow-auto pr-4 pip-scrollbar">
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
