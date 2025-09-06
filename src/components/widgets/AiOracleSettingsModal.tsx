@@ -93,14 +93,14 @@ export const AiOracleSettingsModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
             <TabsTrigger value="agents">Agents ({agents.length})</TabsTrigger>
             <TabsTrigger value="widget">Widget Settings</TabsTrigger>
           </TabsList>
 
           {/* Agents Management Tab */}
-          <TabsContent value="agents" className="flex-1 flex flex-col space-y-4 overflow-hidden">
+          <TabsContent value="agents" className="flex-1 flex flex-col space-y-4 min-h-0">
             <div className="flex justify-between items-center flex-shrink-0">
               <h3 className="text-lg font-semibold">AI Agents</h3>
               <Button onClick={handleAddAgent} size="sm">
@@ -109,7 +109,7 @@ export const AiOracleSettingsModal = ({
               </Button>
             </div>
             
-            <ScrollArea className="flex-1 pr-4">
+            <div className="flex-1 min-h-0 overflow-auto pr-4">
               <div className="space-y-3">
                 {agentsLoading ? (
                   <div className="flex items-center justify-center h-32">
@@ -213,13 +213,13 @@ export const AiOracleSettingsModal = ({
                   ))
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
 
           {/* Widget Settings Tab */}
-          <TabsContent value="widget" className="flex-1 flex flex-col overflow-hidden">
-            <ScrollArea className="flex-1 pr-4">
+          <TabsContent value="widget" className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 min-h-0 overflow-auto pr-4">
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -335,7 +335,7 @@ export const AiOracleSettingsModal = ({
                   </CardContent>
                 </Card>
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
         </Tabs>
 
