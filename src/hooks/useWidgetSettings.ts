@@ -166,7 +166,6 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
           
           // Initialize intelligent sync with current data
           initializeSync({
-            widget_config: { settings: instanceData.settings_merged as T, collapsed: false },
             settings_overrides: instanceData.settings_overrides as Partial<T>,
             settings_merged: instanceData.settings_merged as T
           });
@@ -178,7 +177,6 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
           
           // Initialize sync for new widget
           initializeSync({
-            widget_config: { settings: defaultSettings, collapsed: false },
             settings_overrides: {},
             settings_merged: defaultSettings
           });
@@ -223,7 +221,6 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
     
     // Intelligent sync - only syncs if data actually changed
     syncSettings({
-      widget_config: { settings: newSettings, collapsed: false },
       settings_overrides: newOverrides,
       settings_merged: newSettings
     });
@@ -298,6 +295,8 @@ export function useWidgetSettings<T extends Record<string, unknown>>(
           last_validated_at: new Date().toISOString(),
           validation_errors: null,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'widget_id,user_id'
         });
       
       if (error) throw error;
