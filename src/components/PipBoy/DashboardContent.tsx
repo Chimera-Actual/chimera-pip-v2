@@ -76,7 +76,6 @@ export const DashboardContent = memo<DashboardContentProps>(({
           onShowTabEditor={() => setShowTabEditor(true)}
           onArchiveTab={handleArchiveTab}
           onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-          onShowWidgetSelector={handleShowWidgetSelector}
           isDefaultTab={currentTab?.isDefault || false}
         />
 
