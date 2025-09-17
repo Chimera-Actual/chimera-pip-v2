@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Palette, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { CheckedState } from '@radix-ui/react-checkbox';
 
 interface TestWidgetProps {
   title?: string;
@@ -38,7 +39,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
   const [colorValue, setColorValue] = useState(settings.colorValue || '#00ff00');
   const [numberInput, setNumberInput] = useState(settings.numberInput || 0);
 
-  const handleCheckboxChange = (key: string, checked: boolean | 'indeterminate') => {
+  const handleCheckboxChange = (key: string, checked: CheckedState) => {
     const newCheckboxes = { ...checkboxes, [key]: !!checked };
     setCheckboxes(newCheckboxes);
     onSettingsChange?.({ ...settings, checkboxes: newCheckboxes });
@@ -145,7 +146,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
                 <div key={key} className="flex items-center space-x-2">
                   <Checkbox
                     id={key}
-                    checked={checked}
+                    checked={checked as boolean}
                     onCheckedChange={(checked) => handleCheckboxChange(key, checked)}
                     className="border-pip-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
