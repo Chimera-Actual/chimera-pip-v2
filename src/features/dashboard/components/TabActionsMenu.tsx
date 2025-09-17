@@ -36,14 +36,14 @@ export const TabActionsMenu = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={onShowTabEditor}>
-          <Pencil className="pip-icon-sm mr-3" />
-          Tab Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onShowWidgetSelector}>
           <Plus className="pip-icon-sm mr-3" />
           Add Widget
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onShowTabEditor}>
+          <Pencil className="pip-icon-sm mr-3" />
+          Tab Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
