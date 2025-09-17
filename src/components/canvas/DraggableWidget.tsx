@@ -7,12 +7,16 @@ interface DraggableWidgetProps {
   widget: UserWidget;
   children: React.ReactNode;
   editMode?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   widget,
   children,
   editMode = false,
+  className = '',
+  style,
 }) => {
   const {
     attributes,
@@ -28,15 +32,16 @@ export const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     },
   });
 
-  const style = {
+  const dragStyle: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
+    ...style,
   };
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`${isDragging ? 'z-50 opacity-50' : ''}`}
+      style={dragStyle}
+      className={`${className} ${isDragging ? 'z-50 opacity-50' : ''}`}
       {...attributes}
       {...(editMode ? listeners : {})}
     >
