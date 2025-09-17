@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 export const useTabManager = () => {
   const { user } = useAuth();
   const [tabs, setTabs] = useState<TabConfiguration[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('STAT');
+  const [activeTab, setActiveTab] = useState<string>('MAIN');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +49,13 @@ export const useTabManager = () => {
 
       setTabs(formattedTabs);
 
-      // Set active tab to first tab if current active tab doesn't exist
-      if (formattedTabs.length > 0 && !formattedTabs.find(t => t.name === activeTab)) {
+      // Set active tab to MAIN if it exists, otherwise first tab if current active tab doesn't exist
+      const mainTab = formattedTabs.find(t => t.name === 'MAIN');
+      const currentTab = formattedTabs.find(t => t.name === activeTab);
+      
+      if (mainTab && !currentTab) {
+        setActiveTab('MAIN');
+      } else if (formattedTabs.length > 0 && !currentTab) {
         setActiveTab(formattedTabs[0].name);
       }
     } catch (err) {

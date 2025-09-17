@@ -46,14 +46,21 @@ export const CharacterCreation: React.FC = () => {
   const availablePoints = 28 - totalPoints;
 
   const adjustStat = (stat: keyof SpecialStats, delta: number) => {
+    console.log('Adjusting stat:', stat, 'delta:', delta, 'current:', specialStats[stat], 'available points:', availablePoints);
     const newValue = specialStats[stat] + delta;
     
     if (newValue >= 1 && newValue <= 10) {
       if (delta > 0 && availablePoints > 0) {
+        console.log('Increasing stat to:', newValue);
         setSpecialStats(prev => ({ ...prev, [stat]: newValue }));
       } else if (delta < 0) {
+        console.log('Decreasing stat to:', newValue);
         setSpecialStats(prev => ({ ...prev, [stat]: newValue }));
+      } else {
+        console.log('Cannot adjust stat - no points available or at limit');
       }
+    } else {
+      console.log('Cannot adjust stat - out of bounds (1-10)');
     }
   };
 

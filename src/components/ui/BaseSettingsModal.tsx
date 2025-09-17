@@ -90,7 +90,7 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden custom-scrollbar">
           {children}
         </div>
 

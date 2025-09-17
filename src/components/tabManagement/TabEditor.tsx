@@ -113,7 +113,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
       isLoading={isSubmitting}
       className="pip-widget-dialog"
     >
-      <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+      <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
         {/* Tab Name */}
         <div className="space-y-2">
           <Label htmlFor="tab-name" className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
@@ -152,7 +152,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
           <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
             ICON SELECTION
           </Label>
-          <div className="grid grid-cols-8 gap-2 p-3 border border-pip-border rounded-md bg-pip-bg-tertiary/50 max-h-48 overflow-y-auto pip-glow">
+          <div className="grid grid-cols-8 gap-2 p-3 border border-pip-border rounded-md bg-pip-bg-tertiary/50 max-h-48 overflow-y-auto pip-glow custom-scrollbar">
             {availableIcons.map((iconOption) => {
               const IconComponent = iconOption.icon;
               return (
