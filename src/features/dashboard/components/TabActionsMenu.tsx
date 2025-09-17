@@ -37,12 +37,12 @@ export const TabActionsMenu = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={onShowTabEditor}>
-          <Pencil className="pip-icon-sm" />
+          <Pencil className="pip-icon-sm mr-3" />
           Tab Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onShowWidgetSelector}>
-          <Plus className="pip-icon-sm" />
+          <Plus className="pip-icon-sm mr-3" />
           Add Widget
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -50,7 +50,7 @@ export const TabActionsMenu = ({
           onClick={onArchiveTab}
           disabled={isDefaultTab}
         >
-          <Archive className="pip-icon-sm" />
+          <Archive className="pip-icon-sm mr-3" />
           Archive Tab
         </DropdownMenuItem>
         <DropdownMenuItem 
@@ -58,7 +58,7 @@ export const TabActionsMenu = ({
           disabled={isDefaultTab}
           className="text-destructive focus:text-destructive"
         >
-          <Trash2 className="pip-icon-sm" />
+          <Trash2 className="pip-icon-sm mr-3" />
           Delete Tab
         </DropdownMenuItem>
       </DropdownMenuContent>
