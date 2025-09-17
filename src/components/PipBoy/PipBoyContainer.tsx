@@ -101,7 +101,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
           />
           
           {/* Dashboard Content with Sidebar */}
-          <SidebarProvider>
+          <SidebarProvider className="min-h-0 h-full w-full">
             <div className="flex-1 flex overflow-hidden">
               <DashboardContent activeTab={activeTab} />
             </div>

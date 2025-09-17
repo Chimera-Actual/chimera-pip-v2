@@ -51,7 +51,10 @@ export const AppDrawer = memo<AppDrawerProps>(({
   };
 
   return (
-    <Sidebar className={`border-r border-pip-border bg-pip-bg-secondary ${collapsed ? 'w-16' : 'w-64'}`}>
+    <Sidebar 
+      collapsible="none"
+      className={`border-r border-pip-border bg-pip-bg-secondary h-full shrink-0 ${collapsed ? 'w-16' : 'w-64'}`}
+    >
       <SidebarContent className="flex flex-col h-full">
         <SidebarGroup className="flex-1">
           <SidebarGroupContent>
