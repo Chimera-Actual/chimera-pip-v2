@@ -8,6 +8,7 @@ import { TestWidget } from '@/components/widgets/TestWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { iconMapping } from '@/utils/iconMapping';
+import { WidgetAppDrawer } from './WidgetAppDrawer';
 
 interface CanvasIntegrationProps {
   tab: string;
@@ -120,10 +121,13 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (isLoading) {
     return (
-      <div className={`canvas-integration ${className || ''}`}>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="text-pip-text-secondary">Loading widgets...</div>
+      <div className="relative">
+        <WidgetAppDrawer onAddWidget={onDoubleClick} />
+        <div className={`canvas-integration ${className || ''} ml-0 transition-all duration-300`}>
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="text-pip-text-secondary">Loading widgets...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,18 +136,21 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (widgets.length === 0) {
     return (
-      <div 
-        className={`canvas-integration ${className || ''}`}
-        onDoubleClick={onDoubleClick}
-      >
-        <div className="flex items-center justify-center h-96 border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              {tab} Content Area
-            </h3>
-            <p className="text-muted-foreground">
-              Double-click to add widgets or use the gear menu
-            </p>
+      <div className="relative">
+        <WidgetAppDrawer onAddWidget={onDoubleClick} />
+        <div 
+          className={`canvas-integration ${className || ''} ml-0 transition-all duration-300`}
+          onDoubleClick={onDoubleClick}
+        >
+          <div className="flex items-center justify-center h-96 border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {tab} Content Area
+              </h3>
+              <p className="text-muted-foreground">
+                Double-click to add widgets or use the gear menu
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -151,8 +158,10 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   }
 
   return (
-    <div className={`canvas-integration ${className || ''}`}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="relative">
+      <WidgetAppDrawer onAddWidget={onDoubleClick} />
+      <div className={`canvas-integration ${className || ''} ml-0 transition-all duration-300`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {widgets.map((widget) => (
           <Card
             key={widget.id}
@@ -211,13 +220,14 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
         </p>
       </div>
 
-      {/* Widget Instance Settings Modal */}
-      <WidgetInstanceSettingsModal
-        open={!!settingsWidget}
-        onClose={() => setSettingsWidget(null)}
-        widget={settingsWidget}
-        onSave={handleSaveSettings}
-      />
+        {/* Widget Instance Settings Modal */}
+        <WidgetInstanceSettingsModal
+          open={!!settingsWidget}
+          onClose={() => setSettingsWidget(null)}
+          widget={settingsWidget}
+          onSave={handleSaveSettings}
+        />
+      </div>
     </div>
   );
 };
