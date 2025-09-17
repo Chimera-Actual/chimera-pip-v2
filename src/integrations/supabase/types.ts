@@ -342,6 +342,10 @@ export type Database = {
         Row: {
           created_at: string | null
           display_order: number
+          grid_height: number | null
+          grid_width: number | null
+          grid_x: number | null
+          grid_y: number | null
           id: string
           is_archived: boolean | null
           is_collapsed: boolean | null
@@ -356,6 +360,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           display_order?: number
+          grid_height?: number | null
+          grid_width?: number | null
+          grid_x?: number | null
+          grid_y?: number | null
           id?: string
           is_archived?: boolean | null
           is_collapsed?: boolean | null
@@ -370,6 +378,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           display_order?: number
+          grid_height?: number | null
+          grid_width?: number | null
+          grid_x?: number | null
+          grid_y?: number | null
           id?: string
           is_archived?: boolean | null
           is_collapsed?: boolean | null

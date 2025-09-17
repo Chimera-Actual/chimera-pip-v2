@@ -18,6 +18,29 @@ export const WIDGET_DIMENSIONS = {
   GRID_GAP: 24,
 } as const;
 
+// Grid System Configuration
+export const GRID_SYSTEM = {
+  COLUMNS: 12,
+  MIN_WIDGET_WIDTH: 1,
+  MAX_WIDGET_WIDTH: 12,
+  MIN_WIDGET_HEIGHT: 1,
+  MAX_WIDGET_HEIGHT: 4,
+  DEFAULT_WIDGET_WIDTH: 6,
+  DEFAULT_WIDGET_HEIGHT: 1,
+  CELL_HEIGHT: 200,
+  GAP: 24,
+} as const;
+
+// Widget Size Presets
+export const WIDGET_SIZE_PRESETS = {
+  SMALL: { width: 3, height: 1 },
+  MEDIUM: { width: 6, height: 1 },
+  LARGE: { width: 12, height: 1 },
+  TALL: { width: 6, height: 2 },
+  SQUARE: { width: 4, height: 2 },
+  WIDE: { width: 8, height: 1 },
+} as const;
+
 // System Monitor Thresholds
 export const SYSTEM_THRESHOLDS = {
   CPU_WARNING: 70,
