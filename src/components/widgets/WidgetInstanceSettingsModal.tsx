@@ -103,7 +103,7 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
               <SelectTrigger className="col-span-3 pip-input">
                 <SelectValue placeholder="Select an icon" />
               </SelectTrigger>
-              <SelectContent className="pip-dialog max-h-60">
+              <SelectContent className="pip-dialog max-h-60 bg-pip-bg-secondary z-50">
                 {Object.entries(iconMapping).map(([iconName, IconComponent]) => (
                   <SelectItem key={iconName} value={iconName} className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
           </div>
 
           {/* Widget-specific settings based on type */}
-          {widget.widget_type === 'test' && (
+          {['test', 'test_widget'].includes((widget.widget_type || '').toLowerCase()) && (
             <>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="textInput" className="text-right text-pip-text-secondary font-pip-mono">

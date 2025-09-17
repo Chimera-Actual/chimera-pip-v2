@@ -151,7 +151,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
               <SelectTrigger className="bg-pip-bg-tertiary border-pip-border">
                 <SelectValue placeholder="Select an option..." />
               </SelectTrigger>
-              <SelectContent className="bg-pip-bg-secondary border-pip-border">
+              <SelectContent className="bg-pip-bg-secondary border-pip-border z-50">
                 <SelectItem value="option1">Option 1</SelectItem>
                 <SelectItem value="option2">Option 2</SelectItem>
                 <SelectItem value="option3">Option 3</SelectItem>

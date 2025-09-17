@@ -73,6 +73,31 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
     return <IconComponent className="w-6 h-6" />;
   };
 
+  const renderWidgetContent = (widget: UserWidget) => {
+    const normalizedType = (widget.widget_type || '').toLowerCase().replace(/[^a-z]/g, '');
+    switch (normalizedType) {
+      case 'test':
+      case 'testwidget':
+        return (
+          <TestWidget
+            title={widget.widget_config?.title || 'Test Widget'}
+            settings={widget.widget_config || {}}
+            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+          />
+        );
+      default:
+        return (
+          <div className="p-6">
+            <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
+              <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
+              <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
+              <div>Number: {widget.widget_config?.numberInput || 0}</div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   if (isLoading) {
     return (
       <div className={`canvas-integration ${className || ''}`}>
@@ -138,21 +163,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             
             {!widget.is_collapsed && (
               <CardContent className="p-0">
-                {widget.widget_type === 'test' ? (
-                  <TestWidget
-                    title={widget.widget_config?.title || 'Test Widget'}
-                    settings={widget.widget_config || {}}
-                    onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-                  />
-                ) : (
-                  <div className="p-6">
-                    <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
-                      <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
-                      <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
-                      <div>Number: {widget.widget_config?.numberInput || 0}</div>
-                    </div>
-                  </div>
-                )}
+                {renderWidgetContent(widget)}
               </CardContent>
             )}
             
