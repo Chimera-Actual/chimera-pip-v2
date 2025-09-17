@@ -2,6 +2,7 @@ import { TabActionsMenu } from './TabActionsMenu';
 
 interface DashboardHeaderSectionProps {
   activeTab: string;
+  description?: string;
   onShowTabEditor: () => void;
   onArchiveTab: () => void;
   onShowDeleteConfirm: () => void;
@@ -10,18 +11,21 @@ interface DashboardHeaderSectionProps {
 
 export const DashboardHeaderSection = ({
   activeTab,
+  description,
   onShowTabEditor,
   onArchiveTab,
   onShowDeleteConfirm,
   isDefaultTab
 }) => {
   const getTabDescription = (tab: string) => {
+    if (description && description.trim().length > 0) return description;
     const descriptions: Record<string, string> = {
       'STAT': 'Character Statistics & System Status',
       'INV': 'Digital Inventory & File Management', 
       'DATA': 'Information & Communication Hub',
       'MAP': 'Location Services & Navigation',
-      'RADIO': 'Media & Entertainment Center'
+      'RADIO': 'Media & Entertainment Center',
+      'MAIN': 'Main user interface'
     };
     return descriptions[tab] || 'Custom dashboard tab';
   };

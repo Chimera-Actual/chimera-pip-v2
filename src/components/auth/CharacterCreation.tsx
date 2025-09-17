@@ -43,7 +43,11 @@ export const CharacterCreation: React.FC = () => {
   } = useForm<CharacterFormData>();
 
   const totalPoints = Object.values(specialStats).reduce((sum, stat) => sum + stat, 0);
-  const availablePoints = 28 - totalPoints;
+  // Allow meaningful allocation starting from base 1 for each stat with a 35-point pool
+  const BASE_POOL = 35; // total allocatable points above the base minimum of 1 per stat
+  const MIN_SUM = 7; // 7 stats * min value 1
+  const pointsSpent = totalPoints - MIN_SUM;
+  const availablePoints = BASE_POOL - pointsSpent;
 
   const adjustStat = (stat: keyof SpecialStats, delta: number) => {
     console.log('Adjusting stat:', stat, 'delta:', delta, 'current:', specialStats[stat], 'available points:', availablePoints);

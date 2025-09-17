@@ -47,16 +47,75 @@ export const useTabManager = () => {
         updatedAt: new Date(tab.updated_at),
       }));
 
-      setTabs(formattedTabs);
+      // Ensure a MAIN tab exists; if not, shift positions and create it
+      const hasMain = formattedTabs.some(t => t.name === 'MAIN');
 
-      // Set active tab to MAIN if it exists, otherwise first tab if current active tab doesn't exist
-      const mainTab = formattedTabs.find(t => t.name === 'MAIN');
-      const currentTab = formattedTabs.find(t => t.name === activeTab);
-      
-      if (mainTab && !currentTab) {
+      if (!hasMain) {
+        // Shift positions up by 1 to make room for MAIN at 0
+        try {
+          await Promise.all(
+            formattedTabs.map(tab =>
+              supabase
+                .from('user_tabs')
+                .update({ position: tab.position + 1, updated_at: new Date().toISOString() })
+                .eq('id', tab.id)
+                .eq('user_id', user.id)
+            )
+          );
+        } catch (e) {
+          console.warn('Failed to shift tab positions for MAIN insertion', e);
+        }
+
+        // Insert MAIN tab at position 0
+        const { data: mainData, error: insertMainError } = await supabase
+          .from('user_tabs')
+          .insert({
+            user_id: user.id,
+            name: 'MAIN',
+            icon: 'TerminalIcon',
+            description: 'Main user interface',
+            color: null,
+            position: 0,
+            is_default: true,
+            is_custom: false,
+          })
+          .select()
+          .single();
+
+        if (insertMainError) {
+          throw insertMainError;
+        }
+
+        const mainTab: TabConfiguration = {
+          id: mainData.id,
+          name: mainData.name,
+          icon: mainData.icon,
+          description: mainData.description || 'Main user interface',
+          color: mainData.color || undefined,
+          position: mainData.position,
+          isDefault: mainData.is_default,
+          isCustom: mainData.is_custom,
+          userId: mainData.user_id,
+          createdAt: new Date(mainData.created_at),
+          updatedAt: new Date(mainData.updated_at),
+        };
+
+        const shiftedTabs = formattedTabs.map(t => ({ ...t, position: t.position + 1 }));
+        const newTabs = [mainTab, ...shiftedTabs].sort((a, b) => a.position - b.position);
+        setTabs(newTabs);
         setActiveTab('MAIN');
-      } else if (formattedTabs.length > 0 && !currentTab) {
-        setActiveTab(formattedTabs[0].name);
+      } else {
+        setTabs(formattedTabs);
+
+        // Set active tab to MAIN if it exists, otherwise first tab if current active tab doesn't exist
+        const mainTab = formattedTabs.find(t => t.name === 'MAIN');
+        const currentTab = formattedTabs.find(t => t.name === activeTab);
+        
+        if (mainTab && !currentTab) {
+          setActiveTab('MAIN');
+        } else if (formattedTabs.length > 0 && !currentTab) {
+          setActiveTab(formattedTabs[0].name);
+        }
       }
     } catch (err) {
       console.error('Failed to load tabs:', err);

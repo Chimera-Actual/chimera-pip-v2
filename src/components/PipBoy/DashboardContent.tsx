@@ -43,6 +43,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
     <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
       <DashboardHeaderSection
         activeTab={activeTab}
+        description={currentTab?.description}
         onShowTabEditor={() => setShowTabEditor(true)}
         onArchiveTab={handleArchiveTab}
         onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
