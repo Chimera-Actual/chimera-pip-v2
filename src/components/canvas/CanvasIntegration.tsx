@@ -53,6 +53,23 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
     }
   };
 
+  const handleToggleFullWidth = async (widget: UserWidget) => {
+    const currentConfig = widget.widget_config || {};
+    const success = await updateWidget(widget.id, { 
+      widget_config: { 
+        ...currentConfig, 
+        fullWidth: !currentConfig.fullWidth 
+      } 
+    });
+    if (success) {
+      loadWidgets();
+      toast({
+        title: currentConfig.fullWidth ? "Normal Width" : "Full Width",
+        description: `${widget.widget_config?.title || widget.widget_type} width has been ${currentConfig.fullWidth ? 'restored' : 'expanded'}`,
+      });
+    }
+  };
+
   const handleSettings = (widget: UserWidget) => {
     setSettingsWidget(widget);
   };
@@ -139,13 +156,16 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
         {widgets.map((widget) => (
           <Card
             key={widget.id}
-            className="relative group bg-pip-bg-secondary border-pip-border hover:border-primary/50 transition-colors"
+            className={`relative group bg-pip-bg-secondary border-pip-border hover:border-primary/50 transition-colors ${
+              widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
+            }`}
           >
             <WidgetControlButtons
               widget={widget}
               onClose={() => handleCloseWidget(widget.id)}
               onToggleCollapse={() => handleToggleCollapse(widget)}
               onSettings={() => handleSettings(widget)}
+              onToggleFullWidth={() => handleToggleFullWidth(widget)}
             />
             
             <CardHeader className="pb-3">
