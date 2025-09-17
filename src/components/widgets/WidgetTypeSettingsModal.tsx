@@ -191,7 +191,7 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 p-6">
+        <ScrollArea className="max-h-[60vh] overflow-y-auto p-6">
           {isSystemWidget && (
             <Card className="mb-6 bg-yellow-500/10 border-yellow-500/30">
               <CardContent className="p-4">
