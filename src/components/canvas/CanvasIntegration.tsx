@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useWidgetManager, UserWidget } from '@/hooks/useWidgetManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Grid3X3, TestTube, Settings } from 'lucide-react';
+import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
+import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface CanvasIntegrationProps {
   tab: string;
@@ -10,20 +13,57 @@ interface CanvasIntegrationProps {
 }
 
 export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, className, onDoubleClick }) => {
-  const { getTabWidgets } = useWidgetManager();
+  const { getTabWidgets, deleteWidget, updateWidget } = useWidgetManager();
+  const { toast } = useToast();
   const [widgets, setWidgets] = useState<UserWidget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [settingsWidget, setSettingsWidget] = useState<UserWidget | null>(null);
+
+  const loadWidgets = async () => {
+    setIsLoading(true);
+    const tabWidgets = await getTabWidgets(tab);
+    setWidgets(tabWidgets);
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const loadWidgets = async () => {
-      setIsLoading(true);
-      const tabWidgets = await getTabWidgets(tab);
-      setWidgets(tabWidgets);
-      setIsLoading(false);
-    };
-
     loadWidgets();
   }, [tab, getTabWidgets]);
+
+  const handleCloseWidget = async (widgetId: string) => {
+    const success = await deleteWidget(widgetId);
+    if (success) {
+      loadWidgets();
+    }
+  };
+
+  const handleToggleCollapse = async (widget: UserWidget) => {
+    const success = await updateWidget(widget.id, { 
+      is_collapsed: !widget.is_collapsed 
+    });
+    if (success) {
+      loadWidgets();
+      toast({
+        title: widget.is_collapsed ? "Widget Expanded" : "Widget Collapsed",
+        description: `${widget.widget_config?.title || widget.widget_type} has been ${widget.is_collapsed ? 'expanded' : 'collapsed'}`,
+      });
+    }
+  };
+
+  const handleSettings = (widget: UserWidget) => {
+    setSettingsWidget(widget);
+  };
+
+  const handleSaveSettings = async (widgetId: string, config: any) => {
+    const success = await updateWidget(widgetId, { widget_config: config });
+    if (success) {
+      loadWidgets();
+      toast({
+        title: "Settings Updated",
+        description: "Widget settings have been saved successfully",
+      });
+    }
+  };
 
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
@@ -76,8 +116,15 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
         {widgets.map((widget) => (
           <Card
             key={widget.id}
-            className="bg-pip-bg-secondary border-pip-border hover:border-primary/50 transition-colors"
+            className="relative group bg-pip-bg-secondary border-pip-border hover:border-primary/50 transition-colors"
           >
+            <WidgetControlButtons
+              widget={widget}
+              onClose={() => handleCloseWidget(widget.id)}
+              onToggleCollapse={() => handleToggleCollapse(widget)}
+              onSettings={() => handleSettings(widget)}
+            />
+            
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
@@ -93,13 +140,24 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
-                <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
-                <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
-                <div>Number: {widget.widget_config?.numberInput || 0}</div>
-              </div>
-            </CardContent>
+            
+            {!widget.is_collapsed && (
+              <CardContent>
+                <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
+                  <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
+                  <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
+                  <div>Number: {widget.widget_config?.numberInput || 0}</div>
+                </div>
+              </CardContent>
+            )}
+            
+            {widget.is_collapsed && (
+              <CardContent className="pt-0">
+                <div className="text-pip-text-secondary font-pip-mono text-xs italic">
+                  Widget collapsed
+                </div>
+              </CardContent>
+            )}
           </Card>
         ))}
       </div>
@@ -113,6 +171,14 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
           Double-click to add more widgets
         </p>
       </div>
+
+      {/* Widget Instance Settings Modal */}
+      <WidgetInstanceSettingsModal
+        open={!!settingsWidget}
+        onClose={() => setSettingsWidget(null)}
+        widget={settingsWidget}
+        onSave={handleSaveSettings}
+      />
     </div>
   );
 };
