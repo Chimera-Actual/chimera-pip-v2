@@ -1,11 +1,9 @@
 import React, { useState, memo, useCallback, useEffect } from 'react';
-import { SimpleAppDrawer } from '@/components/apps/SimpleAppDrawer';
-import { AppRenderer } from '@/components/apps/AppRenderer';
-import { AppSelectorModal } from '@/components/apps/AppSelectorModal';
+import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
+import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManager } from '@/hooks/useTabManager';
-import { useAppManager } from '@/hooks/useAppManager';
-import { UserApp } from '@/types/appManagement';
+import { useWidgetManager } from '@/hooks/useWidgetManager';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -14,34 +12,17 @@ interface DashboardContentProps {
 
 export const DashboardContent = memo<DashboardContentProps>(({
   activeTab,
-  className = ''
+  className
 }) => {
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showAppSelector, setShowAppSelector] = useState(false);
-  const [activeApp, setActiveApp] = useState<UserApp | null>(null);
+  const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
-  const { addApp, getTabApps } = useAppManager();
+  const { addWidget } = useWidgetManager();
   
   const currentTab = tabs.find(tab => tab.name === activeTab);
-
-  // Load the first app for the current tab
-  useEffect(() => {
-    const loadActiveApp = async () => {
-      if (activeTab) {
-        const apps = await getTabApps(activeTab);
-        if (apps.length > 0) {
-          setActiveApp(apps[0]); // Use the first app as active
-        } else {
-          setActiveApp(null);
-        }
-      }
-    };
-
-    loadActiveApp();
-  }, [activeTab, getTabApps, refreshKey]);
 
   const handleArchiveTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
@@ -63,64 +44,44 @@ export const DashboardContent = memo<DashboardContentProps>(({
     }
   }, [currentTab, updateTab]);
 
-  const handleAddApp = useCallback(async (appId: string, settings: any) => {
-    const result = await addApp(appId, activeTab, settings);
+  const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
+    const result = await addWidget(widgetType, activeTab, settings);
     if (result) {
-      // Trigger refresh to reload apps
+      // Trigger a refresh of the canvas
       setRefreshKey(prev => prev + 1);
     }
-    setShowAppSelector(false);
-  }, [addApp, activeTab]);
+    setShowWidgetSelector(false);
+  }, [addWidget, activeTab]);
 
-  const handleShowAppSelector = useCallback(() => {
-    setShowAppSelector(true);
-  }, []);
-
-  const handleAppSelect = useCallback((app: UserApp) => {
-    setActiveApp(app);
+  const handleShowWidgetSelector = useCallback(() => {
+    setShowWidgetSelector(true);
   }, []);
 
   return (
-    <div className="flex h-full">
-      {/* App Drawer */}
-      <SimpleAppDrawer
+    <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
+      <DashboardHeaderSection
         activeTab={activeTab}
-        onAddApp={handleShowAppSelector}
-        onAppSelect={handleAppSelect}
-        activeAppId={activeApp?.id}
+        description={currentTab?.description}
+        onShowTabEditor={() => setShowTabEditor(true)}
+        onArchiveTab={handleArchiveTab}
+        onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+        onShowWidgetSelector={handleShowWidgetSelector}
+        isDefaultTab={currentTab?.isDefault || false}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <div className="border-b border-pip-border px-6 py-4">
-          <DashboardHeaderSection
-            activeTab={activeTab}
-            description={currentTab?.description}
-            onShowTabEditor={() => setShowTabEditor(true)}
-            onArchiveTab={handleArchiveTab}
-            onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-            onShowWidgetSelector={handleShowAppSelector}
-            onToggleEditMode={() => {}}
-            editMode={false}
-            isDefaultTab={currentTab?.isDefault || false}
-          />
-        </div>
-
-        {/* App Content */}
-        <div className="flex-1 overflow-hidden">
-          <AppRenderer 
-            app={activeApp} 
-            className="w-full h-full"
-          />
-        </div>
+      {/* Canvas Content */}
+      <div className="widget-content">
+        <CanvasIntegration 
+          key={`${activeTab}-${refreshKey}`}
+          tab={activeTab} 
+          onDoubleClick={handleShowWidgetSelector}
+        />
       </div>
 
-      {/* Modals */}
-      <AppSelectorModal
-        isOpen={showAppSelector}
-        onClose={() => setShowAppSelector(false)}
-        onAddApp={handleAddApp}
+      <WidgetSelectorModal
+        isOpen={showWidgetSelector}
+        onClose={() => setShowWidgetSelector(false)}
+        onAddWidget={handleAddWidget}
         activeTab={activeTab}
       />
 
@@ -133,6 +94,6 @@ export const DashboardContent = memo<DashboardContentProps>(({
         onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
         onDeleteTab={handleDeleteTab}
       />
-    </div>
+    </main>
   );
 });

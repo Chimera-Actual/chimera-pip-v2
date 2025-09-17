@@ -100,9 +100,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
           />
           
           {/* Dashboard Content */}
-          <div className="flex-1 overflow-hidden">
-            <DashboardContent activeTab={activeTab} />
-          </div>
+          <DashboardContent activeTab={activeTab} />
           
           {/* Dashboard Footer */}
           <DashboardFooter />

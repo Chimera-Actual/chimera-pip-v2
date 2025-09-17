@@ -1,7 +1,7 @@
 import { 
   Folder, Settings, BarChart3, Gamepad2, Music, Video, Code, 
   Book, Camera, Terminal, Database, Network, Shield, Rocket, Star,
-  Package, Map, Radio, User
+  Package, Map, Radio
 } from 'lucide-react';
 
 // Icon mapping for tabs - matches TabEditor's available icons
@@ -45,23 +45,4 @@ export const getTabIcon = (tabName: string, customIcon?: string) => {
   
   // Final fallback to Settings icon
   return Settings;
-};
-
-// Mapping for simple icon names to components
-const simpleIconMapping = {
-  'User': User,
-  'Package': Package,
-  'Database': Database,
-  'Map': Map,
-  'Radio': Radio,
-  'Settings': Settings,
-  'Folder': Folder,
-  'BarChart3': BarChart3,
-  'Terminal': Terminal,
-  'Shield': Shield,
-  'Star': Star,
-} as const;
-
-export const getIconComponent = (iconName: string) => {
-  return simpleIconMapping[iconName as keyof typeof simpleIconMapping] || Settings;
 };

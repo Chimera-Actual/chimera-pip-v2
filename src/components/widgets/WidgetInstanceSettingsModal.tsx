@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserWidget } from '@/hooks/useWidgetManager';
 import { iconMapping } from '@/utils/iconMapping';
-import { WidgetSizeSelector } from '@/components/widgets/WidgetSizeSelector';
 
 interface WidgetInstanceSettingsModalProps {
   open: boolean;
@@ -120,20 +119,6 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
           {/* Widget-specific settings based on type */}
           {['test', 'test_widget'].includes((widget.widget_type || '').toLowerCase()) && (
             <>
-              {/* Size Selector */}
-              <div className="col-span-4">
-                <WidgetSizeSelector
-                  currentSize={{
-                    width: config.grid_width || widget.grid_width || 6,
-                    height: config.grid_height || widget.grid_height || 1
-                  }}
-                  onSizeChange={(size) => {
-                    updateConfig('grid_width', size.width);
-                    updateConfig('grid_height', size.height);
-                  }}
-                />
-              </div>
-              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="textInput" className="text-right text-pip-text-secondary font-pip-mono">
                   Text Input

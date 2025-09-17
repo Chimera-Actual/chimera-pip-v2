@@ -7,8 +7,6 @@ interface DashboardHeaderSectionProps {
   onArchiveTab: () => void;
   onShowDeleteConfirm: () => void;
   onShowWidgetSelector: () => void;
-  onToggleEditMode: () => void;
-  editMode: boolean;
   isDefaultTab: boolean;
 }
 
@@ -19,8 +17,6 @@ export const DashboardHeaderSection = ({
   onArchiveTab,
   onShowDeleteConfirm,
   onShowWidgetSelector,
-  onToggleEditMode,
-  editMode,
   isDefaultTab
 }) => {
   const getTabDescription = (tab: string) => {
@@ -47,15 +43,13 @@ export const DashboardHeaderSection = ({
         </span>
       </div>
       
-        <TabActionsMenu
-          onShowTabEditor={onShowTabEditor}
-          onArchiveTab={onArchiveTab}
-          onShowDeleteConfirm={onShowDeleteConfirm}
-          onShowWidgetSelector={onShowWidgetSelector}
-          onToggleEditMode={onToggleEditMode}
-          editMode={editMode}
-          isDefaultTab={isDefaultTab}
-        />
+      <TabActionsMenu
+        onShowTabEditor={onShowTabEditor}
+        onArchiveTab={onArchiveTab}
+        onShowDeleteConfirm={onShowDeleteConfirm}
+        onShowWidgetSelector={onShowWidgetSelector}
+        isDefaultTab={isDefaultTab}
+      />
     </div>
   );
 };

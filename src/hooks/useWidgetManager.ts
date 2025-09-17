@@ -12,10 +12,6 @@ export interface UserWidget {
   widget_width: string;
   is_collapsed: boolean;
   is_archived: boolean;
-  grid_x?: number;
-  grid_y?: number;
-  grid_width?: number;
-  grid_height?: number;
   created_at: string;
   updated_at: string;
 }
@@ -28,8 +24,7 @@ export const useWidgetManager = () => {
   const addWidget = useCallback(async (
     widgetType: string,
     tabAssignment: string,
-    settings: any = {},
-    gridPosition?: { x: number; y: number; width: number; height: number }
+    settings: any = {}
   ): Promise<UserWidget | null> => {
     if (!user) return null;
 
@@ -44,10 +39,6 @@ export const useWidgetManager = () => {
           widget_config: settings,
           widget_width: 'half',
           display_order: 0, // Will be auto-assigned by trigger
-          grid_x: gridPosition?.x ?? 0,
-          grid_y: gridPosition?.y ?? 0,
-          grid_width: gridPosition?.width ?? 6,
-          grid_height: gridPosition?.height ?? 1,
         })
         .select()
         .single();
