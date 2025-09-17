@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Grid3X3, TestTube, Settings } from 'lucide-react';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
+import { TestWidget } from '@/components/widgets/TestWidget';
 import { useToast } from '@/hooks/use-toast';
 import { iconMapping } from '@/utils/iconMapping';
 
@@ -136,12 +137,22 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             </CardHeader>
             
             {!widget.is_collapsed && (
-              <CardContent>
-                <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
-                  <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
-                  <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
-                  <div>Number: {widget.widget_config?.numberInput || 0}</div>
-                </div>
+              <CardContent className="p-0">
+                {widget.widget_type === 'test' ? (
+                  <TestWidget
+                    title={widget.widget_config?.title || 'Test Widget'}
+                    settings={widget.widget_config || {}}
+                    onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+                  />
+                ) : (
+                  <div className="p-6">
+                    <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
+                      <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
+                      <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
+                      <div>Number: {widget.widget_config?.numberInput || 0}</div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             )}
             
