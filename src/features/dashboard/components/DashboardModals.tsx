@@ -8,17 +8,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { AdvancedWidgetCatalog } from '@/components/tabManagement/AdvancedWidgetCatalog';
 import { TabEditor } from '@/components/tabManagement/TabEditor';
-import { WidgetType } from '@/types/widgets';
 import { TabConfiguration } from '@/types/tabManagement';
 
 interface DashboardModalsProps {
-  showAdvancedCatalog: boolean;
-  onCloseAdvancedCatalog: () => void;
-  onAddWidget: (type: WidgetType) => void;
-  activeTab: string;
-  
   showTabEditor: boolean;
   onCloseTabEditor: () => void;
   onSaveTab: (tabData: Partial<TabConfiguration>) => Promise<void>;
@@ -30,10 +23,6 @@ interface DashboardModalsProps {
 }
 
 export const DashboardModals = ({
-  showAdvancedCatalog,
-  onCloseAdvancedCatalog,
-  onAddWidget,
-  activeTab,
   showTabEditor,
   onCloseTabEditor,
   onSaveTab,
@@ -44,15 +33,6 @@ export const DashboardModals = ({
 }) => {
   return (
     <>
-      {/* Advanced Widget Catalog Modal */}
-      {showAdvancedCatalog && (
-        <AdvancedWidgetCatalog
-          onClose={onCloseAdvancedCatalog}
-          onAddWidget={onAddWidget}
-          currentTab={activeTab as any}
-        />
-      )}
-
       {/* Tab Editor Modal */}
       {showTabEditor && currentTab && (
         <TabEditor
@@ -69,8 +49,7 @@ export const DashboardModals = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Tab</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{currentTab?.name}"? This action cannot be undone. 
-              All widgets in this tab will be moved to the INV tab.
+              Are you sure you want to delete "{currentTab?.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

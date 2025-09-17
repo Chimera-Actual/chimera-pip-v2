@@ -1,5 +1,4 @@
 // Context Providers
-export { OptimizedWidgetProvider, useOptimizedWidgets } from './contexts/OptimizedWidgetContext';
 export { PerformanceProvider, usePerformance } from './contexts/PerformanceContext';
 
 // Performance Hooks

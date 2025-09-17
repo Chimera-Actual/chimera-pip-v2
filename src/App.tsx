@@ -5,10 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { WidgetProvider } from "@/contexts/WidgetContext";
-import { CanvasProvider } from "@/contexts/CanvasContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { PerformanceProvider, OptimizedWidgetProvider } from "@/features/state-management";
+import { PerformanceProvider } from "@/features/state-management";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -26,7 +24,7 @@ const BiometricLogin = lazy(() => import("@/components/auth/BiometricLogin").the
 // Lazy load pages
 const Landing = lazy(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
 const Index = lazy(() => import("./pages/Index"));
-const WidgetDemo = lazy(() => import("./pages/WidgetDemo"));
+
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -81,10 +79,7 @@ const App = () => {
           <TooltipProvider>
             <ThemeProvider>
               <AuthProvider>
-                <WidgetProvider>
-                  <CanvasProvider>
-                    <OptimizedWidgetProvider>
-                      <PerformanceProvider enableByDefault={import.meta.env.DEV}>
+                <PerformanceProvider enableByDefault={import.meta.env.DEV}>
                         <BrowserRouter>
                           <div className="min-h-screen bg-background font-pip-mono antialiased">
                             <Suspense fallback={<LoadingFallback />}>
@@ -92,8 +87,6 @@ const App = () => {
                                 {/* Public Landing Page */}
                                 <Route path="/welcome" element={<Landing />} />
                                 
-                                {/* Demo Page - Public */}
-                                <Route path="/demo" element={<WidgetDemo />} />
                                 
                                 {/* Authentication Routes */}
                                 <Route path="/auth" element={<AuthMethodSelector />} />
@@ -133,9 +126,6 @@ const App = () => {
                           </div>
                         </BrowserRouter>
                       </PerformanceProvider>
-                    </OptimizedWidgetProvider>
-                  </CanvasProvider>
-                </WidgetProvider>
               </AuthProvider>
             </ThemeProvider>
           </TooltipProvider>

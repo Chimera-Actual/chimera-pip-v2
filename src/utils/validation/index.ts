@@ -2,7 +2,7 @@
 
 export { Validator, commonRules } from './core';
 export { authValidationSchemas, validateAuthForm } from './authValidation';
-export { widgetValidationSchemas, getWidgetValidationSchema, validateWidgetSettings } from './widgetValidation';
+
 
 export type {
   ValidationRule,

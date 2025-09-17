@@ -2,7 +2,6 @@ import { TabActionsMenu } from './TabActionsMenu';
 
 interface DashboardHeaderSectionProps {
   activeTab: string;
-  onShowCatalog: () => void;
   onShowTabEditor: () => void;
   onArchiveTab: () => void;
   onShowDeleteConfirm: () => void;
@@ -11,7 +10,6 @@ interface DashboardHeaderSectionProps {
 
 export const DashboardHeaderSection = ({
   activeTab,
-  onShowCatalog,
   onShowTabEditor,
   onArchiveTab,
   onShowDeleteConfirm,
@@ -40,7 +38,6 @@ export const DashboardHeaderSection = ({
       </div>
       
       <TabActionsMenu
-        onShowCatalog={onShowCatalog}
         onShowTabEditor={onShowTabEditor}
         onArchiveTab={onArchiveTab}
         onShowDeleteConfirm={onShowDeleteConfirm}
