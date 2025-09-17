@@ -9,13 +9,16 @@ import { iconMapping } from '@/utils/iconMapping';
 interface TabWidgetDrawerProps {
   activeTab: string;
   onAddWidget?: () => void;
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
 }
 
 export const TabWidgetDrawer: React.FC<TabWidgetDrawerProps> = ({ 
   activeTab, 
-  onAddWidget 
+  onAddWidget,
+  isCollapsed,
+  onToggleCollapsed
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [widgets, setWidgets] = useState<UserWidget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -49,7 +52,7 @@ export const TabWidgetDrawer: React.FC<TabWidgetDrawerProps> = ({
 
   return (
     <div 
-      className={`fixed left-0 top-0 h-full bg-pip-bg-primary/95 backdrop-blur-sm border-r border-pip-border transition-all duration-300 z-40 ${
+      className={`absolute left-0 top-0 bottom-0 bg-pip-bg-primary/95 backdrop-blur-sm border-r border-pip-border transition-all duration-300 z-40 ${
         isCollapsed ? 'w-12' : 'w-80'
       }`}
     >
@@ -58,7 +61,7 @@ export const TabWidgetDrawer: React.FC<TabWidgetDrawerProps> = ({
         variant="ghost"
         size="icon"
         className="absolute -right-3 top-4 h-6 w-6 rounded-full bg-pip-bg-secondary border border-pip-border hover:bg-pip-bg-tertiary z-50"
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={onToggleCollapsed}
       >
         {isCollapsed ? (
           <ChevronRight className="h-3 w-3" />

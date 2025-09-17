@@ -19,6 +19,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
   const { addWidget } = useWidgetManager();
@@ -63,8 +64,12 @@ export const DashboardContent = memo<DashboardContentProps>(({
       <TabWidgetDrawer 
         activeTab={activeTab} 
         onAddWidget={handleShowWidgetSelector}
+        isCollapsed={isDrawerCollapsed}
+        onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
       />
-      <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ml-0 transition-all duration-300 ${className || ''}`}>
+      <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 transition-all duration-300 ${
+        isDrawerCollapsed ? 'ml-12' : 'ml-80'
+      } ${className || ''}`}>
         <DashboardHeaderSection
           activeTab={activeTab}
           description={currentTab?.description}
