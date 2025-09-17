@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserWidget } from '@/hooks/useWidgetManager';
+import { iconMapping } from '@/utils/iconMapping';
 
 interface WidgetInstanceSettingsModalProps {
   open: boolean;
@@ -88,6 +90,30 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
               placeholder="Widget description"
               rows={3}
             />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="icon" className="text-right text-pip-text-secondary font-pip-mono">
+              Icon
+            </Label>
+            <Select
+              value={config.icon || 'TestTube'}
+              onValueChange={(value) => updateConfig('icon', value)}
+            >
+              <SelectTrigger className="col-span-3 pip-input">
+                <SelectValue placeholder="Select an icon" />
+              </SelectTrigger>
+              <SelectContent className="pip-dialog max-h-60">
+                {Object.entries(iconMapping).map(([iconName, IconComponent]) => (
+                  <SelectItem key={iconName} value={iconName} className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="w-4 h-4" />
+                      <span>{iconName}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Widget-specific settings based on type */}

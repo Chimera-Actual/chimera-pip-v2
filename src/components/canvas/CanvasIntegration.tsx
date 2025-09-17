@@ -5,6 +5,7 @@ import { Grid3X3, TestTube, Settings } from 'lucide-react';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
 import { useToast } from '@/hooks/use-toast';
+import { iconMapping } from '@/utils/iconMapping';
 
 interface CanvasIntegrationProps {
   tab: string;
@@ -65,17 +66,10 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
     }
   };
 
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case 'Grid3X3':
-        return <Grid3X3 className="w-6 h-6" />;
-      case 'TestTube':
-        return <TestTube className="w-6 h-6" />;
-      case 'Settings':
-        return <Settings className="w-6 h-6" />;
-      default:
-        return <Grid3X3 className="w-6 h-6" />;
-    }
+  const getIconComponent = (widget: UserWidget) => {
+    const iconName = widget.widget_config?.icon || 'TestTube';
+    const IconComponent = iconMapping[iconName as keyof typeof iconMapping] || TestTube;
+    return <IconComponent className="w-6 h-6" />;
   };
 
   if (isLoading) {
@@ -128,7 +122,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
-                  {getIconComponent('TestTube')}
+                  {getIconComponent(widget)}
                 </div>
                 <div>
                   <CardTitle className="text-pip-text-bright font-pip-display text-sm">
