@@ -380,7 +380,7 @@ export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: 
           {/* Drop Zones */}
           {editMode && (
             <>
-              {Array.from({ length: 24 }).map((_, index) => {
+              {Array.from({ length: 60 }).map((_, index) => {
                 const x = index % GRID_SYSTEM.COLUMNS;
                 const y = Math.floor(index / GRID_SYSTEM.COLUMNS);
                 return (
