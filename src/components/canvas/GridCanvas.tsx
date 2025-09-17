@@ -16,6 +16,7 @@ import { TestTube, Edit, Move, Settings } from 'lucide-react';
 interface GridCanvasProps {
   tab: string;
   className?: string;
+  editMode?: boolean;
   onDoubleClick?: () => void;
 }
 
@@ -23,11 +24,10 @@ interface DraggedWidget extends UserWidget {
   isDragging?: boolean;
 }
 
-export function GridCanvas({ tab, className, onDoubleClick }: GridCanvasProps) {
+export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: GridCanvasProps) {
   const { getTabWidgets, updateWidget, deleteWidget, isLoading } = useWidgetManager();
   const { toast } = useToast();
   const [widgets, setWidgets] = useState<UserWidget[]>([]);
-  const [editMode, setEditMode] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<UserWidget | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedWidget, setDraggedWidget] = useState<DraggedWidget | null>(null);
@@ -285,28 +285,22 @@ export function GridCanvas({ tab, className, onDoubleClick }: GridCanvasProps) {
 
   return (
     <div className={`w-full ${className}`}>
-      {/* Control Bar */}
-      <div className="flex items-center justify-between mb-6 p-3 bg-pip-bg-secondary border border-pip-border rounded-lg">
-        <div className="flex items-center gap-4">
-          <Badge variant="outline" className="font-pip-mono text-xs">
-            {widgets.length} widgets
-          </Badge>
-          <Badge variant="outline" className="font-pip-mono text-xs">
-            {GRID_SYSTEM.COLUMNS}-column grid
-          </Badge>
+      {/* Control Bar - Only show in edit mode */}
+      {editMode && (
+        <div className="flex items-center justify-between mb-6 p-3 bg-pip-bg-secondary border border-pip-border rounded-lg">
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="font-pip-mono text-xs">
+              {widgets.length} widgets
+            </Badge>
+            <Badge variant="outline" className="font-pip-mono text-xs">
+              {GRID_SYSTEM.COLUMNS}-column grid
+            </Badge>
+            <Badge variant="default" className="font-pip-mono text-xs bg-primary/20 text-primary">
+              Edit Mode Active
+            </Badge>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={editMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setEditMode(!editMode)}
-            className="font-pip-mono text-xs"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            {editMode ? 'Exit Edit' : 'Edit Layout'}
-          </Button>
-        </div>
-      </div>
+      )}
 
       <DndContext
         sensors={sensors}

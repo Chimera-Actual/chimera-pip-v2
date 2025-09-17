@@ -17,6 +17,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
@@ -57,6 +58,15 @@ export const DashboardContent = memo<DashboardContentProps>(({
     setShowWidgetSelector(true);
   }, []);
 
+  const handleToggleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+  }, []);
+
+  // Reset edit mode when switching tabs
+  useEffect(() => {
+    setEditMode(false);
+  }, [activeTab]);
+
   return (
     <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
       <DashboardHeaderSection
@@ -66,6 +76,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
         onArchiveTab={handleArchiveTab}
         onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
         onShowWidgetSelector={handleShowWidgetSelector}
+        onToggleEditMode={handleToggleEditMode}
+        editMode={editMode}
         isDefaultTab={currentTab?.isDefault || false}
       />
 
@@ -74,6 +86,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
         <CanvasIntegration 
           key={`${activeTab}-${refreshKey}`}
           tab={activeTab} 
+          editMode={editMode}
           onDoubleClick={handleShowWidgetSelector}
         />
       </div>
