@@ -1,6 +1,5 @@
 import React, { useState, memo, useCallback, useEffect } from 'react';
-
-import { AppDrawer } from '@/components/apps/AppDrawer';
+import { SimpleAppDrawer } from '@/components/apps/SimpleAppDrawer';
 import { AppRenderer } from '@/components/apps/AppRenderer';
 import { AppSelectorModal } from '@/components/apps/AppSelectorModal';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
@@ -82,9 +81,9 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, []);
 
   return (
-    <>
+    <div className="flex h-full">
       {/* App Drawer */}
-      <AppDrawer
+      <SimpleAppDrawer
         activeTab={activeTab}
         onAddApp={handleShowAppSelector}
         onAppSelect={handleAppSelect}
@@ -92,22 +91,20 @@ export const DashboardContent = memo<DashboardContentProps>(({
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Header with sidebar trigger */}
-        <div className="border-b border-pip-border px-0 py-3">
-          <div className="flex items-center">
-            <DashboardHeaderSection
-              activeTab={activeTab}
-              description={currentTab?.description}
-              onShowTabEditor={() => setShowTabEditor(true)}
-              onArchiveTab={handleArchiveTab}
-              onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-              onShowWidgetSelector={handleShowAppSelector}
-              onToggleEditMode={() => {}}
-              editMode={false}
-              isDefaultTab={currentTab?.isDefault || false}
-            />
-          </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="border-b border-pip-border px-6 py-4">
+          <DashboardHeaderSection
+            activeTab={activeTab}
+            description={currentTab?.description}
+            onShowTabEditor={() => setShowTabEditor(true)}
+            onArchiveTab={handleArchiveTab}
+            onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+            onShowWidgetSelector={handleShowAppSelector}
+            onToggleEditMode={() => {}}
+            editMode={false}
+            isDefaultTab={currentTab?.isDefault || false}
+          />
         </div>
 
         {/* App Content */}
@@ -117,7 +114,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
             className="w-full h-full"
           />
         </div>
-      </main>
+      </div>
 
       {/* Modals */}
       <AppSelectorModal
@@ -136,6 +133,6 @@ export const DashboardContent = memo<DashboardContentProps>(({
         onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
         onDeleteTab={handleDeleteTab}
       />
-    </>
+    </div>
   );
 });

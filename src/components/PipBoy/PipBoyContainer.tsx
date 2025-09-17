@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { PipBoyTabs } from './PipBoyTabs';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardContent } from './DashboardContent';
@@ -100,12 +99,10 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
             onTabChange={(tab) => setActiveTab(tab)}
           />
           
-          {/* Dashboard Content with Sidebar */}
-          <SidebarProvider className="min-h-0 h-full w-full">
-            <div className="flex-1 flex overflow-hidden">
-              <DashboardContent activeTab={activeTab} />
-            </div>
-          </SidebarProvider>
+          {/* Dashboard Content */}
+          <div className="flex-1 overflow-hidden">
+            <DashboardContent activeTab={activeTab} />
+          </div>
           
           {/* Dashboard Footer */}
           <DashboardFooter />
