@@ -6,10 +6,11 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Palette, Volume2, Layout, User } from 'lucide-react';
+import { Palette, Volume2, Layout, User, Key } from 'lucide-react';
 import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
 import { ColorTheme } from './PipBoyContainer';
 import { cn } from '@/lib/utils';
+import { ApiKeyManager } from './ApiKeyManager';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       isDirty={isDirty}
     >
         <Tabs defaultValue="theme" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 bg-pip-bg-secondary/30 border border-pip-border">
+            <TabsList className="grid w-full grid-cols-5 bg-pip-bg-secondary/30 border border-pip-border">
               <TabsTrigger 
                 value="theme" 
                 className="font-pip-mono text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
@@ -99,6 +100,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <User className="h-4 w-4 mr-2" />
                 ACCOUNT
+              </TabsTrigger>
+              <TabsTrigger 
+                value="api-keys" 
+                className="font-pip-mono text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+              >
+                <Key className="h-4 w-4 mr-2" />
+                API KEYS
               </TabsTrigger>
             </TabsList>
 
@@ -235,6 +243,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="api-keys" className="space-y-6 mt-0">
+                <ApiKeyManager />
               </TabsContent>
           </div>
         </Tabs>

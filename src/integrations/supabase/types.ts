@@ -290,6 +290,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_api_keys: {
+        Row: {
+          api_url: string
+          created_at: string | null
+          encrypted_key: string
+          id: string
+          is_active: boolean | null
+          key_metadata: Json | null
+          key_name: string
+          last_used_at: string | null
+          service_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          api_url: string
+          created_at?: string | null
+          encrypted_key: string
+          id?: string
+          is_active?: boolean | null
+          key_metadata?: Json | null
+          key_name: string
+          last_used_at?: string | null
+          service_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          api_url?: string
+          created_at?: string | null
+          encrypted_key?: string
+          id?: string
+          is_active?: boolean | null
+          key_metadata?: Json | null
+          key_name?: string
+          last_used_at?: string | null
+          service_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_presence: {
         Row: {
           created_at: string
