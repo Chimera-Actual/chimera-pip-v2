@@ -1,7 +1,9 @@
 import React, { useState, memo, useCallback } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
+import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManager } from '@/hooks/useTabManager';
+import { useWidgetManager } from '@/hooks/useWidgetManager';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -14,8 +16,10 @@ export const DashboardContent = memo<DashboardContentProps>(({
 }) => {
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
+  const { addWidget } = useWidgetManager();
   
   const currentTab = tabs.find(tab => tab.name === activeTab);
 
@@ -39,6 +43,15 @@ export const DashboardContent = memo<DashboardContentProps>(({
     }
   }, [currentTab, updateTab]);
 
+  const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
+    await addWidget(widgetType, activeTab, settings);
+    setShowWidgetSelector(false);
+  }, [addWidget, activeTab]);
+
+  const handleShowWidgetSelector = useCallback(() => {
+    setShowWidgetSelector(true);
+  }, []);
+
   return (
     <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
       <DashboardHeaderSection
@@ -47,13 +60,24 @@ export const DashboardContent = memo<DashboardContentProps>(({
         onShowTabEditor={() => setShowTabEditor(true)}
         onArchiveTab={handleArchiveTab}
         onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+        onShowWidgetSelector={handleShowWidgetSelector}
         isDefaultTab={currentTab?.isDefault || false}
       />
 
       {/* Canvas Content */}
       <div className="widget-content">
-        <CanvasIntegration tab={activeTab} />
+        <CanvasIntegration 
+          tab={activeTab} 
+          onDoubleClick={handleShowWidgetSelector}
+        />
       </div>
+
+      <WidgetSelectorModal
+        isOpen={showWidgetSelector}
+        onClose={() => setShowWidgetSelector(false)}
+        onAddWidget={handleAddWidget}
+        activeTab={activeTab}
+      />
 
       <DashboardModals
         showTabEditor={showTabEditor}

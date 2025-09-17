@@ -6,12 +6,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, Pencil, Archive, Trash2 } from 'lucide-react';
+import { Settings, Pencil, Archive, Trash2, Plus } from 'lucide-react';
 
 interface TabActionsMenuProps {
   onShowTabEditor: () => void;
   onArchiveTab: () => void;
   onShowDeleteConfirm: () => void;
+  onShowWidgetSelector: () => void;
   isDefaultTab: boolean;
 }
 
@@ -19,6 +20,7 @@ export const TabActionsMenu = ({
   onShowTabEditor,
   onArchiveTab,
   onShowDeleteConfirm,
+  onShowWidgetSelector,
   isDefaultTab
 }) => {
   return (
@@ -37,6 +39,11 @@ export const TabActionsMenu = ({
         <DropdownMenuItem onClick={onShowTabEditor}>
           <Pencil className="pip-icon-sm" />
           Tab Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onShowWidgetSelector}>
+          <Plus className="pip-icon-sm" />
+          Add Widget
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
