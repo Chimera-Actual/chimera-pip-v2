@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback } from 'react';
+import React, { useState, memo, useCallback, useEffect } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
@@ -17,6 +17,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
   const { addWidget } = useWidgetManager();
@@ -44,7 +45,11 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    await addWidget(widgetType, activeTab, settings);
+    const result = await addWidget(widgetType, activeTab, settings);
+    if (result) {
+      // Trigger a refresh of the canvas
+      setRefreshKey(prev => prev + 1);
+    }
     setShowWidgetSelector(false);
   }, [addWidget, activeTab]);
 
@@ -67,6 +72,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
       {/* Canvas Content */}
       <div className="widget-content">
         <CanvasIntegration 
+          key={`${activeTab}-${refreshKey}`}
           tab={activeTab} 
           onDoubleClick={handleShowWidgetSelector}
         />
