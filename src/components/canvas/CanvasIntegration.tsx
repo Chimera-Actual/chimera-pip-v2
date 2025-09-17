@@ -5,6 +5,7 @@ import { Grid3X3, TestTube, Settings } from 'lucide-react';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
 import { TestWidget } from '@/components/widgets/TestWidget';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { iconMapping } from '@/utils/iconMapping';
 
@@ -87,13 +88,15 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
         );
       default:
         return (
-          <div className="p-6">
-            <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
-              <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
-              <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
-              <div>Number: {widget.widget_config?.numberInput || 0}</div>
+          <ScrollArea className="h-48">
+            <div className="p-6">
+              <div className="space-y-2 text-pip-text-secondary font-pip-mono text-xs">
+                <div>Color: {widget.widget_config?.colorValue || 'N/A'}</div>
+                <div>Text: {widget.widget_config?.textInput || 'N/A'}</div>
+                <div>Number: {widget.widget_config?.numberInput || 0}</div>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         );
     }
   };

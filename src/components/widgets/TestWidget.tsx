@@ -21,6 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Palette, AlertCircle, CheckCircle2, Info, Eye, EyeOff, Search, Mail, Link, Upload, User, Heart, Settings, Home } from 'lucide-react';
 import { format } from 'date-fns';
@@ -88,7 +89,9 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
         </div>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-0">
+        <ScrollArea className="h-96 p-6">
+          <div className="space-y-6">
         {/* Text Inputs Section */}
         <div className="space-y-4">
           <h4 className="text-sm font-pip-display text-pip-text-bright border-b border-pip-border pb-2">
@@ -692,6 +695,8 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
             </AccordionItem>
           </Accordion>
         </div>
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
