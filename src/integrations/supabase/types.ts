@@ -435,7 +435,6 @@ export type Database = {
       }
       widget_catalog: {
         Row: {
-          category: string
           created_at: string
           default_settings: Json
           description: string
@@ -447,10 +446,10 @@ export type Database = {
           preview_image: string | null
           required_permissions: string[] | null
           updated_at: string
+          user_id: string | null
           widget_type: string
         }
         Insert: {
-          category?: string
           created_at?: string
           default_settings?: Json
           description: string
@@ -462,10 +461,10 @@ export type Database = {
           preview_image?: string | null
           required_permissions?: string[] | null
           updated_at?: string
+          user_id?: string | null
           widget_type: string
         }
         Update: {
-          category?: string
           created_at?: string
           default_settings?: Json
           description?: string
@@ -477,6 +476,7 @@ export type Database = {
           preview_image?: string | null
           required_permissions?: string[] | null
           updated_at?: string
+          user_id?: string | null
           widget_type?: string
         }
         Relationships: []

@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Grid3X3, TestTube, Settings, X } from 'lucide-react';
+import { Grid3X3, TestTube, Settings, X, SettingsIcon, Tag } from 'lucide-react';
+import { WidgetTypeSettingsModal } from './WidgetTypeSettingsModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useWidgetTags } from '@/hooks/useWidgetTags';
 
 interface WidgetType {
   id: string;
@@ -14,9 +16,11 @@ interface WidgetType {
   name: string;
   description: string;
   icon: string;
-  category: string;
   featured: boolean;
   default_settings: any;
+  user_id?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface WidgetSelectorModalProps {
@@ -33,8 +37,12 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
   activeTab
 }) => {
   const [widgetTypes, setWidgetTypes] = useState<WidgetType[]>([]);
+  const [widgetTags, setWidgetTags] = useState<{ [widgetType: string]: any[] }>({});
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [selectedWidgetType, setSelectedWidgetType] = useState<WidgetType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { getWidgetTags } = useWidgetTags();
 
   useEffect(() => {
     if (isOpen) {
@@ -44,6 +52,7 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
 
   const loadWidgetTypes = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('widget_catalog')
         .select('*')
@@ -51,7 +60,18 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
         .order('name');
 
       if (error) throw error;
-      setWidgetTypes(data || []);
+      
+      const widgets = data || [];
+      setWidgetTypes(widgets);
+
+      // Load tags for each widget type
+      const tagsMap: { [widgetType: string]: any[] } = {};
+      for (const widget of widgets) {
+        const tags = await getWidgetTags(widget.widget_type);
+        tagsMap[widget.widget_type] = tags;
+      }
+      setWidgetTags(tagsMap);
+
     } catch (error) {
       console.error('Error loading widget types:', error);
       toast({
@@ -69,6 +89,16 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
     onClose();
   };
 
+  const handleShowSettings = (e: React.MouseEvent, widgetType: WidgetType) => {
+    e.stopPropagation();
+    setSelectedWidgetType(widgetType);
+    setShowSettingsModal(true);
+  };
+
+  const handleSettingsSaved = () => {
+    loadWidgetTypes(); // Refresh the widget list
+  };
+
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case 'Grid3X3':
@@ -82,19 +112,16 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'productivity':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'communication':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'entertainment':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'testing':
-        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+  const getCategoryColor = (tags: any[]) => {
+    if (!tags || tags.length === 0) {
+      return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
+    
+    // Use the first tag's color
+    const firstTag = tags[0];
+    const color = firstTag.color || '#00ff00';
+    
+    return `border-[${color}] text-[${color}] bg-[${color}]/20`;
   };
 
   return (
@@ -123,47 +150,100 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {widgetTypes.map((widget) => (
-                <Card
-                  key={widget.id}
-                  className="bg-pip-bg-secondary border-pip-border hover:border-primary transition-all duration-200 cursor-pointer group"
-                  onClick={() => handleAddWidget(widget)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border group-hover:border-primary transition-colors">
-                          {getIconComponent(widget.icon)}
+              {widgetTypes.map((widget) => {
+                const tags = widgetTags[widget.widget_type] || [];
+                
+                return (
+                  <Card
+                    key={widget.id}
+                    className="bg-pip-bg-secondary border-pip-border hover:border-primary transition-all duration-200 cursor-pointer group relative"
+                    onClick={() => handleAddWidget(widget)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border group-hover:border-primary transition-colors">
+                            {getIconComponent(widget.icon)}
+                          </div>
+                          <div className="flex-1">
+                            <CardTitle className="text-pip-text-bright font-pip-display text-sm">
+                              {widget.name}
+                              {widget.user_id && (
+                                <Badge variant="outline" className="ml-2 text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
+                                  Custom
+                                </Badge>
+                              )}
+                            </CardTitle>
+                            
+                            {/* Tags */}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {tags.slice(0, 2).map((tag: any) => (
+                                <Badge
+                                  key={tag.id}
+                                  variant="outline"
+                                  className="text-xs"
+                                  style={{ 
+                                    borderColor: tag.color,
+                                    color: tag.color,
+                                    backgroundColor: `${tag.color}20`
+                                  }}
+                                >
+                                  <Tag className="w-2 h-2 mr-1" />
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                              {tags.length > 2 && (
+                                <Badge variant="outline" className="text-xs text-pip-text-secondary">
+                                  +{tags.length - 2}
+                                </Badge>
+                              )}
+                              {tags.length === 0 && (
+                                <Badge variant="outline" className="text-xs text-pip-text-secondary border-pip-border">
+                                  No tags
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-pip-text-bright font-pip-display text-sm">
-                            {widget.name}
-                          </CardTitle>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs mt-1 ${getCategoryColor(widget.category)}`}
+                        
+                        <div className="flex items-start gap-1">
+                          {widget.featured && (
+                            <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                          
+                          {/* Settings Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleShowSettings(e, widget)}
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-pip-text-secondary hover:text-pip-text-bright"
+                            title="Widget Settings"
                           >
-                            {widget.category}
-                          </Badge>
+                            <SettingsIcon className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
-                      {widget.featured && (
-                        <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                          Featured
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <CardDescription className="text-pip-text-secondary font-pip-mono text-xs leading-relaxed">
-                      {widget.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="text-pip-text-secondary font-pip-mono text-xs leading-relaxed">
+                        {widget.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </ScrollArea>
+
+        <WidgetTypeSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          widgetType={selectedWidgetType}
+          onSave={handleSettingsSaved}
+        />
       </DialogContent>
     </Dialog>
   );
