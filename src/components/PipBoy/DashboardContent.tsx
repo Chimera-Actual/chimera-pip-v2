@@ -4,6 +4,7 @@ import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManager } from '@/hooks/useTabManager';
 import { useWidgetManager } from '@/hooks/useWidgetManager';
+import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -58,42 +59,48 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, []);
 
   return (
-    <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ${className || ''}`}>
-      <DashboardHeaderSection
-        activeTab={activeTab}
-        description={currentTab?.description}
-        onShowTabEditor={() => setShowTabEditor(true)}
-        onArchiveTab={handleArchiveTab}
-        onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-        onShowWidgetSelector={handleShowWidgetSelector}
-        isDefaultTab={currentTab?.isDefault || false}
+    <div className="relative">
+      <TabWidgetDrawer 
+        activeTab={activeTab} 
+        onAddWidget={handleShowWidgetSelector}
       />
-
-      {/* Canvas Content */}
-      <div className="widget-content">
-        <CanvasIntegration 
-          key={`${activeTab}-${refreshKey}`}
-          tab={activeTab} 
-          onDoubleClick={handleShowWidgetSelector}
+      <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 ml-0 transition-all duration-300 ${className || ''}`}>
+        <DashboardHeaderSection
+          activeTab={activeTab}
+          description={currentTab?.description}
+          onShowTabEditor={() => setShowTabEditor(true)}
+          onArchiveTab={handleArchiveTab}
+          onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+          onShowWidgetSelector={handleShowWidgetSelector}
+          isDefaultTab={currentTab?.isDefault || false}
         />
-      </div>
 
-      <WidgetSelectorModal
-        isOpen={showWidgetSelector}
-        onClose={() => setShowWidgetSelector(false)}
-        onAddWidget={handleAddWidget}
-        activeTab={activeTab}
-      />
+        {/* Canvas Content */}
+        <div className="widget-content">
+          <CanvasIntegration 
+            key={`${activeTab}-${refreshKey}`}
+            tab={activeTab} 
+            onDoubleClick={handleShowWidgetSelector}
+          />
+        </div>
 
-      <DashboardModals
-        showTabEditor={showTabEditor}
-        onCloseTabEditor={() => setShowTabEditor(false)}
-        onSaveTab={handleSaveTab}
-        currentTab={currentTab}
-        showDeleteConfirm={showDeleteConfirm}
-        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
-        onDeleteTab={handleDeleteTab}
-      />
-    </main>
+        <WidgetSelectorModal
+          isOpen={showWidgetSelector}
+          onClose={() => setShowWidgetSelector(false)}
+          onAddWidget={handleAddWidget}
+          activeTab={activeTab}
+        />
+
+        <DashboardModals
+          showTabEditor={showTabEditor}
+          onCloseTabEditor={() => setShowTabEditor(false)}
+          onSaveTab={handleSaveTab}
+          currentTab={currentTab}
+          showDeleteConfirm={showDeleteConfirm}
+          onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+          onDeleteTab={handleDeleteTab}
+        />
+      </main>
+    </div>
   );
 });
