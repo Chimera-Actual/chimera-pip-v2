@@ -15,7 +15,7 @@ interface DashboardContentProps {
 
 export const DashboardContent = memo<DashboardContentProps>(({
   activeTab,
-  className
+  className = ''
 }) => {
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
