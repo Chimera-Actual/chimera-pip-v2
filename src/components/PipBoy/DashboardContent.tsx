@@ -1,5 +1,5 @@
 import React, { useState, memo, useCallback, useEffect } from 'react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { AppDrawer } from '@/components/apps/AppDrawer';
 import { AppRenderer } from '@/components/apps/AppRenderer';
 import { AppSelectorModal } from '@/components/apps/AppSelectorModal';
@@ -82,63 +82,61 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, []);
 
   return (
-    <SidebarProvider>
-      <div className={`dashboard-content flex h-full w-full ${className || ''}`}>
-        {/* App Drawer */}
-        <AppDrawer
-          activeTab={activeTab}
-          onAddApp={handleShowAppSelector}
-          onAppSelect={handleAppSelect}
-          activeAppId={activeApp?.id}
-        />
+    <>
+      {/* App Drawer */}
+      <AppDrawer
+        activeTab={activeTab}
+        onAddApp={handleShowAppSelector}
+        onAppSelect={handleAppSelect}
+        activeAppId={activeApp?.id}
+      />
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col min-w-0">
-          {/* Header with sidebar trigger */}
-          <div className="border-b border-pip-border px-6 py-3">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-pip-text-secondary hover:text-pip-text-primary" />
-              <DashboardHeaderSection
-                activeTab={activeTab}
-                description={currentTab?.description}
-                onShowTabEditor={() => setShowTabEditor(true)}
-                onArchiveTab={handleArchiveTab}
-                onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-                onShowWidgetSelector={handleShowAppSelector}
-                onToggleEditMode={() => {}} // No edit mode in app system
-                editMode={false}
-                isDefaultTab={currentTab?.isDefault || false}
-              />
-            </div>
-          </div>
-
-          {/* App Content */}
-          <div className="flex-1 overflow-hidden">
-            <AppRenderer 
-              app={activeApp} 
-              className="w-full h-full"
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Header with sidebar trigger */}
+        <div className="border-b border-pip-border px-6 py-3">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="text-pip-text-secondary hover:text-pip-text-primary" />
+            <DashboardHeaderSection
+              activeTab={activeTab}
+              description={currentTab?.description}
+              onShowTabEditor={() => setShowTabEditor(true)}
+              onArchiveTab={handleArchiveTab}
+              onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+              onShowWidgetSelector={handleShowAppSelector}
+              onToggleEditMode={() => {}} // No edit mode in app system
+              editMode={false}
+              isDefaultTab={currentTab?.isDefault || false}
             />
           </div>
-        </main>
+        </div>
 
-        {/* Modals */}
-        <AppSelectorModal
-          isOpen={showAppSelector}
-          onClose={() => setShowAppSelector(false)}
-          onAddApp={handleAddApp}
-          activeTab={activeTab}
-        />
+        {/* App Content */}
+        <div className="flex-1 overflow-hidden">
+          <AppRenderer 
+            app={activeApp} 
+            className="w-full h-full"
+          />
+        </div>
+      </main>
 
-        <DashboardModals
-          showTabEditor={showTabEditor}
-          onCloseTabEditor={() => setShowTabEditor(false)}
-          onSaveTab={handleSaveTab}
-          currentTab={currentTab}
-          showDeleteConfirm={showDeleteConfirm}
-          onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
-          onDeleteTab={handleDeleteTab}
-        />
-      </div>
-    </SidebarProvider>
+      {/* Modals */}
+      <AppSelectorModal
+        isOpen={showAppSelector}
+        onClose={() => setShowAppSelector(false)}
+        onAddApp={handleAddApp}
+        activeTab={activeTab}
+      />
+
+      <DashboardModals
+        showTabEditor={showTabEditor}
+        onCloseTabEditor={() => setShowTabEditor(false)}
+        onSaveTab={handleSaveTab}
+        currentTab={currentTab}
+        showDeleteConfirm={showDeleteConfirm}
+        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+        onDeleteTab={handleDeleteTab}
+      />
+    </>
   );
 });
