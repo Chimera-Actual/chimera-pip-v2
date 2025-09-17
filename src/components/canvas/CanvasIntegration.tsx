@@ -200,16 +200,6 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
           </Card>
         ))}
       </div>
-      
-      {/* Add Widget Area */}
-      <div 
-        className="mt-4 border-2 border-dashed border-pip-border rounded-lg p-6 cursor-pointer hover:border-primary/50 transition-colors text-center"
-        onDoubleClick={onDoubleClick}
-      >
-        <p className="text-pip-text-secondary font-pip-mono text-sm">
-          Double-click to add more widgets
-        </p>
-      </div>
 
         {/* Widget Instance Settings Modal */}
         <WidgetInstanceSettingsModal
