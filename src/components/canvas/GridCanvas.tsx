@@ -9,9 +9,12 @@ import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons'
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ResizeHandle } from '@/components/widgets/ResizeHandle';
+import { DraggableWidget } from '@/components/canvas/DraggableWidget';
+import { DroppableZone } from '@/components/canvas/DroppableZone';
 import { GRID_SYSTEM } from '@/lib/constants';
 import { iconMapping } from '@/utils/iconMapping';
-import { TestTube, Edit, Move, Settings } from 'lucide-react';
+import { TestTube, Move } from 'lucide-react';
 
 interface GridCanvasProps {
   tab: string;
@@ -31,6 +34,7 @@ export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: 
   const [selectedWidget, setSelectedWidget] = useState<UserWidget | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedWidget, setDraggedWidget] = useState<DraggedWidget | null>(null);
+  const [resizingWidget, setResizingWidget] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -171,6 +175,63 @@ export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: 
       toast({
         title: "Error",
         description: "Failed to update widget position",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResizeWidget = async (widgetId: string, direction: 'width' | 'height' | 'both', delta: number) => {
+    const widget = widgets.find(w => w.id === widgetId);
+    if (!widget) return;
+
+    let newWidth = widget.grid_width || GRID_SYSTEM.DEFAULT_WIDGET_WIDTH;
+    let newHeight = widget.grid_height || GRID_SYSTEM.DEFAULT_WIDGET_HEIGHT;
+
+    if (direction === 'width' || direction === 'both') {
+      newWidth = Math.max(1, Math.min(GRID_SYSTEM.COLUMNS, newWidth + Math.sign(delta)));
+    }
+    if (direction === 'height' || direction === 'both') {
+      newHeight = Math.max(1, newHeight + Math.sign(delta));
+    }
+
+    // Check if new size fits within grid and doesn't overlap
+    const x = widget.grid_x || 0;
+    const y = widget.grid_y || 0;
+    
+    if (x + newWidth > GRID_SYSTEM.COLUMNS) {
+      toast({
+        title: "Cannot Resize",
+        description: "Widget would exceed grid boundaries",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isPositionAvailable(x, y, newWidth, newHeight, widgetId)) {
+      toast({
+        title: "Cannot Resize", 
+        description: "Widget would overlap with others",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await updateWidget(widgetId, {
+        grid_width: newWidth,
+        grid_height: newHeight
+      });
+      
+      toast({
+        title: "Widget Resized",
+        description: `Widget resized to ${newWidth}×${newHeight}`
+      });
+      
+      loadWidgets();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to resize widget",
         variant: "destructive"
       });
     }
@@ -323,11 +384,12 @@ export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: 
                 const x = index % GRID_SYSTEM.COLUMNS;
                 const y = Math.floor(index / GRID_SYSTEM.COLUMNS);
                 return (
-                  <div
+                  <DroppableZone
                     key={`drop-zone-${x}-${y}`}
-                    className="border-2 border-dashed border-pip-border/30 rounded-lg opacity-50 hover:border-pip-primary/50 transition-colors"
+                    id={`drop-zone-${x}-${y}`}
+                    gridPosition={{ x, y }}
+                    className="border-2 border-dashed border-pip-border/30 rounded-lg opacity-50 hover:border-pip-primary/50"
                     style={{ gridArea: `${y + 1} / ${x + 1} / ${y + 2} / ${x + 2}` }}
-                    data-grid-position={JSON.stringify({ x, y })}
                   />
                 );
               })}
@@ -336,51 +398,61 @@ export function GridCanvas({ tab, className, editMode = false, onDoubleClick }: 
 
           {/* Widgets */}
           {widgets.map((widget) => (
-            <Card
+            <DraggableWidget
               key={widget.id}
-              className={`pip-card transition-all duration-200 ${
-                editMode ? 'ring-2 ring-pip-primary/50 cursor-move' : ''
-              } ${activeId === widget.id ? 'opacity-50' : ''}`}
-              style={{
-                gridArea: getGridArea(widget),
-              }}
-              draggable={editMode}
-              data-widget-id={widget.id}
+              widget={widget}
+              editMode={editMode}
             >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <div className="flex items-center space-x-2">
-                  {getIconComponent(widget)}
-                  <h3 className="font-pip-header text-pip-text-primary text-sm">
-                    {widget.widget_config?.title || `${widget.widget_type} Widget`}
-                  </h3>
-                  {editMode && (
-                    <Badge variant="secondary" className="font-pip-mono text-xs">
-                      {widget.grid_width}×{widget.grid_height}
-                    </Badge>
-                  )}
-                </div>
+              <Card
+                className={`pip-card transition-all duration-200 relative group ${
+                  editMode ? 'ring-2 ring-pip-primary/50' : ''
+                } ${activeId === widget.id ? 'opacity-50' : ''}`}
+                style={{
+                  gridArea: getGridArea(widget),
+                }}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <div className="flex items-center space-x-2">
+                    {getIconComponent(widget)}
+                    <h3 className="font-pip-header text-pip-text-primary text-sm">
+                      {widget.widget_config?.title || `${widget.widget_type} Widget`}
+                    </h3>
+                    {editMode && (
+                      <Badge variant="secondary" className="font-pip-mono text-xs">
+                        {widget.grid_width}×{widget.grid_height}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-1">
+                    {editMode && (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 cursor-move">
+                        <Move className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <WidgetControlButtons
+                      widget={widget}
+                      onToggleCollapse={() => handleToggleCollapse(widget)}
+                      onClose={() => handleCloseWidget(widget.id)}
+                      onSettings={() => handleSettings(widget)}
+                    />
+                  </div>
+                </CardHeader>
                 
-                <div className="flex items-center space-x-1">
-                  {editMode && (
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Move className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <WidgetControlButtons
-                    widget={widget}
-                    onToggleCollapse={() => handleToggleCollapse(widget)}
-                    onClose={() => handleCloseWidget(widget.id)}
-                    onSettings={() => handleSettings(widget)}
+                {!widget.is_collapsed && (
+                  <CardContent className="p-0">
+                    {renderWidgetContent(widget)}
+                  </CardContent>
+                )}
+                
+                {/* Resize Handle */}
+                {editMode && !widget.is_collapsed && (
+                  <ResizeHandle
+                    onResize={(direction, delta) => handleResizeWidget(widget.id, direction, delta)}
                   />
-                </div>
-              </CardHeader>
-              
-              {!widget.is_collapsed && (
-                <CardContent className="p-0">
-                  {renderWidgetContent(widget)}
-                </CardContent>
-              )}
-            </Card>
+                )}
+              </Card>
+            </DraggableWidget>
           ))}
         </div>
 
