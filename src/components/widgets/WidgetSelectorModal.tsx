@@ -16,7 +16,6 @@ interface WidgetType {
   name: string;
   description: string;
   icon: string;
-  featured: boolean;
   default_settings: any;
   user_id?: string;
   created_at: string;
@@ -56,7 +55,6 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
       const { data, error } = await supabase
         .from('widget_catalog')
         .select('*')
-        .order('featured', { ascending: false })
         .order('name');
 
       if (error) throw error;
@@ -112,35 +110,14 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
     }
   };
 
-  const getCategoryColor = (tags: any[]) => {
-    if (!tags || tags.length === 0) {
-      return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-    }
-    
-    // Use the first tag's color
-    const firstTag = tags[0];
-    const color = firstTag.color || '#00ff00';
-    
-    return `border-[${color}] text-[${color}] bg-[${color}]/20`;
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] bg-pip-bg-primary border-pip-border">
         <DialogHeader className="border-b border-pip-border pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-pip-text-bright font-pip-display text-xl pip-text-glow">
-              Add Widget to {activeTab}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 text-pip-text-secondary hover:text-pip-text-bright"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-pip-text-bright font-pip-display text-xl pip-text-glow">
+            Add Widget to {activeTab}
+          </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="flex-1 p-6">
@@ -161,22 +138,24 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-start gap-3 flex-1">
                           <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border group-hover:border-primary transition-colors">
                             {getIconComponent(widget.icon)}
                           </div>
-                          <div className="flex-1">
-                            <CardTitle className="text-pip-text-bright font-pip-display text-sm">
-                              {widget.name}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CardTitle className="text-pip-text-bright font-pip-display text-sm truncate">
+                                {widget.name}
+                              </CardTitle>
                               {widget.user_id && (
-                                <Badge variant="outline" className="ml-2 text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
+                                <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30 shrink-0">
                                   Custom
                                 </Badge>
                               )}
-                            </CardTitle>
+                            </div>
                             
                             {/* Tags */}
-                            <div className="flex flex-wrap gap-1 mt-1">
+                            <div className="flex flex-wrap gap-1">
                               {tags.slice(0, 2).map((tag: any) => (
                                 <Badge
                                   key={tag.id}
@@ -206,24 +185,16 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
                           </div>
                         </div>
                         
-                        <div className="flex items-start gap-1">
-                          {widget.featured && (
-                            <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                              Featured
-                            </Badge>
-                          )}
-                          
-                          {/* Settings Button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => handleShowSettings(e, widget)}
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-pip-text-secondary hover:text-pip-text-bright"
-                            title="Widget Settings"
-                          >
-                            <SettingsIcon className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        {/* Settings Button - Top Right */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleShowSettings(e, widget)}
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-pip-text-secondary hover:text-pip-text-bright shrink-0"
+                          title="Widget Settings"
+                        >
+                          <SettingsIcon className="h-3 w-3" />
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">

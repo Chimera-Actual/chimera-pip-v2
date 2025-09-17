@@ -21,7 +21,6 @@ interface WidgetTypeData {
   name: string;
   description: string;
   icon: string;
-  featured: boolean;
   default_settings: any;
   user_id?: string;
   created_at: string;
@@ -55,7 +54,6 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
     name: '',
     description: '',
     icon: 'Grid3X3',
-    featured: false,
     default_settings: {}
   });
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -71,7 +69,6 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
         name: widgetType.name,
         description: widgetType.description,
         icon: widgetType.icon,
-        featured: widgetType.featured,
         default_settings: widgetType.default_settings || {}
       });
       
@@ -106,7 +103,6 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
           name: formData.name,
           description: formData.description,
           icon: formData.icon,
-          featured: formData.featured,
           default_settings: formData.default_settings
         })
         .eq('id', widgetType.id)
@@ -151,7 +147,6 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
           name: `${formData.name} (Custom)`,
           description: formData.description,
           icon: formData.icon,
-          featured: formData.featured,
           default_settings: formData.default_settings,
           user_id: user.id
         })
@@ -191,19 +186,9 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] bg-pip-bg-primary border-pip-border">
         <DialogHeader className="border-b border-pip-border pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-pip-text-bright font-pip-display text-xl pip-text-glow">
-              Widget Type Settings
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 text-pip-text-secondary hover:text-pip-text-bright"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-pip-text-bright font-pip-display text-xl pip-text-glow">
+            Widget Type Settings
+          </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="flex-1 p-6">
@@ -253,50 +238,32 @@ export const WidgetTypeSettingsModal: React.FC<WidgetTypeSettingsModalProps> = (
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-pip-text-secondary font-pip-mono text-xs">Icon</Label>
-                    <Select 
-                      value={formData.icon} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}
-                      disabled={!canEdit}
-                    >
-                      <SelectTrigger className="bg-pip-bg-tertiary border-pip-border">
-                        <SelectValue>
+                <div className="space-y-2">
+                  <Label className="text-pip-text-secondary font-pip-mono text-xs">Icon</Label>
+                  <Select 
+                    value={formData.icon} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}
+                    disabled={!canEdit}
+                  >
+                    <SelectTrigger className="bg-pip-bg-tertiary border-pip-border">
+                      <SelectValue>
+                        <div className="flex items-center gap-2">
+                          {getIconComponent(formData.icon)}
+                          {availableIcons.find(icon => icon.name === formData.icon)?.label}
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-pip-bg-secondary border-pip-border">
+                      {availableIcons.map((icon) => (
+                        <SelectItem key={icon.name} value={icon.name}>
                           <div className="flex items-center gap-2">
-                            {getIconComponent(formData.icon)}
-                            {availableIcons.find(icon => icon.name === formData.icon)?.label}
+                            <icon.Icon className="w-4 h-4" />
+                            {icon.label}
                           </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-pip-bg-secondary border-pip-border">
-                        {availableIcons.map((icon) => (
-                          <SelectItem key={icon.name} value={icon.name}>
-                            <div className="flex items-center gap-2">
-                              <icon.Icon className="w-4 h-4" />
-                              {icon.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="featured"
-                        checked={formData.featured}
-                        onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
-                        disabled={!canEdit}
-                        className="rounded border-pip-border"
-                      />
-                      <Label htmlFor="featured" className="text-pip-text-secondary font-pip-mono text-xs">
-                        Featured Widget
-                      </Label>
-                    </div>
-                  </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
