@@ -17,9 +17,6 @@ const VaultRegistration = lazy(() => import("@/components/auth/VaultRegistration
 const CharacterCreation = lazy(() => import("@/components/auth/CharacterCreation").then(m => ({ default: m.CharacterCreation })));
 const EmailVerification = lazy(() => import("@/components/auth/EmailVerification").then(m => ({ default: m.EmailVerification })));
 const AuthMethodSelector = lazy(() => import("@/components/auth/AuthMethodSelector").then(m => ({ default: m.AuthMethodSelector })));
-const PinLogin = lazy(() => import("@/components/auth/PinLogin").then(m => ({ default: m.PinLogin })));
-const PatternLogin = lazy(() => import("@/components/auth/PatternLogin").then(m => ({ default: m.PatternLogin })));
-const BiometricLogin = lazy(() => import("@/components/auth/BiometricLogin").then(m => ({ default: m.BiometricLogin })));
 
 // Lazy load pages
 const Landing = lazy(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
@@ -88,14 +85,11 @@ const App = () => {
                                 <Route path="/welcome" element={<Landing />} />
                                 
                                 
-                                {/* Authentication Routes */}
-                                <Route path="/auth" element={<AuthMethodSelector />} />
-                                <Route path="/auth/login" element={<VaultLogin />} />
-                                <Route path="/auth/pin" element={<PinLogin />} />
-                                <Route path="/auth/pattern" element={<PatternLogin />} />
-                                <Route path="/auth/biometric" element={<BiometricLogin />} />
-                                <Route path="/auth/register" element={<VaultRegistration />} />
-                                <Route path="/auth/verify" element={<EmailVerification />} />
+                {/* Authentication Routes */}
+                <Route path="/auth" element={<AuthMethodSelector />} />
+                <Route path="/auth/login" element={<VaultLogin />} />
+                <Route path="/auth/register" element={<VaultRegistration />} />
+                <Route path="/auth/verify" element={<EmailVerification />} />
                                 <Route 
                                   path="/auth/character" 
                                   element={

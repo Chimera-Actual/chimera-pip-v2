@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Database, Map, Radio, Settings, Plus, GripVertical } from 'lucide-react';
+import { Plus, GripVertical } from 'lucide-react';
 import { PipBoyTab } from './PipBoyContainer';
 import { useTabManager } from '@/hooks/useTabManager';
 import { TabEditor } from '@/components/tabManagement/TabEditor';
@@ -27,24 +27,13 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getTabIcon } from '@/utils/iconMapping';
 
 interface PipBoyTabsProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const getTabIcon = (name: string, iconName?: string) => {
-  // Default icons for core tabs
-  const defaultIcons: Record<string, any> = {
-    'STAT': BarChart3,
-    'INV': Package, 
-    'DATA': Database,
-    'MAP': Map,
-    'RADIO': Radio
-  };
-  
-  return defaultIcons[name] || Settings;
-};
 
 // Sortable Tab Component
 const SortableTab = React.memo<{
