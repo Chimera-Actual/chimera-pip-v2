@@ -202,12 +202,20 @@
       hsl(var(--pip-bg-primary));
   }
   
-  /* Pip-Boy Visual Effects */
-  .pip-scanlines {
+  /* Pip-Boy Visual Effects - Only apply when globally enabled */
+  .glow-effects-enabled .pip-glow {
+    box-shadow: var(--phosphor-glow);
+  }
+  
+  .glow-effects-enabled .pip-text-glow {
+    text-shadow: var(--text-glow);
+  }
+  
+  .scan-lines-enabled .pip-scanlines {
     position: relative;
   }
   
-  .pip-scanlines::before {
+  .scan-lines-enabled .pip-scanlines::before {
     content: '';
     position: absolute;
     top: 0;
@@ -223,14 +231,6 @@
     );
     pointer-events: none;
     z-index: 10;
-  }
-  
-  .pip-glow {
-    box-shadow: var(--phosphor-glow);
-  }
-  
-  .pip-text-glow {
-    text-shadow: var(--text-glow);
   }
   
   .pip-button-glow {
@@ -707,14 +707,14 @@
 
 /* High DPI display optimizations */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .pip-text-glow {
+  .glow-effects-enabled .pip-text-glow {
     text-shadow: 
       0 0 2px currentColor,
       0 0 4px currentColor,
       0 0 6px currentColor;
   }
   
-  .pip-glow {
+  .glow-effects-enabled .pip-glow {
     box-shadow: 
       0 0 5px hsl(var(--pip-green-primary) / 0.3),
       0 0 10px hsl(var(--pip-green-primary) / 0.2),

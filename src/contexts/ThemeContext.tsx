@@ -9,6 +9,10 @@ interface ThemeContextType {
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
   toggleSound: () => void;
+  glowEffects: boolean;
+  setGlowEffects: (enabled: boolean) => void;
+  scanLines: boolean;
+  setScanLines: (enabled: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -39,6 +43,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return localStorageService.get<boolean>('pip-boy-sound-enabled') ?? true;
   });
 
+  const [glowEffects, setGlowEffectsState] = useState(() => {
+    return localStorageService.get<boolean>('pip-boy-glow-effects') ?? true;
+  });
+
+  const [scanLines, setScanLinesState] = useState(() => {
+    return localStorageService.get<boolean>('pip-boy-scan-lines') ?? true;
+  });
+
   const setTheme = useCallback((theme: PipBoyTheme) => {
     setCurrentTheme(theme);
     localStorageService.set('pip-boy-theme', theme);
@@ -53,12 +65,35 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     handleSetSoundEnabled(!soundEnabled);
   }, [soundEnabled, handleSetSoundEnabled]);
 
+  const setGlowEffects = useCallback((enabled: boolean) => {
+    setGlowEffectsState(enabled);
+    localStorageService.set('pip-boy-glow-effects', enabled);
+  }, []);
+
+  const setScanLines = useCallback((enabled: boolean) => {
+    setScanLinesState(enabled);
+    localStorageService.set('pip-boy-scan-lines', enabled);
+  }, []);
+
   useEffect(() => {
     // Apply theme to document root
-    document.documentElement.setAttribute('data-theme', currentTheme);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', currentTheme);
+    
+    // Apply visual effects classes
+    if (glowEffects) {
+      root.classList.add('glow-effects-enabled');
+    } else {
+      root.classList.remove('glow-effects-enabled');
+    }
+    
+    if (scanLines) {
+      root.classList.add('scan-lines-enabled');
+    } else {
+      root.classList.remove('scan-lines-enabled');
+    }
     
     // Update CSS variables based on theme
-    const root = document.documentElement;
     
     switch (currentTheme) {
       case 'amber':
@@ -172,7 +207,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         root.style.setProperty('--ring', '120 100% 65%');
         break;
     }
-  }, [currentTheme]);
+  }, [currentTheme, glowEffects, scanLines]);
 
   const value = {
     currentTheme,
@@ -180,6 +215,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     soundEnabled,
     setSoundEnabled: handleSetSoundEnabled,
     toggleSound,
+    glowEffects,
+    setGlowEffects,
+    scanLines,
+    setScanLines,
   };
 
   return (

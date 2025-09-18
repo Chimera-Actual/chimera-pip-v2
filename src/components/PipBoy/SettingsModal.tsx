@@ -17,7 +17,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { currentTheme, setTheme, soundEnabled, setSoundEnabled, toggleSound } = useTheme();
+  const { currentTheme, setTheme, soundEnabled, setSoundEnabled, glowEffects, setGlowEffects, scanLines, setScanLines } = useTheme();
   const [tempSettings, setTempSettings] = useState({
     theme: currentTheme,
     sound: soundEnabled,
@@ -25,8 +25,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     animationSpeed: 1,
     autoSave: true,
     notifications: true,
-    glowEffects: true,
-    scanLines: true
+    glowEffects: glowEffects,
+    scanLines: scanLines
   });
 
   const themeColors: Record<ColorTheme, { color: string; name: string }> = {
@@ -44,6 +44,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const handleSaveSettings = () => {
     setTheme(tempSettings.theme);
     setSoundEnabled(tempSettings.sound);
+    setGlowEffects(tempSettings.glowEffects);
+    setScanLines(tempSettings.scanLines);
     onClose();
   };
 
@@ -61,7 +63,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   // Check if settings have changed for dirty state
-  const isDirty = tempSettings.theme !== currentTheme || tempSettings.sound !== soundEnabled;
+  const isDirty = tempSettings.theme !== currentTheme || 
+                  tempSettings.sound !== soundEnabled || 
+                  tempSettings.glowEffects !== glowEffects || 
+                  tempSettings.scanLines !== scanLines;
 
   return (
     <BaseSettingsModal
