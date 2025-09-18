@@ -24,7 +24,7 @@ export const WidgetActionButtons: React.FC<WidgetActionButtonsProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 p-0 bg-background/80 hover:bg-background border border-border/50"
+          className="h-6 w-6 p-0 bg-background/80 hover:bg-background border border-border/50 pr-1"
           onClick={onSettings}
           title="Widget Settings"
         >

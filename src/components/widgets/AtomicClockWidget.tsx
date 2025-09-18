@@ -139,7 +139,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         variant="ghost"
         size="sm"
         onClick={() => setShowSettings(true)}
-        className="h-7 px-2 text-xs"
+        className="h-7 pl-2 pr-4 text-xs"
       >
         <Settings className="h-3 w-3" />
       </Button>
