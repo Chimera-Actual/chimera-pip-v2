@@ -25,9 +25,9 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
         size="icon"
         className="widget-control-button h-6 w-6 p-0 bg-background/80 hover:bg-background border border-border/50"
         onClick={onToggleFullWidth}
-        title={widget.widget_config?.fullWidth ? "Normal Width" : "Full Width"}
+        title={widget.widget_width === 'full' ? "Normal Width" : "Full Width"}
       >
-        {widget.widget_config?.fullWidth ? (
+        {widget.widget_width === 'full' ? (
           <Shrink className="h-3 w-3" />
         ) : (
           <Expand className="h-3 w-3" />
