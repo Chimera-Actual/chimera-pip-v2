@@ -6,11 +6,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Palette, Volume2, Layout, User, Key } from 'lucide-react';
+import { Palette, Volume2, Layout } from 'lucide-react';
 import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
 import { ColorTheme } from './PipBoyContainer';
 import { cn } from '@/lib/utils';
-import { ApiKeyManager } from './ApiKeyManager';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -64,15 +63,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     <BaseSettingsModal
       isOpen={isOpen}
       onClose={onClose}
-      title="SYSTEM PREFERENCES"
-      description="CHIMERA-PIP 4000 mk2 CONFIGURATION INTERFACE"
+      title="SYSTEM CONFIGURATION"
+      description="CHIMERA-PIP 4000 mk2 INTERFACE SETTINGS"
       size="large"
       onSave={handleSaveSettings}
       onReset={handleResetSettings}
       isDirty={isDirty}
     >
         <Tabs defaultValue="theme" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 bg-pip-bg-secondary/30 border border-pip-border">
+            <TabsList className="grid w-full grid-cols-3 bg-pip-bg-secondary/30 border border-pip-border">
               <TabsTrigger 
                 value="theme" 
                 className="font-pip-mono text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
@@ -93,20 +92,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               >
                 <Layout className="h-4 w-4 mr-2" />
                 INTERFACE
-              </TabsTrigger>
-              <TabsTrigger 
-                value="account" 
-                className="font-pip-mono text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-              >
-                <User className="h-4 w-4 mr-2" />
-                ACCOUNT
-              </TabsTrigger>
-              <TabsTrigger 
-                value="api-keys" 
-                className="font-pip-mono text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-              >
-                <Key className="h-4 w-4 mr-2" />
-                API KEYS
               </TabsTrigger>
             </TabsList>
 
@@ -217,36 +202,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   </div>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="account" className="space-y-6 mt-0">
-                <div>
-                  <h3 className="text-lg font-pip-display font-semibold text-pip-text-bright mb-4 pip-text-glow">
-                    ACCOUNT PREFERENCES
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-pip-mono text-pip-text-primary">SYSTEM NOTIFICATIONS</Label>
-                      <Switch 
-                        checked={tempSettings.notifications}
-                        onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, notifications: checked }))}
-                        className="data-[state=checked]:bg-primary" 
-                      />
-                    </div>
-                    <div className="pt-4 border-t border-pip-border/30">
-                      <Button 
-                        variant="outline" 
-                        className="w-full font-pip-mono text-sm border-destructive text-destructive hover:bg-destructive/20"
-                      >
-                        RESET ALL SETTINGS
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="api-keys" className="space-y-6 mt-0">
-                <ApiKeyManager />
               </TabsContent>
           </div>
         </Tabs>

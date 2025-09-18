@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, UserCircle } from 'lucide-react';
+import { Settings, LogOut, UserCircle, Key } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { UserProfileModal } from './UserProfileModal';
+import { ApiKeysModal } from './ApiKeysModal';
+import { SettingsModal } from './SettingsModal';
 
 interface UserAvatarProps {
   className?: string;
@@ -12,6 +15,9 @@ interface UserAvatarProps {
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
   const { profile, signOut } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showApiKeysModal, setShowApiKeysModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const getInitials = () => {
     if (profile?.character_name) {
@@ -72,12 +78,26 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
         </DropdownMenuLabel>
 
         <div className="py-1">
-          <DropdownMenuItem className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer">
+          <DropdownMenuItem 
+            onClick={() => setShowProfileModal(true)}
+            className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+          >
             <UserCircle className="w-4 h-4 mr-2" />
             <span className="text-xs">VIEW PROFILE</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer">
+          <DropdownMenuItem 
+            onClick={() => setShowApiKeysModal(true)}
+            className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+          >
+            <Key className="w-4 h-4 mr-2" />
+            <span className="text-xs">API KEYS</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem 
+            onClick={() => setShowSettingsModal(true)}
+            className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+          >
             <Settings className="w-4 h-4 mr-2" />
             <span className="text-xs">PREFERENCES</span>
           </DropdownMenuItem>
@@ -93,6 +113,20 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
+
+      {/* Modals */}
+      <UserProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+      />
+      <ApiKeysModal 
+        isOpen={showApiKeysModal} 
+        onClose={() => setShowApiKeysModal(false)} 
+      />
+      <SettingsModal 
+        isOpen={showSettingsModal} 
+        onClose={() => setShowSettingsModal(false)} 
+      />
     </DropdownMenu>
   );
 };
