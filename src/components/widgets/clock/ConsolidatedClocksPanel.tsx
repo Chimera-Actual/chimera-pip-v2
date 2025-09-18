@@ -165,7 +165,7 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
         {/* World Clock Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {settings.worldClocks.map((clock) => {
-            const clockTime = timeUtils.formatTime(currentTime, settings.format24, false, clock.timezone);
+            const clockTime = timeUtils.formatTime(currentTime, settings.format24, settings.showSeconds, clock.timezone);
             const isNight = timeUtils.isNightTime(currentTime, clock.timezone);
             
             return (
