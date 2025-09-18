@@ -8,14 +8,15 @@ import { Label } from '@/components/ui/label';
 import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
 import { getTabIcon } from '@/utils/iconMapping';
+import { validateTabName, TabValidationResult } from '@/utils/validation/tabValidation';
 
 interface TabEditorProps {
   tab?: TabConfiguration;
   isOpen: boolean;
   onClose: () => void;
   onSave: (tabData: Partial<TabConfiguration>) => Promise<void>;
+  existingTabs?: Array<{ name: string; isDefault: boolean; id: string }>;
 }
-
 
 const colorOptions = [
   { value: '', label: 'Default', color: 'transparent' },
@@ -28,7 +29,7 @@ const colorOptions = [
   { value: 'hsl(180 100% 55%)', label: 'Cyan', color: 'hsl(180 100% 55%)' },
 ];
 
-export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps) => {
+export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = [] }: TabEditorProps) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -37,6 +38,8 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showIconModal, setShowIconModal] = useState(false);
+  const [validation, setValidation] = useState<TabValidationResult>({ isValid: true, errors: [], warnings: [] });
+  const [nameError, setNameError] = useState<string>('');
 
   useEffect(() => {
     if (tab) {
@@ -54,10 +57,66 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
         color: '',
       });
     }
+    // Reset validation when tab changes
+    setValidation({ isValid: true, errors: [], warnings: [] });
+    setNameError('');
   }, [tab, isOpen]);
 
+  // Real-time validation
+  const validateName = useCallback((name: string) => {
+    const result = validateTabName(name, {
+      existingTabs,
+      isEditing: !!tab,
+      currentTabId: tab?.id
+    });
+    
+    setValidation(result);
+    setNameError(result.errors[0] || '');
+    return result.isValid;
+  }, [existingTabs, tab]);
+
+  // Handle name changes with real-time validation
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setFormData(prev => ({ ...prev, name: newName }));
+    
+    // Validate in real-time for immediate feedback
+    if (newName.trim()) {
+      validateName(newName.trim());
+    } else {
+      setNameError('');
+      setValidation({ isValid: false, errors: [], warnings: [] });
+    }
+  }, [validateName]);
+
+  const isDirty = formData.name.trim() !== (tab?.name || '') ||
+    formData.description.trim() !== (tab?.description || '') ||
+    formData.icon !== (tab?.icon || 'FolderIcon') ||
+    formData.color !== (tab?.color || '');
+
+  const canSave = validation.isValid && formData.name.trim() && !isSubmitting;
+
   const handleSubmit = useCallback(async () => {
-    if (!formData.name.trim()) {
+    const trimmedName = formData.name.trim();
+    
+    if (!trimmedName) {
+      setNameError('Tab name cannot be empty');
+      return;
+    }
+
+    // Final validation before submit
+    if (!validateName(trimmedName)) {
+      return;
+    }
+
+    // Check for default tab editing restriction
+    if (tab?.isDefault && trimmedName !== tab.name) {
+      setNameError('Cannot rename default tabs');
+      return;
+    }
+
+    // Don't submit if validation fails or already submitting
+    if (!canSave) {
       return;
     }
 
@@ -65,23 +124,19 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
     
     try {
       await onSave({
-        name: formData.name.trim(),
+        name: trimmedName,
         description: formData.description.trim(),
         icon: formData.icon,
         color: formData.color || undefined,
       });
       onClose();
     } catch (error) {
+      console.error('Failed to save tab:', error);
       reportError('Failed to save tab');
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, onSave, onClose]);
-
-  const isDirty = formData.name.trim() !== (tab?.name || '') ||
-    formData.description.trim() !== (tab?.description || '') ||
-    formData.icon !== (tab?.icon || 'FolderIcon') ||
-    formData.color !== (tab?.color || '');
+  }, [formData, onSave, onClose, validateName, tab, canSave]);
 
   return (
     <>
@@ -107,12 +162,30 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
               id="tab-name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={handleNameChange}
               placeholder="MY_CUSTOM_TAB"
-              className="bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow"
+              className={`bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow ${
+                nameError ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               required
               maxLength={20}
+              disabled={tab?.isDefault || isSubmitting}
             />
+            {nameError && (
+              <p className="text-sm text-red-400 font-pip-mono mt-1">
+                {nameError}
+              </p>
+            )}
+            {validation.warnings.length > 0 && !nameError && (
+              <p className="text-sm text-yellow-400 font-pip-mono mt-1">
+                ⚠ {validation.warnings[0]}
+              </p>
+            )}
+            {tab?.isDefault && (
+              <p className="text-xs text-pip-text-muted font-pip-mono mt-1">
+                Default tabs cannot be renamed
+              </p>
+            )}
           </div>
 
           {/* Description */}

@@ -290,6 +290,7 @@ export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange
         isOpen={showTabEditor}
         onClose={handleCloseEditor}
         onSave={editingTab ? handleUpdateTab : handleCreateTab}
+        existingTabs={tabs.map(t => ({ name: t.name, isDefault: t.isDefault, id: t.id }))}
       />
 
       {/* Context Menu */}

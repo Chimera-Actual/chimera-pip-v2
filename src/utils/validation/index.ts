@@ -2,7 +2,7 @@
 
 export { Validator, commonRules } from './core';
 export { authValidationSchemas, validateAuthForm } from './authValidation';
-
+export { validateTabName, validateTabCreation, validateTabDeletion, RESERVED_TAB_NAMES, DEFAULT_TAB_NAMES } from './tabValidation';
 
 export type {
   ValidationRule,
@@ -10,3 +10,5 @@ export type {
   ValidationResult,
   ValidationError,
 } from './types';
+
+export type { TabValidationResult, TabValidationContext } from './tabValidation';

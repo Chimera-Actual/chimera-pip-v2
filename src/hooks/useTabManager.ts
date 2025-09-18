@@ -107,14 +107,21 @@ export const useTabManager = () => {
       } else {
         setTabs(formattedTabs);
 
-        // Set active tab to MAIN if it exists, otherwise first tab if current active tab doesn't exist
-        const mainTab = formattedTabs.find(t => t.name === 'MAIN');
+        // Validate and set active tab - production-ready logic
         const currentTab = formattedTabs.find(t => t.name === activeTab);
         
-        if (mainTab && !currentTab) {
-          setActiveTab('MAIN');
-        } else if (formattedTabs.length > 0 && !currentTab) {
-          setActiveTab(formattedTabs[0].name);
+        if (!currentTab) {
+          // Current active tab doesn't exist, find best alternative
+          const mainTab = formattedTabs.find(t => t.name === 'MAIN');
+          const firstTab = formattedTabs[0];
+          
+          if (mainTab) {
+            setActiveTab('MAIN');
+          } else if (firstTab) {
+            setActiveTab(firstTab.name);
+          }
+          
+          console.warn(`Active tab "${activeTab}" not found, switched to ${mainTab ? 'MAIN' : firstTab?.name || 'none'}`);
         }
       }
     } catch (err) {
@@ -130,7 +137,7 @@ export const useTabManager = () => {
     }
   }, [user?.id, activeTab]);
 
-  // Create a new tab
+  // Create a new tab - Production-ready with comprehensive validation
   const createTab = useCallback(async (tabData: Partial<TabConfiguration>): Promise<TabConfiguration | null> => {
     if (!user?.id) {
       toast({
@@ -141,11 +148,38 @@ export const useTabManager = () => {
       return null;
     }
 
+    // Validate tab data
+    const { validateTabCreation } = await import('@/utils/validation/tabValidation');
+    const validation = validateTabCreation(
+      {
+        name: tabData.name || 'New Tab',
+        description: tabData.description
+      },
+      {
+        existingTabs: tabs.map(t => ({ name: t.name, isDefault: t.isDefault, id: t.id })),
+        isEditing: false
+      }
+    );
+
+    if (!validation.isValid) {
+      toast({
+        title: 'Validation Error',
+        description: validation.errors[0],
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    // Show warnings if any
+    if (validation.warnings.length > 0) {
+      console.warn('Tab creation warnings:', validation.warnings);
+    }
+
     try {
       const newTab: Omit<TabConfiguration, 'id' | 'createdAt' | 'updatedAt'> = {
-        name: tabData.name || 'New Tab',
+        name: (tabData.name || 'New Tab').trim(),
         icon: tabData.icon || 'FolderIcon',
-        description: tabData.description || 'Custom tab',
+        description: (tabData.description || 'Custom tab').trim(),
         color: tabData.color,
         position: tabData.position ?? tabs.length,
         isDefault: false,
@@ -196,20 +230,77 @@ export const useTabManager = () => {
       return createdTab;
     } catch (err) {
       console.error('Failed to create tab:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to create tab. Please try again.',
-        variant: 'destructive',
-      });
+      
+      // Handle specific error types
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      if (errorMessage.includes('unique constraint')) {
+        toast({
+          title: 'Duplicate Tab Name',
+          description: 'A tab with this name already exists.',
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('reserved')) {
+        toast({
+          title: 'Reserved Name',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Creation Failed',
+          description: 'Failed to create tab. Please try again.',
+          variant: 'destructive',
+        });
+      }
       return null;
     }
-  }, [user?.id, tabs.length]);
+  }, [user?.id, tabs]);
 
-  // Update a tab
+  // Update a tab - Production-ready with validation and cascading updates
   const updateTab = useCallback(async (tabId: string, updates: Partial<TabConfiguration>): Promise<void> => {
     if (!user?.id) return;
 
+    const currentTab = tabs.find(t => t.id === tabId);
+    if (!currentTab) {
+      toast({
+        title: 'Error',
+        description: 'Tab not found.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate updates if name is being changed
+    if (updates.name !== undefined && updates.name !== currentTab.name) {
+      const { validateTabName } = await import('@/utils/validation/tabValidation');
+      const validation = validateTabName(updates.name, {
+        existingTabs: tabs.map(t => ({ name: t.name, isDefault: t.isDefault, id: t.id })),
+        isEditing: true,
+        currentTabId: tabId
+      });
+
+      if (!validation.isValid) {
+        toast({
+          title: 'Validation Error',
+          description: validation.errors[0],
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Show warnings if any
+      if (validation.warnings.length > 0) {
+        console.warn('Tab name warnings:', validation.warnings);
+      }
+    }
+
+    // Store old name for activeTab sync
+    const oldName = currentTab.name;
+    const newName = updates.name;
+
     try {
+      // Prepare database updates
       const dbUpdates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };
@@ -220,6 +311,21 @@ export const useTabManager = () => {
       if (updates.color !== undefined) dbUpdates.color = updates.color;
       if (updates.position !== undefined) dbUpdates.position = updates.position;
 
+      // Optimistic update for immediate UI feedback
+      const optimisticTabs = tabs.map(tab =>
+        tab.id === tabId
+          ? { ...tab, ...updates, updatedAt: new Date() }
+          : tab
+      ).sort((a, b) => a.position - b.position);
+
+      setTabs(optimisticTabs);
+
+      // Update activeTab if the renamed tab is currently active
+      if (newName && activeTab === oldName) {
+        setActiveTab(newName);
+      }
+
+      // Perform database update - triggers will handle cascading updates
       const { error: updateError } = await supabase
         .from('user_tabs')
         .update(dbUpdates)
@@ -230,48 +336,103 @@ export const useTabManager = () => {
         throw updateError;
       }
 
-      setTabs(prev => prev.map(tab =>
-        tab.id === tabId
-          ? { ...tab, ...updates, updatedAt: new Date() }
-          : tab
-      ).sort((a, b) => a.position - b.position));
-
       toast({
         title: 'Tab Updated',
-        description: 'Tab has been updated successfully.',
+        description: newName && newName !== oldName 
+          ? `Tab renamed from "${oldName}" to "${newName}". All widgets updated automatically.`
+          : 'Tab has been updated successfully.',
       });
     } catch (err) {
       console.error('Failed to update tab:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update tab. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  }, [user?.id]);
+      
+      // Rollback optimistic update
+      setTabs(tabs);
+      if (newName && activeTab === newName) {
+        setActiveTab(oldName);
+      }
 
-  // Delete a tab
+      // Handle specific error types
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      if (errorMessage.includes('unique constraint')) {
+        toast({
+          title: 'Duplicate Tab Name',
+          description: 'A tab with this name already exists.',
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('reserved')) {
+        toast({
+          title: 'Reserved Name',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('default tabs')) {
+        toast({
+          title: 'Cannot Rename Default Tab',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Update Failed',
+          description: 'Failed to update tab. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [user?.id, tabs, activeTab]);
+
+  // Delete a tab - Production-ready with validation and proper cleanup
   const deleteTab = useCallback(async (tabId: string): Promise<void> => {
-    const tab = tabs.find(t => t.id === tabId);
-    if (tab?.isDefault) {
+    if (!user?.id) return;
+
+    // Validate deletion
+    const { validateTabDeletion } = await import('@/utils/validation/tabValidation');
+    const validation = validateTabDeletion(
+      tabId,
+      tabs.map(t => ({ id: t.id, isDefault: t.isDefault, name: t.name }))
+    );
+
+    if (!validation.isValid) {
       toast({
-        title: 'Error',
-        description: 'Cannot delete default Pip-Boy tabs.',
+        title: 'Cannot Delete Tab',
+        description: validation.errors[0],
         variant: 'destructive',
       });
       return;
     }
 
-    if (!user?.id) return;
+    // Show warnings if any
+    if (validation.warnings.length > 0) {
+      console.warn('Tab deletion warnings:', validation.warnings);
+    }
+
+    const tab = tabs.find(t => t.id === tabId);
+    if (!tab) return;
 
     try {
-      // Move widgets to default tab before deleting
-      await supabase
+      // Check for widgets before deletion
+      const { data: widgetData } = await supabase
         .from('user_widgets')
-        .update({ tab_assignment: 'INV' })
-        .eq('tab_assignment', tab?.name)
+        .select('id')
+        .eq('tab_assignment', tab.name)
         .eq('user_id', user.id);
 
+      const widgetCount = widgetData?.length || 0;
+
+      // Move widgets to default tab before deleting
+      if (widgetCount > 0) {
+        await supabase
+          .from('user_widgets')
+          .update({ 
+            tab_assignment: 'INV',
+            updated_at: new Date().toISOString()
+          })
+          .eq('tab_assignment', tab.name)
+          .eq('user_id', user.id);
+      }
+
+      // Delete the tab
       const { error: deleteError } = await supabase
         .from('user_tabs')
         .delete()
@@ -283,21 +444,29 @@ export const useTabManager = () => {
       }
 
       const remainingTabs = tabs.filter(t => t.id !== tabId);
-      setTabs(prev => prev.filter(t => t.id !== tabId));
+      setTabs(remainingTabs);
 
-      if (activeTab === tab?.name && remainingTabs.length > 0) {
-        setActiveTab(remainingTabs[0].name);
+      // Update active tab if necessary
+      if (activeTab === tab.name && remainingTabs.length > 0) {
+        const newActiveTab = remainingTabs.find(t => t.name === 'MAIN') || remainingTabs[0];
+        setActiveTab(newActiveTab.name);
       }
 
       toast({
         title: 'Tab Deleted',
-        description: `${tab?.name} tab has been deleted. Widgets moved to INV tab.`,
+        description: widgetCount > 0 
+          ? `${tab.name} tab deleted. ${widgetCount} widget${widgetCount === 1 ? '' : 's'} moved to INV tab.`
+          : `${tab.name} tab has been deleted.`,
       });
     } catch (err) {
       console.error('Failed to delete tab:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       toast({
-        title: 'Error',
-        description: 'Failed to delete tab. Please try again.',
+        title: 'Delete Failed',
+        description: errorMessage.includes('foreign key') 
+          ? 'Cannot delete tab: widgets are still attached.'
+          : 'Failed to delete tab. Please try again.',
         variant: 'destructive',
       });
     }
