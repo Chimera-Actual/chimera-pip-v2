@@ -61,7 +61,7 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
   );
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 items-center justify-end">
       {controlButtons}
     </div>
   );
