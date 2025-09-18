@@ -147,7 +147,6 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             onToggleCollapse={() => handleToggleCollapse(widget)}
             onToggleFullWidth={() => handleToggleFullWidth(widget)}
             onOpenSettings={() => handleSettings(widget)}
-            selfWrapped={true} // CanvasIntegration manages the widget shell
           >
             {/* Widget Content */}
             {renderWidgetContent(widget)}

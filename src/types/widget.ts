@@ -36,6 +36,8 @@ export interface WidgetTemplateProps extends BaseWidgetProps {
   cardClassName?: string;
   onSettingsClick?: () => void;
   additionalActions?: React.ReactNode;
+  widget?: any; // UserWidget for width control
+  isCollapsed?: boolean; // Collapsed state
 }
 
 export interface WidgetSettingsTab {

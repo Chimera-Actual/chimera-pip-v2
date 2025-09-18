@@ -18,7 +18,9 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   className = '',
   contentClassName = '',
   headerClassName = '',
-  cardClassName = ''
+  cardClassName = '',
+  widget, // Add widget prop for width control
+  isCollapsed = false // Add collapsed state prop
 }) => {
   // Check if we're inside a PipBoy tab context (contextual header)
   // Only apply seamless styling when actually inside PipBoy tab components, not on main canvas
@@ -33,39 +35,41 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   return (
     <Card className={cn(
       "w-full relative group transition-all duration-300",
+      // Grid layout support
+      widget?.widget_width === 'full' ? 'col-span-2' : 'col-span-1',
       // Contextual styling based on location
       isInTabContext 
         ? "bg-transparent border-0 shadow-none" // Seamless in tab context
-        : "bg-pip-bg-secondary border-pip-border hover:border-pip-border-bright", // Standalone styling
+        : "bg-pip-bg-secondary border-pip-border hover:border-pip-border-bright pip-widget-card hover:pip-glow-subtle", 
       settings?.effects?.glow && !isInTabContext && "shadow-lg shadow-primary/20 pip-glow",
+      isCollapsed && "min-h-[80px]", // Support collapsed state
       cardClassName,
       className
     )}>
       {/* Header - Always show when there's content to display */}
       {shouldShowHeader && (
         <CardHeader className={cn(
+          "pb-3 px-4 pt-4", // Consistent padding
           isInTabContext 
-            ? "pb-3" // Standard spacing in tab context
+            ? "" // Standard spacing in tab context
             : "border-b border-pip-border", // Full header standalone
           headerClassName
         )}>
           <div className="flex items-center justify-between">
             {/* Title and Icon */}
             {shouldShowTitleAndIcon && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {Icon && (
-                  <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
-                    <Icon className="h-5 w-5 text-pip-text-bright" />
-                  </div>
+                  <Icon className="h-4 w-4 text-pip-primary" />
                 )}
                 <div>
-                  <CardTitle className="text-pip-text-bright font-pip-display pip-text-glow text-sm">
+                  <CardTitle className="text-pip-text-primary font-pip-display text-sm font-semibold">
                     {displayTitle}
                   </CardTitle>
                   {settings?.description && settings?.showDescription !== false && (
-                    <p className="text-pip-text-secondary font-pip-mono text-xs mt-1">
+                    <span className="text-pip-text-muted text-xs">
                       {settings.description}
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
@@ -85,10 +89,20 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
 
       {/* Content */}
       <CardContent className={cn(
-        "p-0", 
+        isCollapsed ? "p-4" : (shouldShowHeader ? "px-4 pb-4 pt-0" : "p-4"), 
         contentClassName
       )}>
-        {children}
+        {isCollapsed ? (
+          <div className="flex items-center justify-center py-2">
+            <span className="text-pip-text-muted text-xs font-pip-mono">
+              Widget collapsed - click to expand
+            </span>
+          </div>
+        ) : (
+          <div className="widget-content">
+            {children}
+          </div>
+        )}
       </CardContent>
 
       {/* Visual Effects - Only in standalone mode */}
