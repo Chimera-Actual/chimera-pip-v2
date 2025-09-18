@@ -1,108 +1,184 @@
-import React, { Component, ErrorInfo, ReactNode, memo } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import React from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw, Bug } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { reportError } from '@/lib/errorReporting';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
+  errorId: string | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<ErrorFallbackProps>;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  resetOnPropsChange?: boolean;
+  resetKeys?: Array<string | number>;
+}
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+interface ErrorFallbackProps {
+  error: Error;
+  resetError: () => void;
+  errorId: string | null;
+}
+
+const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({ 
+  error, 
+  resetError, 
+  errorId 
+}) => (
+  <Card className="m-4 border-destructive/20 bg-destructive/5">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-destructive">
+        <AlertTriangle className="h-5 w-5" />
+        Something went wrong
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="text-sm text-muted-foreground">
+        <p className="font-medium mb-2">Error Details:</p>
+        <code className="block p-2 bg-muted rounded text-xs">
+          {error.message}
+        </code>
+        {errorId && (
+          <p className="text-xs mt-2 opacity-70">
+            Error ID: {errorId}
+          </p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <Button 
+          onClick={resetError}
+          size="sm"
+          variant="outline"
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Try Again
+        </Button>
+        <Button
+          onClick={() => window.location.reload()}
+          size="sm"
+          variant="ghost"
+        >
+          Reload Page
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  private resetTimeoutId: number | null = null;
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+
+    this.state = {
+      hasError: false,
+      error: null,
+      errorId: null,
+    };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Use proper error reporting instead of console.error
-    reportError(
-      `Error Boundary: ${error.message}`,
-      {
-        component: 'ErrorBoundary',
-        action: 'componentDidCatch',
-        metadata: {
-          componentStack: errorInfo.componentStack,
-          errorBoundary: true,
-        },
-      },
-      error
-    );
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    return {
+      hasError: true,
+      error,
+      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
   }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
-  };
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    const { onError } = this.props;
+    const { errorId } = this.state;
 
-  private handleReload = () => {
-    // Report the reload action for analytics
-    reportError('User initiated error boundary reload', {
+    // Report error to monitoring service
+    reportError('React Error Boundary', {
       component: 'ErrorBoundary',
-      action: 'handleReload'
-    });
-    window.location.reload();
+      errorId,
+      componentStack: errorInfo.componentStack,
+    }, error);
+
+    // Call custom error handler if provided
+    if (onError) {
+      onError(error, errorInfo);
+    }
+
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    const { resetKeys } = this.props;
+    const { hasError } = this.state;
+
+    // Reset error state if resetKeys have changed
+    if (
+      hasError &&
+      prevProps.resetKeys !== resetKeys &&
+      resetKeys?.some((key, idx) => key !== prevProps.resetKeys?.[idx])
+    ) {
+      this.resetError();
+    }
+  }
+
+  resetError = () => {
+    if (this.resetTimeoutId) {
+      clearTimeout(this.resetTimeoutId);
+    }
+
+    this.resetTimeoutId = window.setTimeout(() => {
+      this.setState({
+        hasError: false,
+        error: null,
+        errorId: null,
+      });
+    }, 0);
   };
 
-  public render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
+  render() {
+    const { hasError, error, errorId } = this.state;
+    const { children, fallback: Fallback = DefaultErrorFallback } = this.props;
 
+    if (hasError && error) {
       return (
-        <div className="min-h-screen bg-pip-bg-primary flex items-center justify-center p-4">
-          <div className="w-full max-w-md">
-            <Alert className="border-pip-border bg-pip-bg-secondary/50 pip-widget">
-              <AlertTriangle className="h-4 w-4 text-pip-orange" />
-              <AlertTitle className="font-pip-display text-pip-green-primary pip-text-glow">
-                SYSTEM ERROR DETECTED
-              </AlertTitle>
-              <AlertDescription className="font-pip-mono text-pip-text-muted mt-2">
-                <div className="space-y-2">
-                  <p>
-                    {'>'} CRITICAL_FAULT: Component malfunction detected
-                  </p>
-                  <p className="text-xs opacity-70">
-                    Error: {this.state.error?.message || 'Unknown system error'}
-                  </p>
-                </div>
-              </AlertDescription>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  onClick={this.handleReset}
-                  size="sm"
-                  className="bg-pip-green-primary/20 border border-pip-green-primary/30 hover:bg-pip-green-primary/30 font-pip-mono text-pip-green-primary pip-button-glow"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  RETRY
-                </Button>
-                <Button
-                  onClick={this.handleReload}
-                  variant="outline"
-                  size="sm"
-                  className="border-pip-border text-pip-text-secondary hover:border-pip-orange hover:text-pip-orange pip-button-glow font-pip-mono"
-                >
-                  <Bug className="h-4 w-4 mr-2" />
-                  RESTART
-                </Button>
-              </div>
-            </Alert>
-          </div>
-        </div>
+        <Fallback
+          error={error}
+          resetError={this.resetError}
+          errorId={errorId}
+        />
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }
 
-export default ErrorBoundary;
+// Hook version for functional components
+export const useErrorHandler = () => {
+  const [error, setError] = React.useState<Error | null>(null);
+
+  const resetError = React.useCallback(() => {
+    setError(null);
+  }, []);
+
+  const catchError = React.useCallback((error: Error) => {
+    reportError('Async Error Handler', {
+      component: 'useErrorHandler',
+    }, error);
+    setError(error);
+  }, []);
+
+  React.useEffect(() => {
+    if (error) {
+      throw error;
+    }
+  }, [error]);
+
+  return { catchError, resetError, error };
+};

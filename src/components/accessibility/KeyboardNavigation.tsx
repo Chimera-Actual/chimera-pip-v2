@@ -1,97 +1,172 @@
-import React, { Children, cloneElement, isValidElement, KeyboardEvent } from 'react';
-import { generateAriaLabel } from '@/lib/accessibility';
+import React, { useEffect, useCallback } from 'react';
+import { useFocusManager } from './FocusManager';
 
 interface KeyboardNavigationProps {
   children: React.ReactNode;
-  orientation?: 'horizontal' | 'vertical';
-  loop?: boolean;
-  onActivate?: (index: number) => void;
-  className?: string;
-  role?: string;
+  onEscape?: () => void;
+  onEnter?: () => void;
+  onArrowUp?: () => void;
+  onArrowDown?: () => void;
+  onArrowLeft?: () => void;
+  onArrowRight?: () => void;
+  disabled?: boolean;
 }
 
 export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
   children,
-  orientation = 'horizontal',
-  loop = true,
-  onActivate,
-  className = '',
-  role = 'navigation'
+  onEscape,
+  onEnter,
+  onArrowUp,
+  onArrowDown,
+  onArrowLeft,
+  onArrowRight,
+  disabled = false,
 }) => {
-  const childArray = Children.toArray(children);
-  const [focusedIndex, setFocusedIndex] = React.useState(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const { focusNext, focusPrevious } = useFocusManager();
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    const isHorizontal = orientation === 'horizontal';
-    let newIndex = focusedIndex;
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (disabled) return;
 
     switch (event.key) {
-      case isHorizontal ? 'ArrowRight' : 'ArrowDown':
-        event.preventDefault();
-        newIndex = loop && focusedIndex === childArray.length - 1 ? 0 : Math.min(focusedIndex + 1, childArray.length - 1);
-        break;
-      case isHorizontal ? 'ArrowLeft' : 'ArrowUp':
-        event.preventDefault();
-        newIndex = loop && focusedIndex === 0 ? childArray.length - 1 : Math.max(focusedIndex - 1, 0);
-        break;
-      case 'Home':
-        event.preventDefault();
-        newIndex = 0;
-        break;
-      case 'End':
-        event.preventDefault();
-        newIndex = childArray.length - 1;
-        break;
-      case 'Enter':
-      case ' ':
-        if (onActivate) {
+      case 'Escape':
+        if (onEscape) {
           event.preventDefault();
-          onActivate(focusedIndex);
+          onEscape();
+        }
+        break;
+      
+      case 'Enter':
+        if (onEnter) {
+          event.preventDefault();
+          onEnter();
+        }
+        break;
+      
+      case 'ArrowUp':
+        if (onArrowUp) {
+          event.preventDefault();
+          onArrowUp();
+        } else {
+          // Default behavior: focus previous element
+          event.preventDefault();
+          focusPrevious();
+        }
+        break;
+      
+      case 'ArrowDown':
+        if (onArrowDown) {
+          event.preventDefault();
+          onArrowDown();
+        } else {
+          // Default behavior: focus next element
+          event.preventDefault();
+          focusNext();
+        }
+        break;
+      
+      case 'ArrowLeft':
+        if (onArrowLeft) {
+          event.preventDefault();
+          onArrowLeft();
+        }
+        break;
+      
+      case 'ArrowRight':
+        if (onArrowRight) {
+          event.preventDefault();
+          onArrowRight();
+        }
+        break;
+      
+      case 'Tab':
+        // Allow default Tab behavior, but provide visual feedback
+        const activeElement = document.activeElement;
+        if (activeElement) {
+          activeElement.classList.add('keyboard-focus');
+          setTimeout(() => {
+            activeElement.classList.remove('keyboard-focus');
+          }, 150);
         }
         break;
     }
+  }, [
+    disabled,
+    onEscape,
+    onEnter,
+    onArrowUp,
+    onArrowDown,
+    onArrowLeft,
+    onArrowRight,
+    focusNext,
+    focusPrevious,
+  ]);
 
-    if (newIndex !== focusedIndex) {
-      setFocusedIndex(newIndex);
-      // Focus the element at the new index
-      const container = containerRef.current;
-      if (container) {
-        const focusableElements = container.querySelectorAll('[tabindex]');
-        const elementToFocus = focusableElements[newIndex] as HTMLElement;
-        elementToFocus?.focus();
-      }
-    }
-  };
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
-  return (
-    <div
-      ref={containerRef}
-      role={role}
-      className={className}
-      onKeyDown={handleKeyDown}
-      aria-orientation={orientation}
-    >
-      {childArray.map((child, index) => {
-        if (isValidElement(child)) {
-          return cloneElement(child, {
-            key: index,
-            tabIndex: index === focusedIndex ? 0 : -1,
-            'aria-selected': index === focusedIndex,
-            ...child.props
-          });
-        }
-        return child;
-      })}
-    </div>
-  );
+  return <div className="keyboard-navigation-container">{children}</div>;
 };
 
-// Specialized components for common navigation patterns
-export const TabNavigation: React.FC<Omit<KeyboardNavigationProps, 'role'>> = (props) => (
-  <KeyboardNavigation {...props} role="tablist" />
-);
+// Hook for tab reordering with keyboard
+export const useTabKeyboardReorder = (
+  tabs: Array<{ id: string; name: string }>,
+  onReorder: (fromIndex: number, toIndex: number) => void
+) => {
+  const [focusedTabIndex, setFocusedTabIndex] = React.useState<number | null>(null);
 
-export const MenuNavigation: React.FC<Omit<KeyboardNavigationProps, 'role' | 'orientation'>> = (props) => (
-  <KeyboardNavigation {...props} role="menu" orientation="vertical" />
-);
+  const handleTabKeyNavigation = useCallback((event: KeyboardEvent) => {
+    if (focusedTabIndex === null) return;
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        event.preventDefault();
+        if (focusedTabIndex > 0) {
+          onReorder(focusedTabIndex, focusedTabIndex - 1);
+          setFocusedTabIndex(focusedTabIndex - 1);
+        }
+        break;
+      
+      case 'ArrowRight':
+        event.preventDefault();
+        if (focusedTabIndex < tabs.length - 1) {
+          onReorder(focusedTabIndex, focusedTabIndex + 1);
+          setFocusedTabIndex(focusedTabIndex + 1);
+        }
+        break;
+      
+      case 'Home':
+        event.preventDefault();
+        if (focusedTabIndex !== 0) {
+          onReorder(focusedTabIndex, 0);
+          setFocusedTabIndex(0);
+        }
+        break;
+      
+      case 'End':
+        event.preventDefault();
+        const lastIndex = tabs.length - 1;
+        if (focusedTabIndex !== lastIndex) {
+          onReorder(focusedTabIndex, lastIndex);
+          setFocusedTabIndex(lastIndex);
+        }
+        break;
+    }
+  }, [focusedTabIndex, tabs.length, onReorder]);
+
+  const focusTab = useCallback((index: number) => {
+    setFocusedTabIndex(index);
+  }, []);
+
+  const blurTab = useCallback(() => {
+    setFocusedTabIndex(null);
+  }, []);
+
+  return {
+    focusedTabIndex,
+    focusTab,
+    blurTab,
+    handleTabKeyNavigation,
+  };
+};
