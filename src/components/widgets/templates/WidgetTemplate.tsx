@@ -60,16 +60,13 @@ export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
             <div className="flex items-center gap-2">
               {widgetSpecificActions}
               
-              {showStandardControls && (
+              {showStandardControls && widget && (
                 <>
                   <WidgetControlButtons
+                    widget={widget}
                     onToggleCollapse={onToggleCollapse}
                     onToggleFullWidth={onToggleFullWidth}
                     onClose={onRemove}
-                    isCollapsed={widget?.is_collapsed ?? false}
-                    isFullWidth={widget?.widget_width === 'full'}
-                  />
-                  <WidgetActionButtons
                     onSettings={onOpenSettings}
                   />
                 </>
@@ -101,16 +98,17 @@ export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
     return (
       <>
         <WidgetControlButtons
+          widget={widget}
           onToggleCollapse={onToggleCollapse}
           onToggleFullWidth={onToggleFullWidth}
           onClose={onRemove}
-          isCollapsed={widget.is_collapsed}
-          isFullWidth={widget.widget_width === 'full'}
-        />
-        <WidgetActionButtons
           onSettings={onOpenSettings}
-          additionalActions={widgetSpecificActions}
         />
+        {widgetSpecificActions && (
+          <div className="flex items-center gap-2">
+            {widgetSpecificActions}
+          </div>
+        )}
       </>
     );
   }, [widget, showStandardControls, onToggleCollapse, onToggleFullWidth, onRemove, onOpenSettings, widgetSpecificActions]);
@@ -119,7 +117,7 @@ export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
     <BaseWidgetTemplate
       {...props}
       title={widget?.widget_config?.title || widget?.widget_type || 'Widget'}
-      controls={standardControls}
+      standardControls={standardControls}
       className={`${widget?.widget_width === 'full' ? 'col-span-2' : ''} ${widget?.is_collapsed ? 'min-h-[80px]' : ''}`}
     >
       {widget?.is_collapsed ? (
