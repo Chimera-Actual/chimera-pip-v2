@@ -40,7 +40,7 @@ export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
     return (
       <Card 
         className={`pip-widget-card transition-all duration-300 ${
-          widget?.widget_width === 'full' ? 'col-span-full' : ''
+          widget?.widget_width === 'full' ? 'col-span-2' : 'col-span-1'
         } ${isCollapsed ? 'min-h-[80px]' : ''} hover:pip-glow-subtle`}
       >
         <div className="p-4">

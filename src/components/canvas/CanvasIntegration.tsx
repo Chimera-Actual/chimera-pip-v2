@@ -138,7 +138,7 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
   return (
     <div className={`w-full space-y-4 py-4 ${className || ''}`}>
       {/* Widget Grid - Fixed layout that doesn't affect parent height */}
-      <div className="grid gap-4 auto-rows-max">
+      <div className="grid grid-cols-2 gap-4 auto-rows-max">
         {widgets.map((widget) => (
           <StandardWidgetTemplate
             key={widget.id}
