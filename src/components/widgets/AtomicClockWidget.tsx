@@ -199,7 +199,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
       {/* Settings Modal */}
       <ClockSettingsModal
-        open={showSettings}
+        isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         settings={mergedSettings}
         onSave={handleSettingsUpdate}

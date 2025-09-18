@@ -1,53 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Palette, Check, Globe, AlarmClock, Sparkles, Plus, Trash2 } from 'lucide-react';
-import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
+import { BaseWidgetSettingsModal } from '../BaseWidgetSettingsModal';
 import { SettingsToggle, SettingsGroup, SettingsSelect, SettingsInput } from '@/components/settings/SettingsControls';
 import { ClockThemePreview } from './ClockThemePreview';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AtomicClockSettings } from '../AtomicClockWidget';
-import type { SettingsSection } from '@/types/settings';
+import type { BaseWidgetSettings, WidgetSettingsTab } from '@/types/widget';
 
 interface ClockSettingsModalProps {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
   settings: AtomicClockSettings;
-  onSave: (settings: Partial<AtomicClockSettings>) => void;
+  onSave: (settings: AtomicClockSettings) => void;
 }
 
 export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
-  open,
+  isOpen,
   onClose,
   settings,
   onSave,
 }) => {
   const [tempSettings, setTempSettings] = useState<AtomicClockSettings>(settings);
-  const [isDirty, setIsDirty] = useState(false);
 
   // Sync temp settings when modal opens
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setTempSettings({ ...settings });
-      setIsDirty(false);
     }
-  }, [open, settings]);
+  }, [isOpen, settings]);
 
-  // Check if settings have changed with deep comparison
-  useEffect(() => {
-    const currentStr = JSON.stringify(settings);
-    const tempStr = JSON.stringify(tempSettings);
-    setIsDirty(currentStr !== tempStr);
-  }, [tempSettings, settings]);
-
-  const handleSave = () => {
+  const handleSave = (updatedSettings: BaseWidgetSettings) => {
     onSave(tempSettings);
-    setIsDirty(false);
     onClose();
-  };
-
-  const handleReset = () => {
-    setTempSettings({ ...settings });
-    setIsDirty(false);
   };
 
   const updateSetting = (key: keyof AtomicClockSettings, value: any) => {
@@ -159,14 +144,12 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
 
   const dayOptions = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const sections: SettingsSection[] = [
+  const customTabs: WidgetSettingsTab[] = [
     {
       id: 'display',
-      title: 'Display Settings',
-      description: 'Configure how time and date information is displayed.',
+      label: 'Display Settings',
       icon: Clock,
-      order: 1,
-      content: (
+      content: () => (
         <SettingsGroup>
           <SettingsToggle
             label="24-Hour Format"
@@ -200,11 +183,9 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
     },
     {
       id: 'theme',
-      title: 'Visual Theme',
-      description: 'Choose the visual appearance and color scheme for the clock.',
+      label: 'Visual Theme',
       icon: Palette,
-      order: 2,
-      content: (
+      content: () => (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {themeOptions.map((theme) => (
@@ -255,11 +236,9 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
     },
     {
       id: 'worldclocks',
-      title: 'World Clocks',
-      description: 'Add and configure additional timezone displays.',
+      label: 'World Clocks',
       icon: Globe,
-      order: 3,
-      content: (
+      content: () => (
         <SettingsGroup>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -315,11 +294,9 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
     },
     {
       id: 'alarms',
-      title: 'Alarms',
-      description: 'Configure alarm notifications and schedules.',
+      label: 'Alarms',
       icon: AlarmClock,
-      order: 4,
-      content: (
+      content: () => (
         <SettingsGroup>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -415,51 +392,19 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
           </div>
         </SettingsGroup>
       )
-    },
-    {
-      id: 'effects',
-      title: 'Visual Effects',
-      description: 'Configure visual enhancements and animations.',
-      icon: Sparkles,
-      order: 5,
-      content: (
-        <SettingsGroup>
-          <SettingsToggle
-            label="Particle Effects"
-            description="Enable atmospheric particle animations"
-            value={tempSettings.effects.particles}
-            onChange={(value) => updateEffectSetting('particles', value)}
-          />
-          
-          <SettingsToggle
-            label="Scanlines"
-            description="Add retro CRT scanline effect"
-            value={tempSettings.effects.scanlines}
-            onChange={(value) => updateEffectSetting('scanlines', value)}
-          />
-          
-          <SettingsToggle
-            label="Glow Effect"
-            description="Add screen phosphor glow effect"
-            value={tempSettings.effects.glow}
-            onChange={(value) => updateEffectSetting('glow', value)}
-          />
-        </SettingsGroup>
-      )
     }
   ];
 
   return (
-    <UniversalSettingsTemplate
-      isOpen={open}
+    <BaseWidgetSettingsModal
+      isOpen={isOpen}
       onClose={onClose}
-      title="ATOMIC CLOCK SETTINGS"
-      description="Configure the display and appearance of your atomic clock widget."
-      sections={sections}
+      title="Atomic Clock Settings"
+      settings={tempSettings}
       onSave={handleSave}
-      onReset={handleReset}
-      isDirty={isDirty}
-      size="large"
+      customTabs={customTabs}
+      showGeneralTab={false}
+      showEffectsTab={true}
     />
   );
 };
