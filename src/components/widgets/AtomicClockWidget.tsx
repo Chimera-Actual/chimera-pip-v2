@@ -149,7 +149,6 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
   return (
     <>
       <BaseWidgetTemplate
-        title={title}
         settings={{...mergedSettings, theme: mergedSettings.theme}}
         icon={Clock}
         headerActions={headerActions}

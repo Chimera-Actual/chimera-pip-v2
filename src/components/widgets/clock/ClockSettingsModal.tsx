@@ -100,29 +100,29 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
       icon: Palette,
       content: (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto custom-scrollbar">
             {themeOptions.map((theme) => (
               <div
                 key={theme.value}
-                className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
                   settings.theme === theme.value
-                    ? 'border-primary bg-pip-bg-primary/50 ring-1 ring-primary/50'
+                    ? 'border-primary bg-pip-bg-primary/50 ring-1 ring-primary/50 shadow-lg shadow-primary/20'
                     : 'border-pip-border hover:border-primary/50 hover:bg-pip-bg-primary/20'
                 }`}
                 onClick={() => updateSetting('theme', theme.value)}
               >
                 <div className="flex flex-col space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="relative">
                     <ClockThemePreview
                       theme={theme.value}
                       showSeconds={settings.showSeconds}
                       format24={settings.format24}
                       showDate={settings.showDate}
                     />
-                    <div className={`flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
+                    <div className={`absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
                       settings.theme === theme.value
-                        ? 'border-primary bg-primary text-pip-bg-primary'
-                        : 'border-pip-border'
+                        ? 'border-primary bg-primary text-pip-bg-primary shadow-md'
+                        : 'border-pip-border bg-pip-bg-primary/50'
                     }`}>
                       {settings.theme === theme.value && (
                         <Check className="w-3 h-3" />
@@ -130,11 +130,11 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
                     </div>
                   </div>
                   
-                  <div>
-                    <div className="text-sm font-pip-display text-pip-text-bright">
+                  <div className="text-center">
+                    <div className="text-sm font-pip-display text-pip-text-bright truncate">
                       {theme.label}
                     </div>
-                    <div className="text-xs text-pip-text-secondary font-pip-mono mt-1">
+                    <div className="text-xs text-pip-text-secondary font-pip-mono mt-1 line-clamp-2 min-h-[2rem]">
                       {theme.description}
                     </div>
                   </div>

@@ -71,7 +71,14 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
   }, [isOpen, onClose]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent 
         className={cn(
           sizeClasses[size],
@@ -90,12 +97,12 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto max-h-[60vh] custom-scrollbar">
+        <div className="flex flex-col flex-1 min-h-0">
           {children}
         </div>
 
         {(showSaveButton || showResetButton) && (
-          <div className="flex items-center justify-between pt-4 border-t border-pip-border/30">
+          <div className="flex items-center justify-between pt-4 border-t border-pip-border/30 flex-shrink-0">
             {showResetButton ? (
               <Button
                 variant="outline"

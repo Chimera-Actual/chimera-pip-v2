@@ -187,25 +187,35 @@ export const BaseWidgetSettingsModal: React.FC<BaseWidgetSettingsModalProps> = (
         isDirty={isDirty}
         size="large"
       >
-        <Tabs defaultValue={defaultTabs[0]?.id} className="w-full">
-          {/* Fixed Tabs - Outside ScrollArea */}
-          <TabsList className="grid w-full grid-cols-auto sticky top-0 z-10 bg-background">
+        <Tabs defaultValue={defaultTabs[0]?.id} className="flex flex-col h-full">
+          {/* Fixed Horizontal Tabs */}
+          <TabsList className="flex w-full h-auto bg-pip-bg-secondary/30 p-1 mb-4 flex-shrink-0">
             {defaultTabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+              <TabsTrigger 
+                key={tab.id} 
+                value={tab.id} 
+                className="flex items-center gap-2 flex-1 justify-center px-3 py-2 text-xs font-pip-mono border border-pip-border/30 data-[state=active]:bg-pip-bg-primary data-[state=active]:text-pip-text-bright data-[state=active]:border-primary/50"
+              >
                 {tab.icon && <tab.icon className="h-4 w-4" />}
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Scrollable Content */}
-          <ScrollArea className="h-96 mt-4">
-            {defaultTabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className="mt-0 p-4">
-                {tab.content}
-              </TabsContent>
-            ))}
-          </ScrollArea>
+          {/* Scrollable Tab Content */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full">
+              {defaultTabs.map((tab) => (
+                <TabsContent 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="mt-0 p-4 h-full focus:outline-none"
+                >
+                  {tab.content}
+                </TabsContent>
+              ))}
+            </ScrollArea>
+          </div>
         </Tabs>
       </BaseSettingsModal>
 
