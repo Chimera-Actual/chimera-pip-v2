@@ -5,6 +5,7 @@ import { Fingerprint, Eye, Smartphone, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BiometricCapability {
   available: boolean;
@@ -23,8 +24,29 @@ export const BiometricLogin: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isEnrollment, setIsEnrollment] = useState(false);
-  const { signIn } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`;
+
+  const callWebAuthn = async <T>(payload: Record<string, unknown>): Promise<T> => {
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.error ?? 'WebAuthn request failed');
+    }
+
+    return result as T;
+  };
 
   const detectBiometricCapability = async (): Promise<BiometricCapability> => {
     // Check if WebAuthn is supported
@@ -110,70 +132,49 @@ export const BiometricLogin: React.FC = () => {
       return;
     }
 
+    if (!user?.id) {
+      setError('You need to sign in before using biometric authentication.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      // Generate random challenge for demo
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-
-      // In a real app, you'd get these options from your server
-      const authenticationOptions = {
-        challenge: Array.from(challenge).map(b => b.toString(16).padStart(2, '0')).join(''),
-        timeout: 60000,
-        rpId: window.location.hostname,
-        allowCredentials: [], // Should contain registered credential IDs
-        userVerification: 'required' as const,
-      };
-
-      const authResponse = await startAuthentication({
-        optionsJSON: authenticationOptions
-      });
-      
-      // Send authResponse to server for verification
-      const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          action: 'authenticate',
-          userId: 'current-user-id', // Get from auth context
-          credential: {
-            credentialId: authResponse.id,
-            signature: authResponse.response.signature,
-            authenticatorData: authResponse.response.authenticatorData,
-          },
-          challenge: authenticationOptions.challenge,
-        }),
+      const { options } = await callWebAuthn<{ options: Parameters<typeof startAuthentication>[0]['optionsJSON'] }>({
+        action: 'generate-authentication-options',
+        userId: user.id,
       });
 
-      const verifyResult = await verifyResponse.json();
-      
-      if (!verifyResult.success) {
-        throw new Error(verifyResult.error || 'Authentication failed');
+      const authResponse = await startAuthentication({ optionsJSON: options });
+
+      const verifyResult = await callWebAuthn<{ accessToken: string; refreshToken: string }>({
+        action: 'authenticate',
+        userId: user.id,
+        response: authResponse,
+      });
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: verifyResult.accessToken,
+        refresh_token: verifyResult.refreshToken,
+      });
+
+      if (sessionError) {
+        throw sessionError;
       }
 
-      // Sign in with the verified user
-      const { error } = await signIn(verifyResult.email, 'biometric-auth');
-      
-      if (!error) {
-        navigate('/');
-      } else {
-        setError('Biometric authentication failed');
-      }
+      setError('');
+      navigate('/');
     } catch (error: any) {
       console.error('Biometric authentication error:', error);
-      
-      if (error.name === 'NotAllowedError') {
+
+      if (error?.name === 'NotAllowedError') {
         setError('Authentication was cancelled or timed out');
-      } else if (error.name === 'InvalidStateError') {
+      } else if (error?.name === 'InvalidStateError' || error?.message?.includes('No WebAuthn credentials')) {
         setError('Invalid authentication state. Try enrolling first.');
         setIsEnrollment(true);
       } else {
-        setError('Biometric authentication failed');
+        setError(error?.message ?? 'Biometric authentication failed');
       }
     } finally {
       setIsLoading(false);
@@ -186,80 +187,40 @@ export const BiometricLogin: React.FC = () => {
       return;
     }
 
+    if (!user?.id || !user?.email) {
+      setError('You need an active account before enrolling biometrics.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      // Generate random values for demo
-      const challenge = new Uint8Array(32);
-      const userId = new Uint8Array(16);
-      crypto.getRandomValues(challenge);
-      crypto.getRandomValues(userId);
-
-      // In a real app, you'd get these options from your server
-      const registrationOptions = {
-        challenge: Array.from(challenge).map(b => b.toString(16).padStart(2, '0')).join(''),
-        rp: {
-          name: 'CHIMERA-TEC Security System',
-          id: window.location.hostname,
-        },
-        user: {
-          id: Array.from(userId).map(b => b.toString(16).padStart(2, '0')).join(''),
-          name: 'demo@chimera-tec.com',
-          displayName: 'Demo Vault Dweller',
-        },
-        pubKeyCredParams: [
-          { alg: -7, type: 'public-key' as const },
-          { alg: -257, type: 'public-key' as const },
-        ],
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform' as const,
-          userVerification: 'required' as const,
-        },
-        timeout: 60000,
-      };
-
-      const registrationResponse = await startRegistration({
-        optionsJSON: registrationOptions
-      });
-      
-      // Send registrationResponse to server for verification and storage
-      const storeResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          action: 'register',
-          userId: 'current-user-id', // Get from auth context
-          credential: {
-            credentialId: registrationResponse.id,
-            publicKey: registrationResponse.response.publicKey,
-            deviceName: `${capability.name} on ${navigator.platform}`,
-          },
-        }),
+      const { options } = await callWebAuthn<{ options: Parameters<typeof startRegistration>[0]['optionsJSON'] }>({
+        action: 'generate-registration-options',
+        userId: user.id,
+        email: user.email,
+        displayName: user.email,
       });
 
-      const storeResult = await storeResponse.json();
-      
-      if (!storeResult.success) {
-        throw new Error(storeResult.error || 'Registration failed');
-      }
+      const registrationResponse = await startRegistration({ optionsJSON: options });
+
+      await callWebAuthn<{ credential: unknown }>({
+        action: 'register',
+        userId: user.id,
+        response: registrationResponse,
+        deviceName: `${capability.name} on ${navigator.platform}`,
+      });
 
       setIsEnrollment(false);
-      setError('');
-      // Show success message
-      setTimeout(() => {
-        setError('Biometric enrollment successful! You can now use biometric authentication.');
-      }, 100);
+      setError('Biometric enrollment successful! You can now use biometric authentication.');
     } catch (error: any) {
       console.error('Biometric enrollment error:', error);
-      
-      if (error.name === 'NotAllowedError') {
+
+      if (error?.name === 'NotAllowedError') {
         setError('Enrollment was cancelled or timed out');
       } else {
-        setError('Biometric enrollment failed');
+        setError(error?.message ?? 'Biometric enrollment failed');
       }
     } finally {
       setIsLoading(false);
