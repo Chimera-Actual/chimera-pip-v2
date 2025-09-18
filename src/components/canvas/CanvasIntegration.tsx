@@ -5,6 +5,7 @@ import { Grid3X3, TestTube, Settings } from 'lucide-react';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
 import { TestWidget } from '@/components/widgets/TestWidget';
+import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { iconMapping } from '@/utils/iconMapping';
@@ -101,6 +102,16 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             title={widget.widget_config?.title || 'Test Widget'}
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+          />
+        );
+      case 'atomicclock':
+      case 'clockwidget':
+        return (
+          <AtomicClockWidget
+            title={widget.widget_config?.title || 'Atomic Clock'}
+            settings={widget.widget_config || {}}
+            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+            widgetId={widget.id}
           />
         );
       default:
