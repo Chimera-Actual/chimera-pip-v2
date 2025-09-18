@@ -82,7 +82,7 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
       <DialogContent 
         className={cn(
           sizeClasses[size],
-          'bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300',
+          'bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col',
           className
         )}
       >
@@ -97,7 +97,7 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
           )}
         </DialogHeader>
 
-        <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {children}
         </div>
 
