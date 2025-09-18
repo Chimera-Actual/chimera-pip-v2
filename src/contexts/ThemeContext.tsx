@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { localStorageService } from '@/services/storage/localStorageService';
 
 export type PipBoyTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
+export type ScrollingScanLineMode = 'off' | 'normal' | 'random';
 
 interface ThemeContextType {
   currentTheme: PipBoyTheme;
@@ -11,8 +12,12 @@ interface ThemeContextType {
   toggleSound: () => void;
   glowIntensity: number;
   setGlowIntensity: (intensity: number) => void;
-  scanLineIntensity: number;
+  scanLineIntensity: number; // Kept for backward compatibility
   setScanLineIntensity: (intensity: number) => void;
+  backgroundScanLines: number;
+  setBackgroundScanLines: (intensity: number) => void;
+  scrollingScanLines: ScrollingScanLineMode;
+  setScrollingScanLines: (mode: ScrollingScanLineMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -51,6 +56,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return localStorageService.get<number>('pip-boy-scan-line-intensity') ?? 50;
   });
 
+  const [backgroundScanLines, setBackgroundScanLinesState] = useState(() => {
+    // Migrate from old scanLineIntensity if new setting doesn't exist
+    const existing = localStorageService.get<number>('pip-boy-background-scanlines');
+    if (existing !== null) return existing;
+    return localStorageService.get<number>('pip-boy-scan-line-intensity') ?? 50;
+  });
+
+  const [scrollingScanLines, setScrollingScanLinesState] = useState<ScrollingScanLineMode>(() => {
+    return localStorageService.get<ScrollingScanLineMode>('pip-boy-scrolling-scanlines') ?? 'normal';
+  });
+
   const setTheme = useCallback((theme: PipBoyTheme) => {
     setCurrentTheme(theme);
     localStorageService.set('pip-boy-theme', theme);
@@ -75,6 +91,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     localStorageService.set('pip-boy-scan-line-intensity', intensity);
   }, []);
 
+  const setBackgroundScanLines = useCallback((intensity: number) => {
+    setBackgroundScanLinesState(intensity);
+    localStorageService.set('pip-boy-background-scanlines', intensity);
+  }, []);
+
+  const setScrollingScanLines = useCallback((mode: ScrollingScanLineMode) => {
+    setScrollingScanLinesState(mode);
+    localStorageService.set('pip-boy-scrolling-scanlines', mode);
+  }, []);
+
   useEffect(() => {
     // Apply theme to document root
     const root = document.documentElement;
@@ -82,7 +108,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     
     // Apply visual effects with intensity
     root.style.setProperty('--glow-intensity', `${glowIntensity / 100}`);
-    root.style.setProperty('--scan-line-intensity', `${scanLineIntensity / 100}`);
+    root.style.setProperty('--scan-line-intensity', `${scanLineIntensity / 100}`); // Backward compatibility
+    root.style.setProperty('--background-scan-intensity', `${backgroundScanLines / 100}`);
+    root.style.setProperty('--scrolling-scan-mode', scrollingScanLines);
     
     // Apply classes based on intensity (0 = disabled)
     if (glowIntensity > 0) {
@@ -91,10 +119,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       root.classList.remove('glow-effects-enabled');
     }
     
-    if (scanLineIntensity > 0) {
+    if (backgroundScanLines > 0 || scrollingScanLines !== 'off') {
       root.classList.add('scan-lines-enabled');
     } else {
       root.classList.remove('scan-lines-enabled');
+    }
+
+    // Apply scrolling scan lines mode class
+    root.classList.remove('scrolling-normal', 'scrolling-random');
+    if (scrollingScanLines === 'normal') {
+      root.classList.add('scrolling-normal');
+    } else if (scrollingScanLines === 'random') {
+      root.classList.add('scrolling-random');
     }
     
     // Update CSS variables based on theme
@@ -211,7 +247,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         root.style.setProperty('--ring', '120 100% 65%');
         break;
     }
-  }, [currentTheme, glowIntensity, scanLineIntensity]);
+  }, [currentTheme, glowIntensity, scanLineIntensity, backgroundScanLines, scrollingScanLines]);
 
   const value = {
     currentTheme,
@@ -223,6 +259,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     setGlowIntensity,
     scanLineIntensity,
     setScanLineIntensity,
+    backgroundScanLines,
+    setBackgroundScanLines,
+    scrollingScanLines,
+    setScrollingScanLines,
   };
 
   return (

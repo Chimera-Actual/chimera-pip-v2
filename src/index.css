@@ -70,8 +70,10 @@
     --pip-animation-speed: 0.3s;
     --radius: 6px;
     
-  /* Pip-Boy Effects - Dynamic intensity based */
-  --scan-line-opacity: calc(0.15 * var(--scan-line-intensity, 0));
+   /* Pip-Boy Effects - Dynamic intensity based */
+  --scan-line-opacity: calc(0.15 * var(--scan-line-intensity, 0)); /* Backward compatibility */
+  --background-scan-opacity: calc(0.15 * var(--background-scan-intensity, 0));
+  --scrolling-scan-opacity: calc(0.8 * var(--background-scan-intensity, 0));
   --phosphor-glow: 0 0 calc(20px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.4 * var(--glow-intensity, 0)));
   --text-glow: 0 0 calc(15px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.6 * var(--glow-intensity, 0)));
   --button-glow: 0 0 calc(25px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.5 * var(--glow-intensity, 0)));
@@ -233,8 +235,8 @@
       0deg,
       transparent,
       transparent 2px,
-      hsl(var(--pip-green-primary) / var(--scan-line-opacity)) 2px,
-      hsl(var(--pip-green-primary) / var(--scan-line-opacity)) 4px
+      hsl(var(--pip-green-primary) / var(--background-scan-opacity)) 2px,
+      hsl(var(--pip-green-primary) / var(--background-scan-opacity)) 4px
     );
     pointer-events: none;
     z-index: 10;
@@ -242,7 +244,7 @@
   }
   
   /* Moving scan line effect */
-  .scan-lines-enabled .pip-scanlines::after {
+  .scan-lines-enabled.scrolling-normal .pip-scanlines::after {
     content: '';
     position: absolute;
     top: -2px;
@@ -251,17 +253,34 @@
     height: 2px;
     background: linear-gradient(90deg, 
       transparent, 
-      hsl(var(--pip-green-primary) / calc(0.8 * var(--scan-line-intensity, 0))), 
+      hsl(var(--pip-green-primary) / var(--scrolling-scan-opacity)), 
       transparent
     );
     pointer-events: none;
     z-index: 11;
     animation: scan-line-move 2s ease-in-out infinite;
   }
+
+  .scan-lines-enabled.scrolling-random .pip-scanlines::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      hsl(var(--pip-green-primary) / var(--scrolling-scan-opacity)), 
+      transparent
+    );
+    pointer-events: none;
+    z-index: 11;
+    animation: scan-line-move-random 3s ease-in-out infinite;
+  }
   
   @keyframes scan-sweep {
     0% { opacity: 1; }
-    50% { opacity: calc(0.7 * var(--scan-line-intensity, 0)); }
+    50% { opacity: calc(0.7 * var(--background-scan-intensity, 0)); }
     100% { opacity: 1; }
   }
   
@@ -270,6 +289,16 @@
     10% { opacity: 1; }
     90% { opacity: 1; }
     100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  @keyframes scan-line-move-random {
+    0% { transform: translateY(0) translateX(-10px); opacity: 0; }
+    15% { opacity: 1; transform: translateY(20vh) translateX(5px); }
+    35% { opacity: 0.7; transform: translateY(40vh) translateX(-5px); }
+    50% { opacity: 1; transform: translateY(60vh) translateX(10px); }
+    75% { opacity: 0.8; transform: translateY(80vh) translateX(-3px); }
+    90% { opacity: 1; transform: translateY(95vh) translateX(2px); }
+    100% { transform: translateY(100vh) translateX(0); opacity: 0; }
   }
   
   .pip-button-glow {

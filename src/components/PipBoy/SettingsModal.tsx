@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Palette, Volume2, Layout } from 'lucide-react';
-import { useTheme, PipBoyTheme } from '@/contexts/ThemeContext';
+import { useTheme, PipBoyTheme, ScrollingScanLineMode } from '@/contexts/ThemeContext';
 import { ColorTheme } from './PipBoyContainer';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,18 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { currentTheme, setTheme, soundEnabled, setSoundEnabled, glowIntensity, setGlowIntensity, scanLineIntensity, setScanLineIntensity } = useTheme();
+  const { 
+    currentTheme, 
+    setTheme, 
+    soundEnabled, 
+    setSoundEnabled, 
+    glowIntensity, 
+    setGlowIntensity, 
+    backgroundScanLines, 
+    setBackgroundScanLines, 
+    scrollingScanLines, 
+    setScrollingScanLines 
+  } = useTheme();
   const [tempSettings, setTempSettings] = useState({
     theme: currentTheme,
     sound: soundEnabled,
@@ -26,7 +37,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     autoSave: true,
     notifications: true,
     glowIntensity: glowIntensity,
-    scanLineIntensity: scanLineIntensity
+    backgroundScanLines: backgroundScanLines,
+    scrollingScanLines: scrollingScanLines
   });
 
   useEffect(() => {
@@ -38,9 +50,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       autoSave: true,
       notifications: true,
       glowIntensity: glowIntensity,
-      scanLineIntensity: scanLineIntensity
+      backgroundScanLines: backgroundScanLines,
+      scrollingScanLines: scrollingScanLines
     });
-  }, [currentTheme, soundEnabled, glowIntensity, scanLineIntensity]);
+  }, [currentTheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
 
   const themeColors: Record<ColorTheme, { color: string; name: string }> = {
     green: { color: 'hsl(120 100% 50%)', name: 'CLASSIC GREEN' },
@@ -58,7 +71,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setTheme(tempSettings.theme);
     setSoundEnabled(tempSettings.sound);
     setGlowIntensity(tempSettings.glowIntensity);
-    setScanLineIntensity(tempSettings.scanLineIntensity);
+    setBackgroundScanLines(tempSettings.backgroundScanLines);
+    setScrollingScanLines(tempSettings.scrollingScanLines);
     onClose();
   };
 
@@ -71,7 +85,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       autoSave: true,
       notifications: true,
       glowIntensity: 75,
-      scanLineIntensity: 50
+      backgroundScanLines: 50,
+      scrollingScanLines: 'normal' as ScrollingScanLineMode
     });
   };
 
@@ -79,7 +94,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const isDirty = tempSettings.theme !== currentTheme || 
                   tempSettings.sound !== soundEnabled || 
                   tempSettings.glowIntensity !== glowIntensity || 
-                  tempSettings.scanLineIntensity !== scanLineIntensity;
+                  tempSettings.backgroundScanLines !== backgroundScanLines ||
+                  tempSettings.scrollingScanLines !== scrollingScanLines;
 
   return (
     <BaseSettingsModal
@@ -169,19 +185,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-sm font-pip-mono text-pip-text-primary">SCAN LINE INTENSITY</Label>
+                      <Label className="text-sm font-pip-mono text-pip-text-primary">BACKGROUND SCAN LINES</Label>
                       <Slider
-                        value={[tempSettings.scanLineIntensity]}
-                        onValueChange={([value]) => setTempSettings(prev => ({ ...prev, scanLineIntensity: value }))}
+                        value={[tempSettings.backgroundScanLines]}
+                        onValueChange={([value]) => setTempSettings(prev => ({ ...prev, backgroundScanLines: value }))}
                         max={100}
                         step={5}
                         className="w-full"
                       />
                       <div className="flex justify-between text-xs font-pip-mono text-pip-text-muted">
                         <span>OFF</span>
-                        <span>{tempSettings.scanLineIntensity}%</span>
+                        <span>{tempSettings.backgroundScanLines}%</span>
                         <span>MAX</span>
                       </div>
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-sm font-pip-mono text-pip-text-primary">SCROLLING SCAN LINES</Label>
+                      <Select 
+                        value={tempSettings.scrollingScanLines}
+                        onValueChange={(value) => setTempSettings(prev => ({ ...prev, scrollingScanLines: value as ScrollingScanLineMode }))}
+                      >
+                        <SelectTrigger className="bg-pip-bg-secondary border-pip-border font-pip-mono">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-pip-bg-primary border-pip-border">
+                          <SelectItem value="off">OFF</SelectItem>
+                          <SelectItem value="normal">NORMAL</SelectItem>
+                          <SelectItem value="random">RANDOM</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
