@@ -44,7 +44,7 @@ export const UniversalSettingsTemplate: React.FC<UniversalSettingsProps> = ({
       showResetButton={showResetButton}
       className={className}
     >
-      <ScrollArea className="flex-1 pr-4 max-h-[60vh]">
+      <ScrollArea className="flex-1 min-h-0 pr-4">
         <div className="space-y-8 py-6">
           {sortedSections.map((section, index) => (
             <div key={section.id}>
