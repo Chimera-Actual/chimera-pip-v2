@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
-import { BaseWidgetTemplate } from './BaseWidgetTemplate';
+import { StandardWidgetTemplate } from './templates/WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { ClockSettingsModal } from './clock/ClockSettingsModal';
@@ -41,13 +41,23 @@ interface AtomicClockWidgetProps {
   settings: AtomicClockSettings;
   onSettingsChange: (settings: AtomicClockSettings) => void;
   widgetId?: string;
+  widget?: any;
+  onRemove?: () => void;
+  onToggleCollapse?: () => void;
+  onToggleFullWidth?: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
   title = "Atomic Clock",
   settings,
   onSettingsChange,
-  widgetId = 'default'
+  widgetId = 'default',
+  widget,
+  onRemove,
+  onToggleCollapse,
+  onToggleFullWidth,
+  onOpenSettings
 }) => {
   const [activePanel, setActivePanel] = useState<'clock' | 'alarms'>('clock');
   const [showSettings, setShowSettings] = useState(false);
@@ -113,7 +123,8 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   const themeClass = `clock-theme-${mergedSettings.theme}`;
 
-  const headerActions = (
+  // Widget-specific actions (Clock/Alarms toggle buttons)
+  const widgetSpecificActions = (
     <div className="flex items-center gap-1">
       <Button
         variant={activePanel === 'clock' ? 'default' : 'ghost'}
@@ -134,24 +145,21 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         <Bell className="h-3 w-3 mr-1" />
         Alarms
       </Button>
-      
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowSettings(true)}
-        className="h-7 pl-2 pr-4 text-xs"
-      >
-        <Settings className="h-3 w-3" />
-      </Button>
     </div>
   );
 
   return (
     <>
-      <BaseWidgetTemplate
+      <StandardWidgetTemplate
+        title={title}
         settings={{...mergedSettings, theme: mergedSettings.theme}}
         icon={Clock}
-        headerActions={headerActions}
+        widgetSpecificActions={widgetSpecificActions}
+        widget={widget}
+        onRemove={onRemove}
+        onToggleCollapse={onToggleCollapse}
+        onToggleFullWidth={onToggleFullWidth}
+        onOpenSettings={() => setShowSettings(true)}
         contentClassName="p-4"
         className={`atomic-clock-widget clock-theme-${mergedSettings.theme} relative overflow-hidden`}
       >
@@ -187,7 +195,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             />
           )}
         </div>
-      </BaseWidgetTemplate>
+      </StandardWidgetTemplate>
 
       {/* Settings Modal */}
       <ClockSettingsModal

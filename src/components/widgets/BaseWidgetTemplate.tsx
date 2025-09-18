@@ -12,6 +12,8 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   icon: Icon,
   showControls = true,
   headerActions,
+  widgetSpecificActions,
+  standardControls,
   children,
   className = '',
   contentClassName = '',
@@ -68,9 +70,11 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
               </div>
             )}
             
-            {/* Actions - Show when provided */}
-            {headerActions && (
-              <div className="flex items-center">
+            {/* Actions - Show widget-specific actions, standard controls, or custom header actions */}
+            {(widgetSpecificActions || standardControls || headerActions) && (
+              <div className="flex items-center gap-2">
+                {widgetSpecificActions}
+                {standardControls}
                 {headerActions}
               </div>
             )}

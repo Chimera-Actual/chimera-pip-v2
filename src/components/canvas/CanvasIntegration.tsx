@@ -109,6 +109,11 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             title={widget.widget_config?.title || 'Test Widget'}
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
+            onOpenSettings={() => handleSettings(widget)}
           />
         );
       case 'atomicclock':
@@ -119,6 +124,11 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
             widgetId={widget.id}
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
+            onOpenSettings={() => handleSettings(widget)}
           />
         );
       default:
@@ -172,37 +182,24 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
     <div className={`canvas-integration ${className || ''}`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {widgets.map((widget) => (
-          <Card
+          <div
             key={widget.id}
-            className={`relative group bg-pip-bg-secondary border-pip-border hover:border-primary/50 transition-colors ${
+            className={`${
               widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
             }`}
           >
-            {/* Widget Control Buttons - Positioned absolutely */}
-            <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <WidgetControlButtons
-                widget={widget}
-                onClose={() => handleCloseWidget(widget.id)}
-                onToggleCollapse={() => handleToggleCollapse(widget)}
-                onSettings={() => handleSettings(widget)}
-                onToggleFullWidth={() => handleToggleFullWidth(widget)}
-              />
-            </div>
-            
-            {!widget.is_collapsed && (
-              <CardContent className="p-0">
-                {renderWidgetContent(widget)}
-              </CardContent>
-            )}
+            {!widget.is_collapsed && renderWidgetContent(widget)}
             
             {widget.is_collapsed && (
-              <CardContent className="p-6">
-                <div className="text-center text-pip-text-secondary font-pip-mono text-xs italic">
-                  Widget collapsed
-                </div>
-              </CardContent>
+              <Card className="bg-pip-bg-secondary border-pip-border">
+                <CardContent className="p-6">
+                  <div className="text-center text-pip-text-secondary font-pip-mono text-xs italic">
+                    Widget collapsed
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </Card>
+          </div>
         ))}
       </div>
 

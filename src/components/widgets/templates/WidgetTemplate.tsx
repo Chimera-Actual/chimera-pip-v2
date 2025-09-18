@@ -12,6 +12,8 @@ interface StandardWidgetTemplateProps extends WidgetTemplateProps {
   onToggleCollapse?: () => void;
   onToggleFullWidth?: () => void;
   onOpenSettings?: () => void;
+  widgetSpecificActions?: React.ReactNode;
+  showStandardControls?: boolean;
 }
 
 export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
@@ -20,6 +22,8 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
   onToggleCollapse,
   onToggleFullWidth,
   onOpenSettings,
+  widgetSpecificActions,
+  showStandardControls = true,
   ...props
 }) => {
   const { deleteWidget, updateWidget } = useWidgetManager();
@@ -60,7 +64,8 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
     }
   };
 
-  const headerActions = widget ? (
+  // Build standard controls if widget is provided and showStandardControls is true
+  const standardControls = (widget && showStandardControls) ? (
     <WidgetActionButtons
       onSettings={handleOpenSettings}
       additionalActions={
@@ -73,12 +78,14 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
         />
       }
     />
-  ) : props.headerActions;
+  ) : null;
 
   return (
     <BaseWidgetTemplate
       {...props}
-      headerActions={headerActions}
+      widgetSpecificActions={widgetSpecificActions}
+      standardControls={standardControls}
+      headerActions={props.headerActions}
     />
   );
 };

@@ -29,6 +29,8 @@ export interface BaseWidgetProps {
 export interface WidgetTemplateProps extends BaseWidgetProps {
   icon?: React.ComponentType<any>;
   headerActions?: React.ReactNode;
+  widgetSpecificActions?: React.ReactNode;
+  standardControls?: React.ReactNode;
   contentClassName?: string;
   headerClassName?: string;
   cardClassName?: string;

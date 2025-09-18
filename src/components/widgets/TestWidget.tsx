@@ -23,21 +23,32 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, Palette, AlertCircle, CheckCircle2, Info, Eye, EyeOff, Search, Mail, Link, Upload, User, Heart, Settings, Home } from 'lucide-react';
+import { CalendarIcon, Palette, AlertCircle, CheckCircle2, Info, Eye, EyeOff, Search, Mail, Link, Upload, User, Heart, Settings, Home, TestTube } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { CheckedState } from '@radix-ui/react-checkbox';
+import { StandardWidgetTemplate } from './templates/WidgetTemplate';
 
 interface TestWidgetProps {
   title?: string;
   settings?: any;
   onSettingsChange?: (settings: any) => void;
+  widget?: any;
+  onRemove?: () => void;
+  onToggleCollapse?: () => void;
+  onToggleFullWidth?: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const TestWidget: React.FC<TestWidgetProps> = ({
   title = "Test Widget",
   settings = {},
-  onSettingsChange
+  onSettingsChange,
+  widget,
+  onRemove,
+  onToggleCollapse,
+  onToggleFullWidth,
+  onOpenSettings
 }) => {
   const { toast } = useToast();
   
@@ -72,25 +83,26 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
   };
 
   return (
-    <Card className="w-full bg-pip-bg-secondary border-pip-border">
-      <CardHeader className="border-b border-pip-border">
+    <StandardWidgetTemplate
+      title={title}
+      settings={{ title, description: 'Comprehensive UI component testing widget' }}
+      icon={TestTube}
+      widget={widget}
+      onRemove={onRemove}
+      onToggleCollapse={onToggleCollapse}
+      onToggleFullWidth={onToggleFullWidth}
+      onOpenSettings={onOpenSettings}
+      contentClassName="p-0"
+    >
+      <div className="border-b border-pip-border p-4">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-pip-text-bright font-pip-display pip-text-glow">
-              {title}
-            </CardTitle>
-            <CardDescription className="text-pip-text-secondary font-pip-mono text-xs mt-1">
-              Comprehensive UI component testing widget
-            </CardDescription>
-          </div>
           <Badge className="bg-primary/20 text-primary border-primary/30">
             Testing
           </Badge>
         </div>
-      </CardHeader>
+      </div>
       
-      <CardContent className="p-0">
-        <ScrollArea className="h-96 p-6">
+      <ScrollArea className="h-96 p-6">
           <div className="space-y-6">
         {/* Text Inputs Section */}
         <div className="space-y-4">
@@ -697,7 +709,6 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
         </div>
           </div>
         </ScrollArea>
-      </CardContent>
-    </Card>
+    </StandardWidgetTemplate>
   );
 };
