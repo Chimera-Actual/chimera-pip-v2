@@ -147,19 +147,49 @@ function getCachingStrategy(request) {
 // Fetch event handler with intelligent caching
 self.addEventListener('fetch', (event) => {
   const strategy = getCachingStrategy(event.request);
-  
-  event.respondWith(
-    cacheStrategies[strategy](event.request)
-      .catch(() => {
-        // Fallback for offline
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+  const startTime = performance.now();
+
+  const responsePromise = (async () => {
+    try {
+      return await cacheStrategies[strategy](event.request);
+    } catch (error) {
+      // Fallback for offline
+      if (event.request.destination === 'document') {
+        const fallbackDocument = await caches.match('/index.html');
+        if (fallbackDocument) {
+          return fallbackDocument;
         }
-        // Return offline placeholder for images
-        if (event.request.destination === 'image') {
-          return caches.match('/offline-image.svg');
+      }
+      // Return offline placeholder for images
+      if (event.request.destination === 'image') {
+        const fallbackImage = await caches.match('/offline-image.svg');
+        if (fallbackImage) {
+          return fallbackImage;
+        }
+      }
+      throw error;
+    }
+  })();
+
+  event.respondWith(responsePromise);
+
+  event.waitUntil(
+    responsePromise
+      .then(() => {
+        const duration = performance.now() - startTime;
+        if (duration > 1000) {
+          return self.clients.matchAll().then((clients) => {
+            clients.forEach((client) => {
+              client.postMessage({
+                type: 'SLOW_REQUEST',
+                url: event.request.url,
+                duration,
+              });
+            });
+          });
         }
       })
+      .catch(() => {})
   );
 });
 
@@ -232,27 +262,3 @@ async function cleanupExpiredCaches() {
     }
   }
 }
-
-// Performance tracking
-self.addEventListener('fetch', (event) => {
-  const startTime = performance.now();
-  
-  event.waitUntil(
-    event.respondWith.then(() => {
-      const duration = performance.now() - startTime;
-      // Send performance data to analytics
-      if (duration > 1000) {
-        // Log slow requests
-        self.clients.matchAll().then(clients => {
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'SLOW_REQUEST',
-              url: event.request.url,
-              duration
-            });
-          });
-        });
-      }
-    })
-  );
-});
