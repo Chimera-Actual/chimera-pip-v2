@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
+import { WeatherDashboardWidget } from '@/components/widgets/WeatherDashboardWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { UserWidget } from '@/hooks/useWidgetManager';
 
@@ -13,6 +14,7 @@ import type { UserWidget } from '@/hooks/useWidgetManager';
 const widgetDescriptions: Record<string, string> = {
   'test_widget': 'A simple test widget for demonstration purposes',
   'atomic_clock': 'Multi-timezone atomic clock with alarms, themes, and retro visual effects',
+  'weather_dashboard': 'Complete weather station with current conditions, forecast, air quality, and Pip-Boy radiation mode',
   // Add more widget descriptions as needed
 };
 
@@ -79,6 +81,20 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
         return (
           <AtomicClockWidget
             title={widget.widget_config?.title || 'Atomic Clock'}
+            settings={widget.widget_config || {}}
+            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+            widgetId={widget.id}
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
+          />
+        );
+      case 'weatherdashboard':
+      case 'weather':
+        return (
+          <WeatherDashboardWidget
+            title={widget.widget_config?.title || 'Weather Dashboard'}
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
             widgetId={widget.id}

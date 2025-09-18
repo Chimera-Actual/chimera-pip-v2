@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Grid3X3, TestTube, Settings, X, SettingsIcon, Tag } from 'lucide-react';
+import { Grid3X3, TestTube, Settings, X, SettingsIcon, Tag, CloudSun, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWidgetTags } from '@/hooks/useWidgetTags';
@@ -104,6 +104,10 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
         return <TestTube className="w-6 h-6" />;
       case 'Settings':
         return <Settings className="w-6 h-6" />;
+      case 'CloudSun':
+        return <CloudSun className="w-6 h-6" />;
+      case 'Clock':
+        return <Clock className="w-6 h-6" />;
       default:
         return <Grid3X3 className="w-6 h-6" />;
     }
