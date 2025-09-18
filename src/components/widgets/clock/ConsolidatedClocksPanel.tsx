@@ -55,30 +55,63 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
   };
 
   const getThemeStyles = (theme: string) => {
+    // All themes now use system colors for consistency
     const themes = {
       'vault-tec': {
-        mainText: 'text-green-400',
-        accent: 'text-green-300',
-        glow: 'drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]',
-        bg: 'bg-green-900/20'
+        mainText: 'text-primary font-mono',
+        accent: 'text-primary/80 font-mono',
+        glow: 'drop-shadow-[0_0_8px_rgba(var(--primary),0.6)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-mono'
       },
       'military': {
-        mainText: 'text-orange-400',
-        accent: 'text-orange-300',
-        glow: 'drop-shadow-[0_0_8px_rgba(251,146,60,0.6)]',
-        bg: 'bg-orange-900/20'
+        mainText: 'text-primary font-bold tracking-wider',
+        accent: 'text-primary/80 font-bold',
+        glow: 'drop-shadow-[0_0_8px_rgba(var(--primary),0.6)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-bold tracking-wider'
       },
       'nixie': {
-        mainText: 'text-amber-400',
-        accent: 'text-amber-300',
-        glow: 'drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]',
-        bg: 'bg-amber-900/20'
+        mainText: 'text-primary font-serif italic',
+        accent: 'text-primary/80 font-serif',
+        glow: 'drop-shadow-[0_0_12px_rgba(var(--primary),0.8)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-serif italic'
       },
       'led': {
-        mainText: 'text-red-400',
-        accent: 'text-red-300',
-        glow: 'drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]',
-        bg: 'bg-red-900/20'
+        mainText: 'text-primary font-mono font-black tracking-widest',
+        accent: 'text-primary/80 font-mono font-bold',
+        glow: 'drop-shadow-[0_0_6px_rgba(var(--primary),0.9)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-mono font-black tracking-widest'
+      },
+      'terminal': {
+        mainText: 'text-primary font-mono font-light',
+        accent: 'text-primary/80 font-mono font-light',
+        glow: 'drop-shadow-[0_0_4px_rgba(var(--primary),0.4)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-mono font-light'
+      },
+      'plasma': {
+        mainText: 'text-primary font-sans font-extralight tracking-wide',
+        accent: 'text-primary/80 font-sans font-light',
+        glow: 'drop-shadow-[0_0_12px_rgba(var(--primary),0.7)] drop-shadow-[0_0_24px_rgba(var(--primary),0.3)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-sans font-extralight tracking-wide'
+      },
+      'hologram': {
+        mainText: 'text-primary font-sans font-thin tracking-[0.2em] opacity-90',
+        accent: 'text-primary/70 font-sans font-thin',
+        glow: 'drop-shadow-[0_0_8px_rgba(var(--primary),0.5)] drop-shadow-[0_0_16px_rgba(var(--primary),0.3)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-sans font-thin tracking-[0.2em]'
+      },
+      'retro-lcd': {
+        mainText: 'text-primary font-mono font-medium',
+        accent: 'text-primary/80 font-mono',
+        glow: 'drop-shadow-[0_0_2px_rgba(var(--primary),0.8)]',
+        bg: 'bg-pip-bg-primary/30',
+        container: 'font-mono font-medium'
       }
     };
     
@@ -90,23 +123,23 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
   return (
     <div className="space-y-6">
       {/* Main Clock Display */}
-      <Card className={`${themeStyle.bg} border-current/20 ${settings.effects.glow ? themeStyle.glow : ''}`}>
+      <Card className={`${themeStyle.bg} border-pip-border ${settings.effects.glow ? themeStyle.glow : ''} ${themeStyle.container}`}>
         <CardContent className="p-6 text-center">
           {/* Main Time */}
-          <div className={`text-4xl md:text-6xl font-mono font-bold ${themeStyle.mainText} leading-none mb-2`}>
+          <div className={`text-4xl md:text-6xl font-bold ${themeStyle.mainText} leading-none mb-2`}>
             {mainTimeStr}
           </div>
           
           {/* Date Display */}
           {settings.showDate && (
-            <div className={`text-lg ${themeStyle.accent} font-mono mb-2`}>
+            <div className={`text-lg ${themeStyle.accent} mb-2`}>
               {mainTimeData.formattedDate}
             </div>
           )}
           
           {/* Timezone Display */}
           {settings.showTimezone && (
-            <div className={`text-sm ${themeStyle.accent} font-mono flex items-center justify-center gap-2`}>
+            <div className={`text-sm ${themeStyle.accent} flex items-center justify-center gap-2`}>
               <MapPin className="w-4 h-4" />
               {mainTimeData.timezone}
             </div>
@@ -138,16 +171,16 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
             const isNight = timeUtils.isNightTime(currentTime, clock.timezone);
             
             return (
-              <Card key={clock.id} className={`${themeStyle.bg} border-current/20 relative group`}>
+              <Card key={clock.id} className={`${themeStyle.bg} border-pip-border relative group ${themeStyle.container}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {isNight ? (
-                        <Moon className={`w-4 h-4 ${themeStyle.accent}`} />
+                        <Moon className={`w-4 h-4 text-primary/60`} />
                       ) : (
-                        <Sun className={`w-4 h-4 ${themeStyle.accent}`} />
+                        <Sun className={`w-4 h-4 text-primary/60`} />
                       )}
-                      <span className={`font-pip-mono text-sm ${themeStyle.accent}`}>
+                      <span className={`text-sm ${themeStyle.accent}`}>
                         {clock.label}
                       </span>
                     </div>
@@ -155,17 +188,17 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
                       variant="ghost"
                       size="sm"
                       onClick={() => removeWorldClock(clock.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-xs p-1 h-auto"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-xs p-1 h-auto pip-button-secondary"
                     >
                       <X className="w-3 h-3" />
                     </Button>
                   </div>
                   
-                  <div className={`text-2xl font-mono font-bold ${themeStyle.mainText}`}>
+                  <div className={`text-2xl font-bold ${themeStyle.mainText}`}>
                     {clockTime}
                   </div>
                   
-                  <div className={`text-xs font-mono ${themeStyle.accent} mt-1`}>
+                  <div className={`text-xs ${themeStyle.accent} mt-1`}>
                     {clock.timezone.split('/')[1]?.replace('_', ' ')}
                   </div>
                 </CardContent>
@@ -176,7 +209,7 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
 
         {/* Add Clock Interface */}
         {showAddClock && (
-          <Card className={`${themeStyle.bg} border-current/20`}>
+          <Card className={`${themeStyle.bg} border-pip-border`}>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h5 className={`font-pip-display ${themeStyle.mainText}`}>
@@ -186,7 +219,7 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAddClock(false)}
-                  className="text-xs"
+                  className="text-xs pip-button-secondary"
                 >
                   <X className="w-4 h-4" />
                 </Button>

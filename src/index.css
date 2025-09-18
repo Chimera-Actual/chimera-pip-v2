@@ -1068,3 +1068,36 @@
 }
 
 /* Consolidated scrollbar styling - uses pip-border for consistency */
+
+/* Pip-Boy Scrollbar Styling */
+.pip-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--pip-bg-secondary));
+}
+
+.pip-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pip-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--pip-bg-secondary));
+  border-radius: 4px;
+}
+
+.pip-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+  border: 1px solid hsl(var(--pip-border));
+}
+
+.pip-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+/* Pip-Boy Tab Styling */
+.pip-tab {
+  @apply data-[state=active]:bg-pip-bg-primary data-[state=active]:text-pip-text-bright data-[state=active]:border-primary;
+  @apply hover:bg-pip-bg-primary/50 hover:text-pip-text-bright;
+  @apply border border-pip-border text-pip-text-secondary;
+  @apply transition-all duration-200;
+}
