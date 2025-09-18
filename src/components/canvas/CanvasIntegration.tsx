@@ -10,6 +10,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { iconMapping } from '@/utils/iconMapping';
 
+// Widget descriptions mapping
+const widgetDescriptions: Record<string, string> = {
+  'test_widget': 'A simple test widget for demonstration purposes',
+  'atomic_clock': 'Multi-timezone atomic clock with alarms, themes, and retro visual effects',
+  // Add more widget descriptions as needed
+};
+
 interface CanvasIntegrationProps {
   tab: string;
   className?: string;
@@ -189,7 +196,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
                     {widget.widget_config?.title || widget.widget_type}
                   </CardTitle>
                   <CardDescription className="text-pip-text-secondary font-pip-mono text-xs">
-                    {widget.widget_type}
+                    {widgetDescriptions[widget.widget_type] || `${widget.widget_type} widget`}
                   </CardDescription>
                 </div>
               </div>
