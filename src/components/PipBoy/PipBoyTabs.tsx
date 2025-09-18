@@ -95,10 +95,10 @@ const SortableTab = React.memo<{
         onTouchEnd={handleTouchEnd}
         style={{ color: tab.color || undefined }}
       >
-        <div className={`flex ${isMobile ? 'flex-col items-center space-y-0.5' : 'flex-col items-center space-y-1'}`}>
-          <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-          <span className={`${isMobile ? 'text-xs font-medium' : 'text-xs'} truncate max-w-full`}>
-            {isMobile && tab.name.length > 6 ? tab.name.slice(0, 6) : tab.name}
+        <div className="flex items-center space-x-2 min-w-0 w-full">
+          <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} flex-shrink-0`} />
+          <span className={`${isMobile ? 'text-xs font-medium' : 'text-xs'} truncate min-w-0`}>
+            {tab.name}
           </span>
         </div>
         
