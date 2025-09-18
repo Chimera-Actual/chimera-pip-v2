@@ -66,10 +66,7 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
             
             {/* Controls - Always show when provided */}
             {headerActions && (
-              <div className={cn(
-                "flex items-center",
-                isInTabContext && !shouldShowTitleAndIcon ? "ml-auto" : ""
-              )}>
+              <div className="flex items-center">
                 {headerActions}
               </div>
             )}
