@@ -196,7 +196,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
                     {widget.widget_config?.title || widget.widget_type}
                   </CardTitle>
                   <CardDescription className="text-pip-text-secondary font-pip-mono text-xs">
-                    {widgetDescriptions[widget.widget_type] || `${widget.widget_type} widget`}
+                    {widget.widget_config?.description || widgetDescriptions[widget.widget_type] || `${widget.widget_type} widget`}
                   </CardDescription>
                 </div>
               </div>
