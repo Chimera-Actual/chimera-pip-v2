@@ -71,3 +71,16 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Environment variables
+
+Create a `.env` file in the project root (or configure the variables in your hosting provider) before running the app:
+
+```
+VITE_SUPABASE_URL=<your Supabase project URL>
+VITE_SUPABASE_ANON_KEY=<your Supabase anon/public key>
+# Optional: only required when the automatic detection should be overridden
+VITE_APP_BASE_URL=<https://your-app-domain.example>
+```
+
+After deploying these changes, rotate the Supabase credentials in the Supabase dashboard and scrub any previously committed keys from your Git history.
