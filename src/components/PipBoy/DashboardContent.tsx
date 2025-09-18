@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback } from 'react';
+import React, { useState, memo, useCallback, useEffect } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
@@ -6,6 +6,8 @@ import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -22,9 +24,49 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
-  const { addWidget } = useTabWidgets(activeTab);
+  const { toast } = useToast();
+  
+  // Centralized widget state management
+  const { 
+    widgets, 
+    isLoading: widgetsLoading, 
+    error: widgetsError,
+    addWidget,
+    deleteWidget,
+    updateWidget,
+    toggleCollapsed,
+    toggleVisibility,
+    loadWidgets
+  } = useTabWidgets(activeTab);
   
   const currentTab = tabs.find(tab => tab.name === activeTab);
+
+  // Real-time subscription for widget changes
+  useEffect(() => {
+    if (!activeTab) return;
+
+    const channel = supabase
+      .channel(`widgets-${activeTab}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_widgets',
+          filter: `tab_assignment=eq.${activeTab}`
+        },
+        (payload) => {
+          console.log('Widget change detected:', payload);
+          // Reload widgets when any change occurs
+          loadWidgets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTab, loadWidgets]);
 
   const handleArchiveTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
@@ -48,8 +90,14 @@ export const DashboardContent = memo<DashboardContentProps>(({
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
     const result = await addWidget(widgetType, settings);
+    if (result) {
+      toast({
+        title: "Widget Added",
+        description: `${widgetType} widget has been added successfully`,
+      });
+    }
     setShowWidgetSelector(false);
-  }, [addWidget]);
+  }, [addWidget, toast]);
 
   const handleShowWidgetSelector = useCallback(() => {
     setShowWidgetSelector(true);
@@ -61,7 +109,10 @@ export const DashboardContent = memo<DashboardContentProps>(({
       <div className="relative h-full">
         <TabWidgetDrawer 
           activeTab={activeTab} 
+          widgets={widgets}
+          isLoading={widgetsLoading}
           onAddWidget={handleShowWidgetSelector}
+          onToggleVisibility={toggleVisibility}
           isCollapsed={isDrawerCollapsed}
           onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
         />
@@ -85,8 +136,13 @@ export const DashboardContent = memo<DashboardContentProps>(({
         {/* Canvas Content - Controlled scrolling container */}
         <div className="widget-content flex-1 min-h-0 overflow-auto">
           <CanvasIntegration 
-            tab={activeTab} 
+            tab={activeTab}
+            widgets={widgets}
+            isLoading={widgetsLoading}
             onDoubleClick={handleShowWidgetSelector}
+            onDeleteWidget={deleteWidget}
+            onUpdateWidget={updateWidget}
+            onToggleCollapsed={toggleCollapsed}
           />
         </div>
 

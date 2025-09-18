@@ -18,33 +18,39 @@ const widgetDescriptions: Record<string, string> = {
 
 interface CanvasIntegrationProps {
   tab: string;
+  widgets: UserWidget[];
+  isLoading: boolean;
   className?: string;
   onDoubleClick?: () => void;
+  onDeleteWidget: (widgetId: string) => Promise<boolean>;
+  onUpdateWidget: (widgetId: string, updates: Partial<UserWidget>) => Promise<boolean>;
+  onToggleCollapsed: (widget: UserWidget) => Promise<boolean>;
 }
 
-export const CanvasIntegration = memo<CanvasIntegrationProps>(({ tab, className, onDoubleClick }) => {
+export const CanvasIntegration = memo<CanvasIntegrationProps>(({ 
+  tab, 
+  widgets,
+  isLoading,
+  className, 
+  onDoubleClick,
+  onDeleteWidget,
+  onUpdateWidget,
+  onToggleCollapsed
+}) => {
   const [settingsWidget, setSettingsWidget] = useState<UserWidget | null>(null);
-  
-  const { 
-    widgets, 
-    isLoading, 
-    deleteWidget, 
-    toggleCollapsed,
-    updateWidget 
-  } = useTabWidgets(tab);
 
   // Widget interaction handlers with optimistic updates
   const handleCloseWidget = async (widgetId: string) => {
-    await deleteWidget(widgetId);
+    await onDeleteWidget(widgetId);
   };
 
   const handleToggleCollapse = async (widget: UserWidget) => {
-    await toggleCollapsed(widget);
+    await onToggleCollapsed(widget);
   };
 
   const handleToggleFullWidth = async (widget: UserWidget) => {
     const newWidth = widget.widget_width === 'full' ? 'half' : 'full';
-    await updateWidget(widget.id, { widget_width: newWidth });
+    await onUpdateWidget(widget.id, { widget_width: newWidth });
   };
 
   const handleSettings = (widget: UserWidget) => {
@@ -52,7 +58,7 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({ tab, className,
   };
 
   const handleSaveSettings = async (widgetId: string, config: any) => {
-    await updateWidget(widgetId, { widget_config: config });
+    await onUpdateWidget(widgetId, { widget_config: config });
     setSettingsWidget(null);
   };
 

@@ -7,27 +7,27 @@ import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Plus, Eye, EyeOff } from 'lucide-react';
 import { getTabIcon } from '@/utils/iconMapping';
 import { cn } from '@/lib/utils';
-import { useTabWidgets } from '@/hooks/useTabWidgets';
 import type { UserWidget } from '@/hooks/useWidgetManager';
 
 interface TabWidgetDrawerProps {
   activeTab: string;
+  widgets: UserWidget[];
+  isLoading: boolean;
   onAddWidget?: () => void;
+  onToggleVisibility: (widget: UserWidget) => Promise<boolean>;
   isCollapsed: boolean;
   onToggleCollapsed: () => void;
 }
 
 export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
   activeTab,
+  widgets,
+  isLoading,
   onAddWidget,
+  onToggleVisibility,
   isCollapsed,
   onToggleCollapsed,
 }) => {
-  const { widgets, isLoading, toggleVisibility } = useTabWidgets(activeTab);
-
-  const handleToggleVisibility = async (widget: UserWidget) => {
-    await toggleVisibility(widget);
-  };
 
   const getIconComponent = (widget: UserWidget) => {
     const iconName = widget.widget_config?.icon || 'CogIcon';
@@ -139,7 +139,7 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 p-0"
-                          onClick={() => handleToggleVisibility(widget)}
+                          onClick={() => onToggleVisibility(widget)}
                           title={widget.is_archived ? "Show Widget" : "Hide Widget"}
                         >
                           {widget.is_archived ? (
