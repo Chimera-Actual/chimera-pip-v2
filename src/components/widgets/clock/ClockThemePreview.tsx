@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { timeUtils } from './utils/timeUtils';
 
 interface ClockThemePreviewProps {
@@ -8,7 +8,7 @@ interface ClockThemePreviewProps {
   showDate?: boolean;
 }
 
-export const ClockThemePreview: React.FC<ClockThemePreviewProps> = ({
+export const ClockThemePreview: React.FC<ClockThemePreviewProps> = React.memo(({
   theme,
   showSeconds = true,
   format24 = false,
@@ -17,14 +17,15 @@ export const ClockThemePreview: React.FC<ClockThemePreviewProps> = ({
   const [previewTime, setPreviewTime] = useState(new Date());
 
   useEffect(() => {
+    // Use a less frequent update for preview to reduce performance impact
     const interval = setInterval(() => {
       setPreviewTime(new Date());
-    }, 1000);
+    }, showSeconds ? 1000 : 60000); // Update every minute if seconds aren't shown
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showSeconds]);
 
-  const getThemeClasses = (themeName: string) => {
+  const getThemeClasses = useCallback((themeName: string) => {
     const themes = {
       'vault-tec': {
         container: 'font-mono',
@@ -77,11 +78,11 @@ export const ClockThemePreview: React.FC<ClockThemePreviewProps> = ({
     };
 
     return themes[themeName as keyof typeof themes] || themes['vault-tec'];
-  };
+  }, []);
 
-  const themeClasses = getThemeClasses(theme);
-  const timeStr = timeUtils.formatTime(previewTime, format24, showSeconds);
-  const dateStr = timeUtils.formatDate(previewTime);
+  const themeClasses = useMemo(() => getThemeClasses(theme), [theme, getThemeClasses]);
+  const timeStr = useMemo(() => timeUtils.formatTime(previewTime, format24, showSeconds), [previewTime, format24, showSeconds]);
+  const dateStr = useMemo(() => timeUtils.formatDate(previewTime), [previewTime]);
 
   return (
     <div className={`
@@ -123,4 +124,4 @@ export const ClockThemePreview: React.FC<ClockThemePreviewProps> = ({
       )}
     </div>
   );
-};
+});

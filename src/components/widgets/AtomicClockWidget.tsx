@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useDebounce } from '@/hooks/core/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
 import { WidgetTemplate } from './WidgetTemplate';
@@ -86,7 +87,10 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
     }
   };
 
-  const mergedSettings = { ...defaultSettings, ...settings };
+  const mergedSettings = useMemo(() => ({ ...defaultSettings, ...settings }), [settings]);
+  
+  // Debounce theme changes to prevent rapid re-renders
+  const debouncedTheme = useDebounce(mergedSettings.theme, 100);
 
   const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'theme' | 'effects'>>({
     format24: mergedSettings.format24,
@@ -201,7 +205,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         {mergedSettings.effects.particles && (
           <VisualEffectsRenderer
             ref={canvasRef}
-            theme={mergedSettings.theme}
+            theme={debouncedTheme}
             effects={mergedSettings.effects}
           />
         )}
@@ -293,12 +297,12 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
           <div className="space-y-2">
             <label className="text-sm font-medium text-pip-text-bright">Theme Preview</label>
             <div className="border border-pip-border rounded-lg p-4 bg-pip-surface">
-              <ClockThemePreview
-                theme={tempSettings.theme}
-                showSeconds={tempSettings.showSeconds}
-                format24={tempSettings.format24}
-                showDate={tempSettings.showDate}
-              />
+                    <ClockThemePreview
+                      theme={tempSettings.theme}
+                      showSeconds={false}
+                      format24={tempSettings.format24}
+                      showDate={tempSettings.showDate}
+                    />
             </div>
           </div>
         </SettingsGroup>

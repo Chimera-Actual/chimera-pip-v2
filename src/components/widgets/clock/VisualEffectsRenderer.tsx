@@ -26,12 +26,25 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationFrameRef = useRef<number>();
     const particlesRef = useRef<Particle[]>([]);
+    const isAnimatingRef = useRef<boolean>(false);
 
     useImperativeHandle(ref, () => canvasRef.current!);
 
     useEffect(() => {
       const canvas = canvasRef.current;
-      if (!canvas || !effects.particles) return;
+      if (!canvas || !effects.particles) {
+        // Clean up if effects are disabled
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = undefined;
+        }
+        isAnimatingRef.current = false;
+        particlesRef.current = [];
+        return;
+      }
+
+      // Prevent multiple animation loops
+      if (isAnimatingRef.current) return;
 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
@@ -99,13 +112,15 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
         };
       };
 
-      // Initialize particles
+      // Clear existing particles and initialize new ones
+      particlesRef.current = [];
       for (let i = 0; i < config.particleCount; i++) {
         particlesRef.current.push(createParticle());
       }
 
       // Animation loop
       const animate = () => {
+        if (!isAnimatingRef.current) return;
         const rect = canvas.getBoundingClientRect();
         ctx.clearRect(0, 0, rect.width, rect.height);
 
@@ -169,15 +184,20 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
           }
         });
 
-        animationFrameRef.current = requestAnimationFrame(animate);
+        if (isAnimatingRef.current) {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        }
       };
 
+      isAnimatingRef.current = true;
       animate();
 
       return () => {
         window.removeEventListener('resize', updateCanvasSize);
+        isAnimatingRef.current = false;
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = undefined;
         }
         particlesRef.current = [];
       };
