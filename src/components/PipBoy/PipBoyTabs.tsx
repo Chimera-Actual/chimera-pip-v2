@@ -137,7 +137,7 @@ const SortableTab = React.memo<{
 });
 
 export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange }) => {
-  const { tabs, createTab, reorderTabs, isLoading } = useTabManager();
+  const { tabs, createTab, updateTab, reorderTabs, isLoading } = useTabManager();
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<TabConfiguration | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -178,6 +178,14 @@ export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange
     await createTab(tabData);
     setShowTabEditor(false);
   }, [createTab]);
+
+  const handleUpdateTab = useCallback(async (tabData: any) => {
+    if (editingTab) {
+      await updateTab(editingTab.id, tabData);
+      setShowTabEditor(false);
+      setEditingTab(null);
+    }
+  }, [updateTab, editingTab]);
 
   const handleEditTab = useCallback((tab: TabConfiguration) => {
     setEditingTab(tab);
@@ -281,7 +289,7 @@ export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange
         tab={editingTab}
         isOpen={showTabEditor}
         onClose={handleCloseEditor}
-        onSave={editingTab ? undefined : handleCreateTab}
+        onSave={editingTab ? handleUpdateTab : handleCreateTab}
       />
 
       {/* Context Menu */}
