@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, UserCircle, Key } from 'lucide-react';
@@ -47,6 +47,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           )}
         >
           <Avatar className="h-9 w-9">
+            {profile?.avatar_url && (
+              <AvatarImage src={profile.avatar_url} alt="Character avatar" />
+            )}
             <AvatarFallback className="bg-pip-bg-secondary border border-pip-border text-primary font-pip-mono text-xs pip-text-glow">
               {getInitials()}
             </AvatarFallback>
@@ -62,6 +65,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
         <DropdownMenuLabel className="font-pip-display text-pip-text-bright pip-text-glow border-b border-pip-border/30 pb-2">
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
+              {profile?.avatar_url && (
+                <AvatarImage src={profile.avatar_url} alt="Character avatar" />
+              )}
               <AvatarFallback className="bg-pip-bg-secondary text-primary font-pip-mono text-xs">
                 {getInitials()}
               </AvatarFallback>

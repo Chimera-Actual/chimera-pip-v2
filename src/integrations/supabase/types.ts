@@ -471,6 +471,7 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_url: string | null
           character_name: string | null
           created_at: string | null
           email: string
@@ -484,6 +485,7 @@ export type Database = {
           vault_number: number
         }
         Insert: {
+          avatar_url?: string | null
           character_name?: string | null
           created_at?: string | null
           email: string
@@ -497,6 +499,7 @@ export type Database = {
           vault_number: number
         }
         Update: {
+          avatar_url?: string | null
           character_name?: string | null
           created_at?: string | null
           email?: string

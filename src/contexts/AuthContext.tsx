@@ -9,6 +9,7 @@ export interface UserProfile {
   email: string;
   vault_number: number;
   character_name: string | null;
+  avatar_url: string | null;
   special_stats: {
     strength: number;
     perception: number;
