@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,14 +22,6 @@ interface ApiKey {
   key_metadata: Record<string, any>;
 }
 
-const COMMON_SERVICES = [
-  { name: 'OpenAI', url: 'https://api.openai.com/v1' },
-  { name: 'Anthropic', url: 'https://api.anthropic.com' },
-  { name: 'GitHub', url: 'https://api.github.com' },
-  { name: 'Stripe', url: 'https://api.stripe.com' },
-  { name: 'Custom', url: '' },
-];
-
 export function ApiKeyManager() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +31,6 @@ export function ApiKeyManager() {
 
   // Form state
   const [formData, setFormData] = useState({
-    serviceName: '',
     keyName: '',
     apiUrl: '',
     apiKey: '',
@@ -72,22 +62,13 @@ export function ApiKeyManager() {
     }
   };
 
-  const handleServiceChange = (serviceName: string) => {
-    const service = COMMON_SERVICES.find(s => s.name === serviceName);
-    setFormData(prev => ({
-      ...prev,
-      serviceName,
-      apiUrl: service?.url || '',
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.serviceName || !formData.keyName || !formData.apiKey) {
+    if (!formData.keyName || !formData.apiKey) {
       toast({
         title: 'Error',
-        description: 'Service, key name, and API key are required',
+        description: 'Key name and API key are required',
         variant: 'destructive',
       });
       return;
@@ -109,7 +90,7 @@ export function ApiKeyManager() {
         description: `API key ${editingKey ? 'updated' : 'created'} successfully`,
       });
 
-      setFormData({ serviceName: '', keyName: '', apiUrl: '', apiKey: '' });
+      setFormData({ keyName: '', apiUrl: '', apiKey: '' });
       setShowAddForm(false);
       setEditingKey(null);
       await loadApiKeys();
@@ -251,32 +232,15 @@ export function ApiKeyManager() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="service" className="text-foreground">Service</Label>
-                  <Select value={formData.serviceName} onValueChange={handleServiceChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COMMON_SERVICES.map((service) => (
-                        <SelectItem key={service.name} value={service.name}>
-                          {service.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="keyName" className="text-foreground">Key Name</Label>
-                  <Input
-                    id="keyName"
-                    value={formData.keyName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, keyName: e.target.value }))}
-                    placeholder="e.g., Production API Key"
-                    className="bg-background border-border text-foreground"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="keyName" className="text-foreground">Key Name</Label>
+                <Input
+                  id="keyName"
+                  value={formData.keyName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, keyName: e.target.value }))}
+                  placeholder="e.g., Production API Key"
+                  className="bg-background border-border text-foreground"
+                />
               </div>
               <div>
                 <Label htmlFor="apiUrl" className="text-foreground">API URL (Optional)</Label>
@@ -306,7 +270,7 @@ export function ApiKeyManager() {
                   onClick={() => {
                     setShowAddForm(false);
                     setEditingKey(null);
-                    setFormData({ serviceName: '', keyName: '', apiUrl: '', apiKey: '' });
+                    setFormData({ keyName: '', apiUrl: '', apiKey: '' });
                   }}
                 >
                   Cancel

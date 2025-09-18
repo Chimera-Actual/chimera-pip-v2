@@ -79,9 +79,9 @@ serve(async (req) => {
       }
 
       case 'create': {
-        if (!serviceName || !keyName || !apiUrl || !apiKey) {
+        if (!keyName || !apiKey) {
           return new Response(
-            JSON.stringify({ error: 'Missing required fields' }),
+            JSON.stringify({ error: 'Key name and API key are required' }),
             {
               status: 400,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -97,9 +97,9 @@ serve(async (req) => {
           .insert([
             {
               user_id: user.id,
-              service_name: serviceName,
+              service_name: serviceName || 'Custom',
               key_name: keyName,
-              api_url: apiUrl,
+              api_url: apiUrl || '',
               encrypted_key: encryptedKey,
               key_metadata: metadata || {},
             },
