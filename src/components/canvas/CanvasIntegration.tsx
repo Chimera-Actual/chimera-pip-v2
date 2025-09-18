@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Grid3X3, TestTube, Settings } from 'lucide-react';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
+import { StandardWidgetTemplate } from '@/components/widgets/templates/WidgetTemplate';
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -148,8 +149,8 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (isLoading) {
     return (
-      <div className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
-        <div className="flex items-center justify-center min-h-[300px]">
+      <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
+        <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <div className="text-pip-text-secondary">Loading widgets...</div>
           </div>
@@ -161,17 +162,13 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   if (widgets.length === 0) {
     return (
       <div 
-        className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`}
+        className={`canvas-integration relative h-full ${className || ''}`}
         onDoubleClick={onDoubleClick}
       >
-        <div className="flex items-center justify-center min-h-[300px] border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+        <div className="flex items-center justify-center h-full border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              {tab} Content Area
-            </h3>
-            <p className="text-muted-foreground">
-              Double-click to add widgets or use the gear menu
-            </p>
+            <div className="text-pip-text-secondary mb-2">No widgets in this tab</div>
+            <div className="text-xs text-pip-text-muted">Double-click to add a widget</div>
           </div>
         </div>
       </div>
@@ -179,16 +176,25 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   }
 
   return (
-    <div className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-rows-[repeat(auto-fit,300px)] content-start">
+    <div className={`canvas-integration relative h-full overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max content-start p-4">
         {widgets.map((widget) => (
           <div
             key={widget.id}
-            className={`relative group h-[300px] ${
+            className={`relative group ${
               widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
-            }`}
+            } ${widget.is_collapsed ? 'min-h-[80px]' : 'min-h-[200px]'}`}
           >
-            {renderWidgetContent(widget)}
+            <StandardWidgetTemplate
+              widget={widget}
+              onRemove={() => handleCloseWidget(widget.id)}
+              onToggleCollapse={() => handleToggleCollapse(widget)}
+              onToggleFullWidth={() => handleToggleFullWidth(widget)}
+              onOpenSettings={() => handleSettings(widget)}
+              showStandardControls={true}
+            >
+              {renderWidgetContent(widget)}
+            </StandardWidgetTemplate>
           </div>
         ))}
       </div>

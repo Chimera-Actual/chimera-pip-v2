@@ -79,8 +79,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
           isDefaultTab={currentTab?.isDefault || false}
         />
 
-        {/* Canvas Content - Fixed height container */}
-        <div className="widget-content flex-1 min-h-[600px] max-h-[800px] overflow-hidden">
+        {/* Canvas Content - Natural height container */}
+        <div className="widget-content flex-1 min-h-0">
           <CanvasIntegration 
             key={`${activeTab}-${refreshKey}`}
             tab={activeTab} 
