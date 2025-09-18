@@ -94,7 +94,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
       onOpenSettings={onOpenSettings}
       contentClassName="p-0"
     >
-      <div className="border-b border-pip-border p-4">
+      <div className="space-y-4 pb-4">
         <div className="flex items-center justify-between">
           <Badge className="bg-primary/20 text-primary border-primary/30">
             Testing
@@ -102,7 +102,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
         </div>
       </div>
       
-      <ScrollArea className="h-96 p-6">
+      <ScrollArea className="h-96 px-6">
           <div className="space-y-6">
         {/* Text Inputs Section */}
         <div className="space-y-4">

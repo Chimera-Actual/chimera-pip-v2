@@ -179,8 +179,8 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
           </div>
         )}
 
-        {/* Panel Content */}
-        <div className="min-h-[200px] relative z-10">
+        {/* Panel Content - Direct content without extra wrapper */}
+        <div className="relative z-10">
           {activePanel === 'clock' ? (
             <ConsolidatedClocksPanel
               currentTime={currentTime}

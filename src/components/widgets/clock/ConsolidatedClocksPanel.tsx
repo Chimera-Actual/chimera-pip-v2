@@ -122,30 +122,28 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
 
   return (
     <div className="space-y-6">
-      {/* Main Clock Display */}
-      <Card className={`${themeStyle.bg} border-pip-border ${settings.effects.glow ? themeStyle.glow : ''} ${themeStyle.container}`}>
-        <CardContent className="p-6 text-center">
-          {/* Main Time */}
-          <div className={`text-4xl md:text-6xl font-bold ${themeStyle.mainText} leading-none mb-2`}>
-            {mainTimeStr}
+      {/* Main Clock Display - Render directly without card wrapper */}
+      <div className={`text-center py-4 ${themeStyle.container} ${settings.effects.glow ? themeStyle.glow : ''}`}>
+        {/* Main Time */}
+        <div className={`text-4xl md:text-6xl font-bold ${themeStyle.mainText} leading-none mb-2`}>
+          {mainTimeStr}
+        </div>
+        
+        {/* Date Display */}
+        {settings.showDate && (
+          <div className={`text-lg ${themeStyle.accent} mb-2`}>
+            {mainTimeData.formattedDate}
           </div>
-          
-          {/* Date Display */}
-          {settings.showDate && (
-            <div className={`text-lg ${themeStyle.accent} mb-2`}>
-              {mainTimeData.formattedDate}
-            </div>
-          )}
-          
-          {/* Timezone Display */}
-          {settings.showTimezone && (
-            <div className={`text-sm ${themeStyle.accent} flex items-center justify-center gap-2`}>
-              <MapPin className="w-4 h-4" />
-              {mainTimeData.timezone}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+        
+        {/* Timezone Display */}
+        {settings.showTimezone && (
+          <div className={`text-sm ${themeStyle.accent} flex items-center justify-center gap-2`}>
+            <MapPin className="w-4 h-4" />
+            {mainTimeData.timezone}
+          </div>
+        )}
+      </div>
 
       {/* World Clocks Grid */}
       <div className="space-y-4">
