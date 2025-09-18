@@ -3,12 +3,11 @@ import { TabConfiguration } from '@/types/tabManagement';
 import { reportError } from '@/lib/errorReporting';
 import { Button } from '@/components/ui/button';
 import { Edit, Palette, Info } from 'lucide-react';
-import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
-import { SettingsInput, SettingsGroup } from '@/components/settings/SettingsControls';
+import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsInput, SettingsGroup } from '@/components/ui/SettingsControls';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
 import { getTabIcon } from '@/utils/iconMapping';
 import { validateTabName, TabValidationResult } from '@/utils/validation/tabValidation';
-import type { SettingsSection } from '@/types/settings';
 
 interface TabEditorProps {
   tab?: TabConfiguration;
@@ -138,15 +137,12 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
     }
   }, [formData, onSave, onClose, validateName, tab, canSave]);
 
-  const sections: SettingsSection[] = [
+  const sections = [
     {
       id: 'basic',
       title: 'Basic Information',
-      description: 'Configure tab name and description',
-      icon: Edit,
-      order: 1,
       content: (
-        <SettingsGroup>
+        <SettingsGroup title="Basic Information" description="Configure tab name and description">
           <SettingsInput
             label="Tab Name"
             description={tab?.isDefault ? "Default tabs cannot be renamed" : "Enter a unique name for your tab"}
@@ -188,75 +184,78 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
     {
       id: 'appearance',
       title: 'Appearance',
-      description: 'Customize tab icon and color scheme',
-      icon: Palette,
-      order: 2,
       content: (
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
-              ICON SELECTION
-            </h4>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded border border-pip-border bg-pip-bg-tertiary/50 pip-glow">
-                {(() => {
-                  const IconComponent = getTabIcon('', formData.icon);
-                  return <IconComponent className="h-6 w-6 text-pip-green-primary" />;
-                })()}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowIconModal(true)}
-                className="flex-1 border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary font-pip-mono"
-              >
-                SELECT ICON ({formData.icon.replace('Icon', '').toUpperCase()})
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
-              ACCENT COLOR [OPTIONAL]
-            </h4>
-            <div className="flex gap-2 flex-wrap">
-              {colorOptions.map((colorOption) => (
-                <button
-                  key={colorOption.value}
+        <SettingsGroup title="Appearance" description="Customize tab icon and color scheme">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+                ICON SELECTION
+              </h4>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded border border-pip-border bg-pip-bg-tertiary/50 pip-glow">
+                  {(() => {
+                    const IconComponent = getTabIcon('', formData.icon);
+                    return <IconComponent className="h-6 w-6 text-pip-green-primary" />;
+                  })()}
+                </div>
+                <Button
                   type="button"
-                  className={`w-10 h-10 rounded-full border-2 transition-all pip-button-glow ${
-                    formData.color === colorOption.value
-                      ? 'border-pip-green-primary shadow-lg shadow-pip-green-glow pip-glow'
-                      : 'border-pip-border hover:border-pip-green-secondary'
-                  }`}
-                  style={{ 
-                    backgroundColor: colorOption.color || 'transparent',
-                    backgroundImage: colorOption.color === '' ? 'linear-gradient(45deg, transparent 40%, rgba(255, 0, 0, 0.8) 50%, transparent 60%)' : undefined
-                  }}
-                  onClick={() => setFormData(prev => ({ ...prev, color: colorOption.value }))}
-                  title={colorOption.label}
-                />
-              ))}
+                  variant="outline"
+                  onClick={() => setShowIconModal(true)}
+                  className="flex-1 border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary font-pip-mono"
+                >
+                  SELECT ICON ({formData.icon.replace('Icon', '').toUpperCase()})
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+                ACCENT COLOR [OPTIONAL]
+              </h4>
+              <div className="flex gap-2 flex-wrap">
+                {colorOptions.map((colorOption) => (
+                  <button
+                    key={colorOption.value}
+                    type="button"
+                    className={`w-10 h-10 rounded-full border-2 transition-all pip-button-glow ${
+                      formData.color === colorOption.value
+                        ? 'border-pip-green-primary shadow-lg shadow-pip-green-glow pip-glow'
+                        : 'border-pip-border hover:border-pip-green-secondary'
+                    }`}
+                    style={{ 
+                      backgroundColor: colorOption.color || 'transparent',
+                      backgroundImage: colorOption.color === '' ? 'linear-gradient(45deg, transparent 40%, rgba(255, 0, 0, 0.8) 50%, transparent 60%)' : undefined
+                    }}
+                    onClick={() => setFormData(prev => ({ ...prev, color: colorOption.value }))}
+                    title={colorOption.label}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </SettingsGroup>
       )
     }
   ];
 
   return (
     <>
-      <UniversalSettingsTemplate
+      <SettingsModal
         isOpen={isOpen}
         onClose={onClose}
         title={tab ? 'EDIT TAB' : 'CREATE NEW TAB'}
         description="TAB_MANAGEMENT_PROTOCOL_v2.1"
-        sections={sections}
         onSave={handleSubmit}
         isDirty={isDirty}
         isLoading={isSubmitting}
-        size="large"
-      />
+      >
+        {sections.map((section) => (
+          <div key={section.id}>
+            {section.content}
+          </div>
+        ))}
+      </SettingsModal>
       
       <IconSelectionModal
         isOpen={showIconModal}

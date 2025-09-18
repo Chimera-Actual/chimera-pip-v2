@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Grid3X3, TestTube, Settings, X, SettingsIcon, Tag } from 'lucide-react';
-import { WidgetTypeSettingsModal } from './WidgetTypeSettingsModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWidgetTags } from '@/hooks/useWidgetTags';
@@ -89,8 +88,8 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
 
   const handleShowSettings = (e: React.MouseEvent, widgetType: WidgetType) => {
     e.stopPropagation();
-    setSelectedWidgetType(widgetType);
-    setShowSettingsModal(true);
+    // TODO: Implement widget type settings modal
+    console.log('Settings for widget type:', widgetType);
   };
 
   const handleSettingsSaved = () => {
@@ -208,13 +207,6 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
             </div>
           )}
         </ScrollArea>
-
-        <WidgetTypeSettingsModal
-          isOpen={showSettingsModal}
-          onClose={() => setShowSettingsModal(false)}
-          widgetType={selectedWidgetType}
-          onSave={handleSettingsSaved}
-        />
       </DialogContent>
     </Dialog>
   );

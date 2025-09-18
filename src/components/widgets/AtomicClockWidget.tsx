@@ -4,7 +4,8 @@ import { Settings, Clock, Globe, Bell } from 'lucide-react';
 import { WidgetTemplate } from './WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
-import { ClockSettingsModal } from './clock/ClockSettingsModal';
+import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsGroup, SettingsToggle, SettingsSelect } from '@/components/ui/SettingsControls';
 import { VisualEffectsRenderer } from './clock/VisualEffectsRenderer';
 import { useLocalStorage } from '@/hooks/core/useLocalStorage';
 import { timeUtils } from './clock/utils/timeUtils';
@@ -198,12 +199,50 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
       </WidgetTemplate>
 
       {/* Settings Modal */}
-      <ClockSettingsModal
+      <SettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        settings={mergedSettings}
-        onSave={handleSettingsUpdate}
-      />
+        title="Clock Settings"
+        description="Configure your atomic clock display preferences"
+        onSave={() => setShowSettings(false)}
+        isDirty={false}
+      >
+        <SettingsGroup title="Display Options" description="Customize how time is displayed">
+          <SettingsToggle
+            label="24-Hour Format"
+            description="Show time in 24-hour format instead of 12-hour with AM/PM"
+            checked={mergedSettings.format24}
+            onCheckedChange={(checked) => handleSettingsUpdate({ format24: checked })}
+          />
+
+          <SettingsToggle
+            label="Show Seconds"
+            description="Display seconds in the time"
+            checked={mergedSettings.showSeconds}
+            onCheckedChange={(checked) => handleSettingsUpdate({ showSeconds: checked })}
+          />
+
+          <SettingsToggle
+            label="Show Date"
+            description="Display the current date below the time" 
+            checked={mergedSettings.showDate}
+            onCheckedChange={(checked) => handleSettingsUpdate({ showDate: checked })}
+          />
+
+          <SettingsSelect
+            label="Theme"
+            description="Select the visual theme for the clock"
+            value={mergedSettings.theme}
+            onChange={(value) => handleSettingsUpdate({ theme: value })}
+            options={[
+              { value: 'vault-tec', label: 'Vault-Tec' },
+              { value: 'military', label: 'Military' },
+              { value: 'retro', label: 'Retro' },
+              { value: 'minimal', label: 'Minimal' },
+            ]}
+          />
+        </SettingsGroup>
+      </SettingsModal>
     </>
   );
 };

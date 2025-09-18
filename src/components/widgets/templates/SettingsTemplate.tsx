@@ -1,30 +1,45 @@
 import React from 'react';
-import { WidgetSettingsTemplate } from '../WidgetSettingsTemplate';
-import type { BaseWidgetSettings, WidgetSettingsTab } from '@/types/widget';
+import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsGroup, SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls';
 
-interface StandardSettingsTemplateProps {
+interface SettingsTemplateProps {
   isOpen: boolean;
   onClose: () => void;
-  widgetType: string;
-  settings: BaseWidgetSettings;
-  onSave: (settings: BaseWidgetSettings) => void;
-  customSettingsTabs?: WidgetSettingsTab[];
+  title: string;
+  description?: string;
   children?: React.ReactNode;
+  onSave?: () => void;
+  onReset?: () => void;
+  isDirty?: boolean;
+  isLoading?: boolean;
 }
 
-export const StandardSettingsTemplate: React.FC<StandardSettingsTemplateProps> = ({
-  widgetType,
-  customSettingsTabs = [],
+export const SettingsTemplate: React.FC<SettingsTemplateProps> = ({
+  isOpen,
+  onClose,
+  title,
+  description,
   children,
-  ...props
+  onSave,
+  onReset,
+  isDirty = false,
+  isLoading = false,
 }) => {
   return (
-    <WidgetSettingsTemplate
-      {...props}
-      widgetType={widgetType}
-      customTabs={customSettingsTabs}
+    <SettingsModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      description={description}
+      onSave={onSave}
+      onReset={onReset}
+      isDirty={isDirty}
+      isLoading={isLoading}
     >
       {children}
-    </WidgetSettingsTemplate>
+    </SettingsModal>
   );
 };
+
+// Re-export common settings controls for convenience
+export { SettingsGroup, SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls';
