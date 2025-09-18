@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BaseWidgetSettingsModal } from '../BaseWidgetSettingsModal';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Clock, Palette, Zap, Check } from 'lucide-react';
+import { Clock, Palette, Check } from 'lucide-react';
+import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
+import { SettingsToggle, SettingsGroup } from '@/components/settings/SettingsControls';
 import { ClockThemePreview } from './ClockThemePreview';
+import { cn } from '@/lib/utils';
 import type { AtomicClockSettings } from '../AtomicClockWidget';
-import type { WidgetSettingsTab } from '@/types/widget';
+import type { SettingsSection } from '@/types/settings';
 
 interface ClockSettingsModalProps {
   open: boolean;
@@ -21,6 +20,37 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
   settings,
   onSave,
 }) => {
+  const [tempSettings, setTempSettings] = useState<AtomicClockSettings>(settings);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Sync temp settings when modal opens
+  useEffect(() => {
+    if (open) {
+      setTempSettings({ ...settings });
+      setIsDirty(false);
+    }
+  }, [open, settings]);
+
+  // Check if settings have changed
+  useEffect(() => {
+    setIsDirty(JSON.stringify(tempSettings) !== JSON.stringify(settings));
+  }, [tempSettings, settings]);
+
+  const handleSave = () => {
+    onSave(tempSettings);
+    setIsDirty(false);
+    onClose();
+  };
+
+  const handleReset = () => {
+    setTempSettings({ ...settings });
+    setIsDirty(false);
+  };
+
+  const updateSetting = (key: keyof AtomicClockSettings, value: any) => {
+    setTempSettings(prev => ({ ...prev, [key]: value }));
+  };
+
   const themeOptions = [
     { value: 'vault-tec', label: 'Vault-Tec', description: 'Classic Fallout green phosphor' },
     { value: 'military', label: 'Military', description: 'Orange tactical display' },
@@ -32,89 +62,80 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
     { value: 'retro-lcd', label: 'Retro LCD', description: 'Dark blue LCD style' }
   ];
 
-  // Convert AtomicClockSettings to BaseWidgetSettings format
-  const baseSettings = {
-    ...settings,
-    effects: settings.effects || {}
-  };
-
-  const handleSave = (newSettings: any) => {
-    onSave(newSettings as AtomicClockSettings);
-  };
-
-  // Use function-based custom tabs that receive state management functions
-  const customTabs: WidgetSettingsTab[] = [
+  const sections: SettingsSection[] = [
     {
       id: 'display',
-      label: 'Display',
+      title: 'Display Settings',
+      description: 'Configure how time and date information is displayed.',
       icon: Clock,
-      content: ({ localSettings, updateSetting }: any) => (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-pip-text-secondary font-pip-mono">24-Hour Format</Label>
-            <Switch
-              checked={localSettings.format24}
-              onCheckedChange={(checked) => updateSetting('format24', checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label className="text-pip-text-secondary font-pip-mono">Show Seconds</Label>
-            <Switch
-              checked={localSettings.showSeconds}
-              onCheckedChange={(checked) => updateSetting('showSeconds', checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label className="text-pip-text-secondary font-pip-mono">Show Date</Label>
-            <Switch
-              checked={localSettings.showDate}
-              onCheckedChange={(checked) => updateSetting('showDate', checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label className="text-pip-text-secondary font-pip-mono">Show Timezone</Label>
-            <Switch
-              checked={localSettings.showTimezone}
-              onCheckedChange={(checked) => updateSetting('showTimezone', checked)}
-            />
-          </div>
-        </div>
+      order: 1,
+      content: (
+        <SettingsGroup>
+          <SettingsToggle
+            label="24-Hour Format"
+            description="Display time in 24-hour military format"
+            value={tempSettings.format24 ?? false}
+            onChange={(value) => updateSetting('format24', value)}
+          />
+          
+          <SettingsToggle
+            label="Show Seconds"
+            description="Display seconds in the time"
+            value={tempSettings.showSeconds ?? true}
+            onChange={(value) => updateSetting('showSeconds', value)}
+          />
+          
+          <SettingsToggle
+            label="Show Date"
+            description="Display the current date below the time"
+            value={tempSettings.showDate ?? true}
+            onChange={(value) => updateSetting('showDate', value)}
+          />
+          
+          <SettingsToggle
+            label="Show Timezone"
+            description="Display the current timezone information"
+            value={tempSettings.showTimezone ?? false}
+            onChange={(value) => updateSetting('showTimezone', value)}
+          />
+        </SettingsGroup>
       )
     },
     {
       id: 'theme',
-      label: 'Theme',
+      title: 'Visual Theme',
+      description: 'Choose the visual appearance and color scheme for the clock.',
       icon: Palette,
-      content: ({ localSettings, updateSetting }: any) => (
+      order: 2,
+      content: (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {themeOptions.map((theme) => (
               <div
                 key={theme.value}
-                className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
-                  localSettings.theme === theme.value
+                className={cn(
+                  "p-3 border rounded-lg cursor-pointer transition-all duration-200 hover:scale-105",
+                  tempSettings.theme === theme.value
                     ? 'border-primary bg-pip-bg-primary/50 ring-1 ring-primary/50 shadow-lg shadow-primary/20'
                     : 'border-pip-border hover:border-primary/50 hover:bg-pip-bg-primary/20'
-                }`}
+                )}
                 onClick={() => updateSetting('theme', theme.value)}
               >
                 <div className="flex flex-col space-y-3">
                   <div className="relative">
                     <ClockThemePreview
                       theme={theme.value}
-                      showSeconds={localSettings.showSeconds}
-                      format24={localSettings.format24}
-                      showDate={localSettings.showDate}
+                      showSeconds={tempSettings.showSeconds}
+                      format24={tempSettings.format24}
+                      showDate={tempSettings.showDate}
                     />
-                    <div className={`absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
-                      localSettings.theme === theme.value
+                    <div className={cn(
+                      "absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors",
+                      tempSettings.theme === theme.value
                         ? 'border-primary bg-primary text-pip-bg-primary shadow-md'
                         : 'border-pip-border bg-pip-bg-primary/50'
-                    }`}>
-                      {localSettings.theme === theme.value && (
+                    )}>
+                      {tempSettings.theme === theme.value && (
                         <Check className="w-3 h-3" />
                       )}
                     </div>
@@ -138,14 +159,16 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
   ];
 
   return (
-    <BaseWidgetSettingsModal
+    <UniversalSettingsTemplate
       isOpen={open}
       onClose={onClose}
-      title="Atomic Clock Settings"
-      settings={baseSettings}
+      title="ATOMIC CLOCK SETTINGS"
+      description="Configure the display and appearance of your atomic clock widget."
+      sections={sections}
       onSave={handleSave}
-      customTabs={customTabs}
-      showGeneralTab={false}
+      onReset={handleReset}
+      isDirty={isDirty}
+      size="large"
     />
   );
 };
