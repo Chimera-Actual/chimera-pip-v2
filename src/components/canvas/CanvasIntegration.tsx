@@ -148,7 +148,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (isLoading) {
     return (
-      <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
+      <div className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <div className="text-pip-text-secondary">Loading widgets...</div>
@@ -161,7 +161,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   if (widgets.length === 0) {
     return (
       <div 
-        className={`canvas-integration relative h-full ${className || ''}`}
+        className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`}
         onDoubleClick={onDoubleClick}
       >
         <div className="flex items-center justify-center min-h-[300px] border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
@@ -179,12 +179,12 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   }
 
   return (
-    <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-min h-full content-start">
+    <div className={`canvas-integration relative min-h-[600px] max-h-[800px] overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-rows-[repeat(auto-fit,300px)] content-start">
         {widgets.map((widget) => (
           <div
             key={widget.id}
-            className={`relative group min-h-[120px] ${
+            className={`relative group h-[300px] ${
               widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
             }`}
           >

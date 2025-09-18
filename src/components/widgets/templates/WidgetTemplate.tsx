@@ -82,25 +82,28 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
   ) : null;
 
   return (
-    <BaseWidgetTemplate
-      title={widget?.widget_config?.title || 'Widget'}
-      widgetId={widget?.id}
-      settings={widget?.widget_config || {}}
-      icon={widget?.widget_config?.icon}
-      showControls={showStandardControls}
-      headerActions={props.headerActions}
-      widgetSpecificActions={widgetSpecificActions}
-      standardControls={showStandardControls ? standardControls : undefined}
-      contentClassName={widget?.is_collapsed ? 'hidden' : ''}
-      {...props}
-    >
-      {widget?.is_collapsed ? (
-        <div className="text-xs text-muted-foreground py-2 px-4">
-          Widget collapsed - click expand to restore
+    <div className="h-full flex flex-col">
+      <BaseWidgetTemplate
+        title={widget?.widget_config?.title || 'Widget'}
+        widgetId={widget?.id}
+        settings={widget?.widget_config || {}}
+        icon={widget?.widget_config?.icon}
+        showControls={showStandardControls}
+        headerActions={props.headerActions}
+        widgetSpecificActions={widgetSpecificActions}
+        standardControls={showStandardControls ? standardControls : undefined}
+        {...props}
+      >
+        <div className={`flex-1 ${widget?.is_collapsed ? 'flex items-center justify-center' : ''}`}>
+          {widget?.is_collapsed ? (
+            <div className="p-4 text-center text-pip-text-secondary font-pip-mono text-sm">
+              Widget collapsed - Click expand to view content
+            </div>
+          ) : (
+            children
+          )}
         </div>
-      ) : (
-        children
-      )}
-    </BaseWidgetTemplate>
+      </BaseWidgetTemplate>
+    </div>
   );
 };
