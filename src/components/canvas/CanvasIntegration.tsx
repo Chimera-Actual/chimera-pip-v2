@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useWidgetManager, UserWidget } from '@/hooks/useWidgetManager';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Grid3X3, TestTube, Settings } from 'lucide-react';
-import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
-import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
+import React, { useState, memo } from 'react';
+import { Card } from '@/components/ui/card';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { StandardWidgetTemplate } from '@/components/widgets/templates/WidgetTemplate';
+import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
+import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
-import { iconMapping } from '@/utils/iconMapping';
+import type { UserWidget } from '@/hooks/useWidgetManager';
 
 // Widget descriptions mapping
 const widgetDescriptions: Record<string, string> = {
@@ -24,59 +22,29 @@ interface CanvasIntegrationProps {
   onDoubleClick?: () => void;
 }
 
-export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, className, onDoubleClick }) => {
-  const { getTabWidgets, deleteWidget, updateWidget } = useWidgetManager();
-  const { toast } = useToast();
-  const [widgets, setWidgets] = useState<UserWidget[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export const CanvasIntegration = memo<CanvasIntegrationProps>(({ tab, className, onDoubleClick }) => {
   const [settingsWidget, setSettingsWidget] = useState<UserWidget | null>(null);
+  
+  const { 
+    widgets, 
+    isLoading, 
+    deleteWidget, 
+    toggleCollapsed,
+    updateWidget 
+  } = useTabWidgets(tab);
 
-  const loadWidgets = async () => {
-    setIsLoading(true);
-    const tabWidgets = await getTabWidgets(tab);
-    setWidgets(tabWidgets);
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    loadWidgets();
-  }, [tab, getTabWidgets]);
-
+  // Widget interaction handlers with optimistic updates
   const handleCloseWidget = async (widgetId: string) => {
-    const success = await deleteWidget(widgetId);
-    if (success) {
-      loadWidgets();
-    }
+    await deleteWidget(widgetId);
   };
 
   const handleToggleCollapse = async (widget: UserWidget) => {
-    const success = await updateWidget(widget.id, { 
-      is_collapsed: !widget.is_collapsed 
-    });
-    if (success) {
-      loadWidgets();
-      toast({
-        title: widget.is_collapsed ? "Widget Expanded" : "Widget Collapsed",
-        description: `${widget.widget_config?.title || widget.widget_type} has been ${widget.is_collapsed ? 'expanded' : 'collapsed'}`,
-      });
-    }
+    await toggleCollapsed(widget);
   };
 
   const handleToggleFullWidth = async (widget: UserWidget) => {
-    const currentConfig = widget.widget_config || {};
-    const success = await updateWidget(widget.id, { 
-      widget_config: { 
-        ...currentConfig, 
-        fullWidth: !currentConfig.fullWidth 
-      } 
-    });
-    if (success) {
-      loadWidgets();
-      toast({
-        title: currentConfig.fullWidth ? "Normal Width" : "Full Width",
-        description: `${widget.widget_config?.title || widget.widget_type} width has been ${currentConfig.fullWidth ? 'restored' : 'expanded'}`,
-      });
-    }
+    const newWidth = widget.widget_width === 'full' ? 'half' : 'full';
+    await updateWidget(widget.id, { widget_width: newWidth });
   };
 
   const handleSettings = (widget: UserWidget) => {
@@ -84,20 +52,8 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   };
 
   const handleSaveSettings = async (widgetId: string, config: any) => {
-    const success = await updateWidget(widgetId, { widget_config: config });
-    if (success) {
-      loadWidgets();
-      toast({
-        title: "Settings Updated",
-        description: "Widget settings have been saved successfully",
-      });
-    }
-  };
-
-  const getIconComponent = (widget: UserWidget) => {
-    const iconName = widget.widget_config?.icon || 'TestTube';
-    const IconComponent = iconMapping[iconName as keyof typeof iconMapping] || TestTube;
-    return <IconComponent className="w-6 h-6" />;
+    await updateWidget(widgetId, { widget_config: config });
+    setSettingsWidget(null);
   };
 
   const renderWidgetContent = (widget: UserWidget) => {
@@ -110,11 +66,11 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             title={widget.widget_config?.title || 'Test Widget'}
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-            onOpenSettings={() => handleSettings(widget)}
+            widget={null} // Remove circular dependency
+            onRemove={undefined} // Managed by parent
+            onToggleCollapse={undefined} // Managed by parent
+            onToggleFullWidth={undefined} // Managed by parent
+            onOpenSettings={undefined} // Managed by parent
           />
         );
       case 'atomicclock':
@@ -125,11 +81,11 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
             widgetId={widget.id}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-            onOpenSettings={() => handleSettings(widget)}
+            widget={null} // Remove circular dependency
+            onRemove={undefined} // Managed by parent
+            onToggleCollapse={undefined} // Managed by parent
+            onToggleFullWidth={undefined} // Managed by parent
+            onOpenSettings={undefined} // Managed by parent
           />
         );
       default:
@@ -149,12 +105,8 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (isLoading) {
     return (
-      <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="text-pip-text-secondary">Loading widgets...</div>
-          </div>
-        </div>
+      <div className="h-full flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }
@@ -162,44 +114,42 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   if (widgets.length === 0) {
     return (
       <div 
-        className={`canvas-integration relative h-full ${className || ''}`}
+        className="h-full flex items-center justify-center cursor-pointer group"
         onDoubleClick={onDoubleClick}
       >
-        <div className="flex items-center justify-center h-full border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-          <div className="text-center">
-            <div className="text-pip-text-secondary mb-2">No widgets in this tab</div>
-            <div className="text-xs text-pip-text-muted">Double-click to add a widget</div>
-          </div>
-        </div>
+        <Card className="p-8 text-center border-2 border-dashed border-pip-border/50 hover:border-pip-green-secondary/50 transition-colors bg-pip-bg-secondary/20">
+          <p className="text-pip-text-secondary font-pip-mono text-sm mb-2">
+            No widgets found for {tab}
+          </p>
+          <p className="text-pip-text-muted text-xs">
+            Double-click to add your first widget
+          </p>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className={`canvas-integration relative h-full overflow-auto ${className || ''}`} onDoubleClick={onDoubleClick}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max content-start p-4">
+    <div className={`w-full space-y-4 py-4 ${className || ''}`}>
+      {/* Widget Grid - Fixed layout that doesn't affect parent height */}
+      <div className="grid gap-4 auto-rows-max">
         {widgets.map((widget) => (
-          <div
+          <StandardWidgetTemplate
             key={widget.id}
-            className={`relative group ${
-              widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
-            } ${widget.is_collapsed ? 'min-h-[80px]' : 'min-h-[200px]'}`}
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
+            onOpenSettings={() => handleSettings(widget)}
+            selfWrapped={true} // CanvasIntegration manages the widget shell
           >
-            <StandardWidgetTemplate
-              widget={widget}
-              onRemove={() => handleCloseWidget(widget.id)}
-              onToggleCollapse={() => handleToggleCollapse(widget)}
-              onToggleFullWidth={() => handleToggleFullWidth(widget)}
-              onOpenSettings={() => handleSettings(widget)}
-              showStandardControls={true}
-            >
-              {renderWidgetContent(widget)}
-            </StandardWidgetTemplate>
-          </div>
+            {/* Widget Content */}
+            {renderWidgetContent(widget)}
+          </StandardWidgetTemplate>
         ))}
       </div>
 
-      {/* Widget Instance Settings Modal */}
+      {/* Settings Modal */}
       <WidgetInstanceSettingsModal
         open={!!settingsWidget}
         onClose={() => setSettingsWidget(null)}
@@ -208,4 +158,4 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
       />
     </div>
   );
-};
+});

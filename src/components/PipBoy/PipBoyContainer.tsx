@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { PipBoyTabs } from './PipBoyTabs';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardContent } from './DashboardContent';
@@ -19,8 +20,14 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   const { profile, updateProfile } = useAuth();
   const { tabs, activeTab, setActiveTab, isLoading: tabsLoading } = useTabManagerContext();
   const [colorTheme, setColorTheme] = useState<ColorTheme>('green');
-  const [isBooting, setIsBooting] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  
+  // Smart boot sequence - skip after first visit
+  const [hasVisited, setHasVisited] = useState(() => {
+    return localStorage.getItem('pip-boy-visited') === 'true';
+  });
+  const [isBooting, setIsBooting] = useState(!hasVisited);
+  const [showSkipButton, setShowSkipButton] = useState(false);
 
   // Initialize theme from user profile
   useEffect(() => {
@@ -31,13 +38,31 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   }, [profile]);
 
   useEffect(() => {
-    // Boot sequence timer
-    const bootTimer = setTimeout(() => {
-      setIsBooting(false);
-    }, 3000);
+    if (isBooting) {
+      // Show skip button after 1 second
+      const skipTimer = setTimeout(() => {
+        setShowSkipButton(true);
+      }, 1000);
 
-    return () => clearTimeout(bootTimer);
-  }, []);
+      // Auto-complete boot sequence after 3 seconds
+      const bootTimer = setTimeout(() => {
+        setIsBooting(false);
+        localStorage.setItem('pip-boy-visited', 'true');
+        setHasVisited(true);
+      }, 3000);
+
+      return () => {
+        clearTimeout(skipTimer);
+        clearTimeout(bootTimer);
+      };
+    }
+  }, [isBooting]);
+
+  const skipBoot = () => {
+    setIsBooting(false);
+    localStorage.setItem('pip-boy-visited', 'true');
+    setHasVisited(true);
+  };
 
   const handleSoundToggle = () => {
     const newSoundState = !soundEnabled;
@@ -69,8 +94,24 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
     }
   }, [colorTheme, profile, updateProfile]);
 
-  if (isBooting) {
-    return <BootSequence />;
+  // Show boot sequence only if booting or critical data still loading
+  if (isBooting || (tabsLoading && !hasVisited)) {
+    return (
+      <div className="relative h-screen">
+        <BootSequence />
+        {showSkipButton && (
+          <div className="absolute bottom-8 right-8 z-50">
+            <Button
+              onClick={skipBoot}
+              variant="outline"
+              className="pip-button-secondary animate-pulse"
+            >
+              Skip Boot Sequence
+            </Button>
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (tabsLoading) {

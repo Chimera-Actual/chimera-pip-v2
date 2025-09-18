@@ -1,9 +1,9 @@
-import React, { useState, memo, useCallback, useEffect } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
-import { useWidgetManager } from '@/hooks/useWidgetManager';
+import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 
 interface DashboardContentProps {
@@ -18,11 +18,10 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
-  const { addWidget } = useWidgetManager();
+  const { addWidget } = useTabWidgets(activeTab);
   
   const currentTab = tabs.find(tab => tab.name === activeTab);
 
@@ -47,29 +46,28 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    const result = await addWidget(widgetType, activeTab, settings);
-    if (result) {
-      // Trigger a refresh of the canvas
-      setRefreshKey(prev => prev + 1);
-    }
+    const result = await addWidget(widgetType, settings);
     setShowWidgetSelector(false);
-  }, [addWidget, activeTab]);
+  }, [addWidget]);
 
   const handleShowWidgetSelector = useCallback(() => {
     setShowWidgetSelector(true);
   }, []);
 
   return (
-    <div className="relative">
-      <TabWidgetDrawer 
-        activeTab={activeTab} 
-        onAddWidget={handleShowWidgetSelector}
-        isCollapsed={isDrawerCollapsed}
-        onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
-      />
-      <main className={`dashboard-content h-full flex flex-col px-6 pb-6 pt-3 transition-all duration-300 ${
-        isDrawerCollapsed ? 'ml-12' : 'ml-80'
-      } ${className || ''}`}>
+    <div className="h-full flex relative">
+      {/* Fixed Sidebar */}
+      <div className="relative">
+        <TabWidgetDrawer 
+          activeTab={activeTab} 
+          onAddWidget={handleShowWidgetSelector}
+          isCollapsed={isDrawerCollapsed}
+          onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
+        />
+      </div>
+      
+      {/* Main Content Area */}
+      <main className={`dashboard-content flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3 transition-all duration-300 ${className || ''}`}>
         <DashboardHeaderSection
           activeTab={activeTab}
           description={currentTab?.description}
@@ -79,10 +77,9 @@ export const DashboardContent = memo<DashboardContentProps>(({
           isDefaultTab={currentTab?.isDefault || false}
         />
 
-        {/* Canvas Content - Natural height container */}
-        <div className="widget-content flex-1 min-h-0">
+        {/* Canvas Content - Controlled scrolling container */}
+        <div className="widget-content flex-1 min-h-0 overflow-auto">
           <CanvasIntegration 
-            key={`${activeTab}-${refreshKey}`}
             tab={activeTab} 
             onDoubleClick={handleShowWidgetSelector}
           />

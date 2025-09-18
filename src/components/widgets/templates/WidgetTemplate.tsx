@@ -1,22 +1,26 @@
-import React from 'react';
-import { BaseWidgetTemplate } from '../BaseWidgetTemplate';
-import { WidgetActionButtons } from '../WidgetActionButtons';
-import { WidgetControlButtons } from '../WidgetControlButtons';
-import { useWidgetManager, type UserWidget } from '@/hooks/useWidgetManager';
-import type { WidgetTemplateProps, BaseWidgetSettings } from '@/types/widget';
+import React, { memo, useMemo } from 'react';
+import { Card } from '@/components/ui/card';
+import { BaseWidgetTemplate } from '@/components/widgets/BaseWidgetTemplate';
+import { WidgetActionButtons } from '@/components/widgets/WidgetActionButtons';
+import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
+import type { UserWidget } from '@/hooks/useWidgetManager';
+
+interface WidgetTemplateProps {
+  [key: string]: any;
+}
 
 interface StandardWidgetTemplateProps extends WidgetTemplateProps {
   widget?: UserWidget;
-  onSettingsChange?: (settings: BaseWidgetSettings) => void;
   onRemove?: () => void;
   onToggleCollapse?: () => void;
   onToggleFullWidth?: () => void;
   onOpenSettings?: () => void;
   widgetSpecificActions?: React.ReactNode;
   showStandardControls?: boolean;
+  selfWrapped?: boolean; // When true, skip the shell wrapper
 }
 
-export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
+export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
   widget,
   onRemove,
   onToggleCollapse,
@@ -24,85 +28,109 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
   onOpenSettings,
   widgetSpecificActions,
   showStandardControls = true,
+  selfWrapped = false,
   children,
   ...props
 }) => {
-  const { deleteWidget, updateWidget } = useWidgetManager();
+  // If selfWrapped, render content directly without shell
+  if (selfWrapped) {
+    const isCollapsed = widget?.is_collapsed ?? false;
+    
+    return (
+      <Card 
+        className={`pip-widget-card transition-all duration-300 ${
+          widget?.widget_width === 'full' ? 'col-span-full' : ''
+        } ${isCollapsed ? 'min-h-[80px]' : ''} hover:pip-glow-subtle`}
+      >
+        <div className="p-4">
+          {/* Widget Header */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-pip-text-primary font-pip-display text-sm font-semibold">
+                {widget?.widget_config?.title || widget?.widget_type || 'Widget'}
+              </h3>
+              {widget?.widget_config?.description && (
+                <span className="text-pip-text-muted text-xs">
+                  {widget.widget_config.description}
+                </span>
+              )}
+            </div>
+            
+            {/* Control Buttons */}
+            <div className="flex items-center gap-2">
+              {widgetSpecificActions}
+              
+              {showStandardControls && (
+                <>
+                  <WidgetControlButtons
+                    onToggleCollapse={onToggleCollapse}
+                    onToggleFullWidth={onToggleFullWidth}
+                    onClose={onRemove}
+                    isCollapsed={widget?.is_collapsed ?? false}
+                    isFullWidth={widget?.widget_width === 'full'}
+                  />
+                  <WidgetActionButtons
+                    onSettings={onOpenSettings}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          
+          {/* Widget Content */}
+          {isCollapsed ? (
+            <div className="flex items-center justify-center py-2">
+              <span className="text-pip-text-muted text-xs font-pip-mono">
+                Widget collapsed - click to expand
+              </span>
+            </div>
+          ) : (
+            <div className="widget-content">
+              {children}
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  }
 
-  const handleRemove = async () => {
-    if (widget && onRemove) {
-      onRemove();
-    } else if (widget) {
-      await deleteWidget(widget.id);
-    }
-  };
-
-  const handleToggleCollapse = async () => {
-    if (widget && onToggleCollapse) {
-      onToggleCollapse();
-    } else if (widget) {
-      await updateWidget(widget.id, { is_collapsed: !widget.is_collapsed });
-    }
-  };
-
-  const handleToggleFullWidth = async () => {
-    if (widget && onToggleFullWidth) {
-      onToggleFullWidth();
-    } else if (widget) {
-      const currentConfig = widget.widget_config || {};
-      await updateWidget(widget.id, {
-        widget_config: {
-          ...currentConfig,
-          fullWidth: !currentConfig.fullWidth
-        }
-      });
-    }
-  };
-
-  const handleOpenSettings = () => {
-    if (onOpenSettings) {
-      onOpenSettings();
-    }
-  };
-
-  // Build standard controls if widget is provided and showStandardControls is true
-  const standardControls = (widget && showStandardControls) ? (
-    <WidgetActionButtons
-      onSettings={handleOpenSettings}
-      additionalActions={
+  // Standard template fallback
+  const standardControls = useMemo(() => {
+    if (!widget || !showStandardControls) return null;
+    
+    return (
+      <>
         <WidgetControlButtons
-          widget={widget}
-          onClose={handleRemove}
-          onToggleCollapse={handleToggleCollapse}
-          onSettings={handleOpenSettings}
-          onToggleFullWidth={handleToggleFullWidth}
+          onToggleCollapse={onToggleCollapse}
+          onToggleFullWidth={onToggleFullWidth}
+          onClose={onRemove}
+          isCollapsed={widget.is_collapsed}
+          isFullWidth={widget.widget_width === 'full'}
         />
-      }
-    />
-  ) : null;
+        <WidgetActionButtons
+          onSettings={onOpenSettings}
+          additionalActions={widgetSpecificActions}
+        />
+      </>
+    );
+  }, [widget, showStandardControls, onToggleCollapse, onToggleFullWidth, onRemove, onOpenSettings, widgetSpecificActions]);
 
   return (
     <BaseWidgetTemplate
-      title={widget?.widget_config?.title || 'Widget'}
-      widgetId={widget?.id}
-      settings={widget?.widget_config || {}}
-      icon={widget?.widget_config?.icon}
-      showControls={showStandardControls}
-      headerActions={props.headerActions}
-      widgetSpecificActions={widgetSpecificActions}
-      standardControls={showStandardControls ? standardControls : undefined}
-      contentClassName="h-full flex flex-col"
       {...props}
+      title={widget?.widget_config?.title || widget?.widget_type || 'Widget'}
+      controls={standardControls}
+      className={`${widget?.widget_width === 'full' ? 'col-span-2' : ''} ${widget?.is_collapsed ? 'min-h-[80px]' : ''}`}
     >
       {widget?.is_collapsed ? (
-        <div className="flex items-center justify-center py-4 text-center text-pip-text-secondary font-pip-mono text-sm">
-          Widget collapsed - Click expand to view content
+        <div className="flex items-center justify-center py-8">
+          <span className="text-pip-text-muted text-sm font-pip-mono">
+            Widget collapsed - click expand to view content
+          </span>
         </div>
       ) : (
-        <div className="flex-1 min-h-0">
-          {children}
-        </div>
+        children
       )}
     </BaseWidgetTemplate>
   );
-};
+});
