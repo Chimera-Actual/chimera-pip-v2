@@ -166,6 +166,7 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {settings.worldClocks.map((clock) => {
             const clockTime = timeUtils.formatTime(currentTime, settings.format24, settings.showSeconds, clock.timezone);
+            const clockTimeData = timeUtils.getTimeData(currentTime, clock.timezone);
             const isNight = timeUtils.isNightTime(currentTime, clock.timezone);
             
             return (
@@ -195,6 +196,12 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
                   <div className={`text-2xl font-bold ${themeStyle.mainText}`}>
                     {clockTime}
                   </div>
+                  
+                  {settings.showDate && (
+                    <div className={`text-xs ${themeStyle.accent} mt-1`}>
+                      {clockTimeData.formattedDate}
+                    </div>
+                  )}
                   
                   <div className={`text-xs ${themeStyle.accent} mt-1`}>
                     {clock.timezone.split('/')[1]?.replace('_', ' ')}
