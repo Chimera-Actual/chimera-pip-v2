@@ -118,7 +118,7 @@ export const ConsolidatedClocksPanel: React.FC<ConsolidatedClocksPanelProps> = (
     return themes[theme as keyof typeof themes] || themes['vault-tec'];
   };
 
-  const themeStyle = getThemeStyles(settings.theme);
+  const themeStyle = getThemeStyles('vault-tec');
 
   return (
     <div className="space-y-6">

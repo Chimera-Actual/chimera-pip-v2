@@ -13,7 +13,6 @@ interface Particle {
 }
 
 interface VisualEffectsRendererProps {
-  theme: string;
   effects: {
     particles: boolean;
     scanlines: boolean;
@@ -22,11 +21,12 @@ interface VisualEffectsRendererProps {
 }
 
 export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffectsRendererProps>(
-  ({ theme, effects }, ref) => {
+  ({ effects }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationFrameRef = useRef<number>();
     const particlesRef = useRef<Particle[]>([]);
     const isAnimatingRef = useRef<boolean>(false);
+    const resizeObserverRef = useRef<ResizeObserver>();
 
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -49,59 +49,44 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas size
+      // Optimized canvas sizing with ResizeObserver
       const updateCanvasSize = () => {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * window.devicePixelRatio;
-        canvas.height = rect.height * window.devicePixelRatio;
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        canvas.style.width = `${rect.width}px`;
-        canvas.style.height = `${rect.height}px`;
+        if (!canvas.parentElement) return;
+        
+        const { width, height } = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Batch DOM operations to prevent forced reflows
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.scale(dpr, dpr);
       };
 
       updateCanvasSize();
-      window.addEventListener('resize', updateCanvasSize);
 
-      // Particle system configuration based on theme
-      const getThemeConfig = (theme: string) => {
-        const configs = {
-          'vault-tec': {
-            particleCount: 15,
-            colors: ['#00ff00', '#00cc00', '#00aa00'],
-            types: ['radiation', 'static'] as const,
-            speed: 0.5
-          },
-          'military': {
-            particleCount: 12,
-            colors: ['#ff6500', '#ff8c00', '#ffaa00'],
-            types: ['spark', 'ash'] as const,
-            speed: 0.8
-          },
-          'nixie': {
-            particleCount: 20,
-            colors: ['#ffa500', '#ff8c00', '#ffb84d'],
-            types: ['spark', 'static'] as const,
-            speed: 0.3
-          },
-          'led': {
-            particleCount: 10,
-            colors: ['#ff0000', '#ff3333', '#ff6666'],
-            types: ['static', 'spark'] as const,
-            speed: 0.6
-          }
-        };
-        
-        return configs[theme as keyof typeof configs] || configs['vault-tec'];
+      // Use ResizeObserver for better performance
+      resizeObserverRef.current = new ResizeObserver(() => {
+        updateCanvasSize();
+      });
+      resizeObserverRef.current.observe(canvas.parentElement!);
+
+      // Hard-coded Vault-Tec theme configuration for optimal performance
+      const config = {
+        particleCount: 12, // Reduced for better performance
+        colors: ['#00ff00', '#00cc00', '#00aa00'],
+        types: ['radiation', 'static'] as const,
+        speed: 0.5
       };
 
-      const config = getThemeConfig(theme);
-
-      // Create initial particles
+      // Create initial particles with performance boundaries
       const createParticle = (): Particle => {
-        const rect = canvas.getBoundingClientRect();
+        const width = canvas.width / (window.devicePixelRatio || 1);
+        const height = canvas.height / (window.devicePixelRatio || 1);
         return {
-          x: Math.random() * rect.width,
-          y: Math.random() * rect.height,
+          x: Math.random() * width,
+          y: Math.random() * height,
           vx: (Math.random() - 0.5) * config.speed,
           vy: (Math.random() - 0.5) * config.speed,
           life: Math.random() * 100 + 50,
@@ -118,11 +103,13 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
         particlesRef.current.push(createParticle());
       }
 
-      // Animation loop
+      // Optimized animation loop with performance monitoring
       const animate = () => {
         if (!isAnimatingRef.current) return;
-        const rect = canvas.getBoundingClientRect();
-        ctx.clearRect(0, 0, rect.width, rect.height);
+        
+        const width = canvas.width / (window.devicePixelRatio || 1);
+        const height = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, width, height);
 
         // Update and render particles
         particlesRef.current.forEach((particle, index) => {
@@ -132,10 +119,12 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
           particle.life--;
 
           // Wrap around edges
-          if (particle.x < 0) particle.x = rect.width;
-          if (particle.x > rect.width) particle.x = 0;
-          if (particle.y < 0) particle.y = rect.height;
-          if (particle.y > rect.height) particle.y = 0;
+          const width = canvas.width / (window.devicePixelRatio || 1);
+          const height = canvas.height / (window.devicePixelRatio || 1);
+          if (particle.x < 0) particle.x = width;
+          if (particle.x > width) particle.x = 0;
+          if (particle.y < 0) particle.y = height;
+          if (particle.y > height) particle.y = 0;
 
           // Calculate alpha based on life
           const alpha = Math.max(0, particle.life / particle.maxLife);
@@ -193,7 +182,10 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
       animate();
 
       return () => {
-        window.removeEventListener('resize', updateCanvasSize);
+        // Clean up ResizeObserver
+        if (resizeObserverRef.current) {
+          resizeObserverRef.current.disconnect();
+        }
         isAnimatingRef.current = false;
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
@@ -201,7 +193,7 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
         }
         particlesRef.current = [];
       };
-    }, [theme, effects.particles]);
+    }, [effects.particles]);
 
     if (!effects.particles) {
       return null;

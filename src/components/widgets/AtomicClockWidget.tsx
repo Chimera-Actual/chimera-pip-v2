@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useDebounce } from '@/hooks/core/useDebounce';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
 import { WidgetTemplate } from './WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsGroup, SettingsToggle, SettingsSelect, SettingsSlider } from '@/components/ui/SettingsControls';
-import { ClockThemePreview } from './clock/ClockThemePreview';
+import { SettingsGroup, SettingsToggle } from '@/components/ui/SettingsControls';
 import { VisualEffectsRenderer } from './clock/VisualEffectsRenderer';
-import { useLocalStorage } from '@/hooks/core/useLocalStorage';
 import { timeUtils } from './clock/utils/timeUtils';
 
 export interface AtomicClockSettings {
   title?: string;
-  theme: string;
   showSeconds: boolean;
   format24: boolean;
   showDate: boolean;
@@ -65,11 +61,10 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
   const [activePanel, setActivePanel] = useState<'clock' | 'alarms'>('clock');
   const [showSettings, setShowSettings] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number>();
 
-  // Merge default settings
+  // Merge default settings (hard-coded to vault-tec theme)
   const defaultSettings: AtomicClockSettings = {
-    theme: 'vault-tec',
     showSeconds: true,
     format24: false,
     showDate: true,
@@ -88,15 +83,11 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
   };
 
   const mergedSettings = useMemo(() => ({ ...defaultSettings, ...settings }), [settings]);
-  
-  // Debounce theme changes to prevent rapid re-renders
-  const debouncedTheme = useDebounce(mergedSettings.theme, 100);
 
-  const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'theme' | 'effects'>>({
+  const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'effects'>>({
     format24: mergedSettings.format24,
     showSeconds: mergedSettings.showSeconds,
     showDate: mergedSettings.showDate,
-    theme: mergedSettings.theme,
     effects: mergedSettings.effects,
   });
   const [isDirty, setIsDirty] = useState(false);
@@ -107,59 +98,64 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         format24: mergedSettings.format24,
         showSeconds: mergedSettings.showSeconds,
         showDate: mergedSettings.showDate,
-        theme: mergedSettings.theme,
         effects: mergedSettings.effects,
       });
       setIsDirty(false);
     }
-  }, [showSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme, mergedSettings.effects]);
+  }, [showSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.effects]);
 
   useEffect(() => {
     const dirty =
       tempSettings.format24 !== mergedSettings.format24 ||
       tempSettings.showSeconds !== mergedSettings.showSeconds ||
       tempSettings.showDate !== mergedSettings.showDate ||
-      tempSettings.theme !== mergedSettings.theme ||
       JSON.stringify(tempSettings.effects) !== JSON.stringify(mergedSettings.effects);
     setIsDirty(dirty);
-  }, [tempSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme, mergedSettings.effects]);
+  }, [tempSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.effects]);
 
-  // Time update effect
+  // Optimized timer management with single requestAnimationFrame loop
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, mergedSettings.showSeconds ? 1000 : 60000);
+    let lastUpdateTime = 0;
+    const updateInterval = mergedSettings.showSeconds ? 1000 : 60000;
 
-    return () => clearInterval(interval);
-  }, [mergedSettings.showSeconds]);
+    const updateLoop = (timestamp: number) => {
+      if (timestamp - lastUpdateTime >= updateInterval) {
+        const now = new Date();
+        setCurrentTime(now);
 
-  // Alarm checking effect
-  useEffect(() => {
-    const checkAlarms = () => {
-      const now = new Date();
-      const currentTimeStr = timeUtils.formatTime(now, mergedSettings.format24);
-      const currentDay = timeUtils.getDayOfWeek(now);
+        // Check alarms (only once per minute)
+        if ((timestamp - lastUpdateTime) >= 60000 || lastUpdateTime === 0) {
+          const currentTimeStr = timeUtils.formatTime(now, mergedSettings.format24);
+          const currentDay = timeUtils.getDayOfWeek(now);
 
-      mergedSettings.alarms.forEach(alarm => {
-        if (alarm.enabled && 
-            alarm.days.includes(currentDay) && 
-            alarm.time === currentTimeStr.substring(0, 5)) {
-          // Trigger alarm
-          console.log(`Alarm triggered: ${alarm.label}`);
+          mergedSettings.alarms.forEach(alarm => {
+            if (alarm.enabled && 
+                alarm.days.includes(currentDay) && 
+                alarm.time === currentTimeStr.substring(0, 5)) {
+              console.log(`Alarm triggered: ${alarm.label}`);
+            }
+          });
         }
-      });
+
+        lastUpdateTime = timestamp;
+      }
+
+      animationFrameRef.current = requestAnimationFrame(updateLoop);
     };
 
-    const interval = setInterval(checkAlarms, 60000);
-    return () => clearInterval(interval);
-  }, [mergedSettings.alarms, mergedSettings.format24]);
+    animationFrameRef.current = requestAnimationFrame(updateLoop);
 
-  const handleSettingsUpdate = (newSettings: Partial<AtomicClockSettings>) => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [mergedSettings.showSeconds, mergedSettings.alarms, mergedSettings.format24]);
+
+  const handleSettingsUpdate = useCallback((newSettings: Partial<AtomicClockSettings>) => {
     const updated = { ...mergedSettings, ...newSettings };
     onSettingsChange(updated);
-  };
-
-  const themeClass = `clock-theme-${mergedSettings.theme}`;
+  }, [mergedSettings, onSettingsChange]);
 
   // Status bar content (Clock/Alarms toggle buttons)
   const statusBarContent = (
@@ -190,7 +186,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
     <>
       <WidgetTemplate
         title={title}
-        settings={{...mergedSettings, theme: mergedSettings.theme}}
+        settings={mergedSettings}
         icon={Clock}
         statusBarContent={statusBarContent}
         widget={widget}
@@ -199,13 +195,11 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         onToggleFullWidth={onToggleFullWidth}
         onOpenSettings={() => setShowSettings(true)}
         contentClassName="p-4"
-        className={`atomic-clock-widget clock-theme-${mergedSettings.theme} relative overflow-hidden`}
+        className="atomic-clock-widget clock-theme-vault-tec relative overflow-hidden"
       >
         {/* Visual Effects Canvas */}
         {mergedSettings.effects.particles && (
           <VisualEffectsRenderer
-            ref={canvasRef}
-            theme={debouncedTheme}
             effects={mergedSettings.effects}
           />
         )}
@@ -246,7 +240,6 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
           format24: mergedSettings.format24,
           showSeconds: mergedSettings.showSeconds,
           showDate: mergedSettings.showDate,
-          theme: mergedSettings.theme,
           effects: mergedSettings.effects,
         })}
         isDirty={isDirty}
@@ -274,38 +267,6 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
           />
         </SettingsGroup>
 
-        <SettingsGroup title="Theme" description="Choose and preview your clock theme">
-          <SettingsSelect
-            label="Clock Theme"
-            description="Select the visual theme for the clock"
-            value={tempSettings.theme}
-            onChange={(value) => setTempSettings(prev => ({ ...prev, theme: value }))}
-            options={[
-              { value: 'vault-tec', label: 'Vault-Tec' },
-              { value: 'military', label: 'Military' },
-              { value: 'nixie', label: 'Nixie Tube' },
-              { value: 'led', label: 'LED Display' },
-              { value: 'terminal', label: 'Terminal' },
-              { value: 'plasma', label: 'Plasma' },
-              { value: 'hologram', label: 'Hologram' },
-              { value: 'retro-lcd', label: 'Retro LCD' },
-              { value: 'retro', label: 'Retro' },
-              { value: 'minimal', label: 'Minimal' },
-            ]}
-          />
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-pip-text-bright">Theme Preview</label>
-            <div className="border border-pip-border rounded-lg p-4 bg-pip-surface">
-                    <ClockThemePreview
-                      theme={tempSettings.theme}
-                      showSeconds={false}
-                      format24={tempSettings.format24}
-                      showDate={tempSettings.showDate}
-                    />
-            </div>
-          </div>
-        </SettingsGroup>
 
         <SettingsGroup title="Visual Effects" description="Enable atmospheric visual effects">
           <SettingsToggle
