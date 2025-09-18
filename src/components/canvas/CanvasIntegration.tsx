@@ -178,16 +178,29 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
               widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
             }`}
           >
-            {/* Widget Control Buttons - Positioned absolutely */}
-            <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <WidgetControlButtons
-                widget={widget}
-                onClose={() => handleCloseWidget(widget.id)}
-                onToggleCollapse={() => handleToggleCollapse(widget)}
-                onSettings={() => handleSettings(widget)}
-                onToggleFullWidth={() => handleToggleFullWidth(widget)}
-              />
-            </div>
+            <WidgetControlButtons
+              widget={widget}
+              onClose={() => handleCloseWidget(widget.id)}
+              onToggleCollapse={() => handleToggleCollapse(widget)}
+              onSettings={() => handleSettings(widget)}
+              onToggleFullWidth={() => handleToggleFullWidth(widget)}
+            />
+            
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3 pt-1">
+                <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
+                  {getIconComponent(widget)}
+                </div>
+                <div>
+                  <CardTitle className="text-pip-text-bright font-pip-display text-sm">
+                    {widget.widget_config?.title || widget.widget_type}
+                  </CardTitle>
+                  <CardDescription className="text-pip-text-secondary font-pip-mono text-xs">
+                    {widget.widget_config?.description || widgetDescriptions[widget.widget_type] || `${widget.widget_type} widget`}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
             
             {!widget.is_collapsed && (
               <CardContent className="p-0">
@@ -196,8 +209,8 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             )}
             
             {widget.is_collapsed && (
-              <CardContent className="p-6">
-                <div className="text-center text-pip-text-secondary font-pip-mono text-xs italic">
+              <CardContent className="pt-0">
+                <div className="text-pip-text-secondary font-pip-mono text-xs italic">
                   Widget collapsed
                 </div>
               </CardContent>
