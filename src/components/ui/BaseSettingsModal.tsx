@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Save, RotateCcw, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface BaseSettingsModalProps {
   isOpen: boolean;
@@ -89,9 +90,9 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
           )}
         </DialogHeader>
 
-        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="flex-1 min-h-0">
           {children}
-        </div>
+        </ScrollArea>
 
         {(showSaveButton || showResetButton) && (
           <div className="flex items-center justify-between pt-4 border-t border-pip-border/30 flex-shrink-0">

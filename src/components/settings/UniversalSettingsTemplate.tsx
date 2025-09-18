@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { UniversalSettingsProps, SettingsSection } from '@/types/settings';
@@ -44,20 +43,16 @@ export const UniversalSettingsTemplate: React.FC<UniversalSettingsProps> = ({
       showResetButton={showResetButton}
       className={className}
     >
-      <ScrollArea className="flex-1 min-h-0 pr-4">
-        <div className="space-y-8 py-6">
-          {sortedSections.map((section, index) => (
-            <div key={section.id}>
-              <SettingsSectionRenderer section={section} />
-              
-              {/* Add separator between sections (except for last one) */}
-              {index < sortedSections.length - 1 && (
-                <Separator className="mt-8 border-pip-border/30" />
-              )}
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="space-y-8 py-6 pr-4">
+        {sortedSections.map((section, index) => (
+          <div key={section.id}>
+            <SettingsSectionRenderer section={section} />
+            {index < sortedSections.length - 1 && (
+              <Separator className="mt-8 border-pip-border/30" />
+            )}
+          </div>
+        ))}
+      </div>
     </BaseSettingsModal>
   );
 };
