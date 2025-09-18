@@ -38,6 +38,12 @@ export interface WidgetTemplateProps extends BaseWidgetProps {
   additionalActions?: React.ReactNode;
   widget?: any; // UserWidget for width control
   isCollapsed?: boolean; // Collapsed state
+  // Props from StandardWidgetTemplate
+  onRemove?: () => void;
+  onToggleCollapse?: () => void;
+  onToggleFullWidth?: () => void;
+  onOpenSettings?: () => void;
+  showStandardControls?: boolean;
 }
 
 export interface WidgetSettingsTab {

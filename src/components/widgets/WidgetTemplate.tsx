@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { WidgetActionButtons } from './WidgetActionButtons';
+import { WidgetControlButtons } from './WidgetControlButtons';
+import { getTabIcon } from '@/utils/iconMapping';
 import { cn } from '@/lib/utils';
 import type { WidgetTemplateProps } from '@/types/widget';
 
-export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
+export const WidgetTemplate = memo<WidgetTemplateProps>(({
   title,
   widgetId,
   settings = {},
@@ -20,12 +22,40 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   headerClassName = '',
   cardClassName = '',
   widget, // Add widget prop for width control
-  isCollapsed = false // Add collapsed state prop
+  isCollapsed = false, // Add collapsed state prop
+  // StandardWidgetTemplate props
+  onRemove,
+  onToggleCollapse,
+  onToggleFullWidth,
+  onOpenSettings,
+  showStandardControls = true,
+  ...props
 }) => {
+  // Get the appropriate icon for the widget (from StandardWidgetTemplate logic)
+  const ResolvedIcon = Icon || getTabIcon(
+    widget?.widget_type || 'widget',
+    widget?.widget_config?.icon
+  );
+
+  // Prepare standard controls (from StandardWidgetTemplate logic)
+  const resolvedStandardControls = useMemo(() => {
+    if (!widget || !showStandardControls) return standardControls;
+    
+    return standardControls || (
+      <WidgetControlButtons
+        widget={widget}
+        onToggleCollapse={onToggleCollapse}
+        onToggleFullWidth={onToggleFullWidth}
+        onClose={onRemove}
+        onSettings={onOpenSettings}
+      />
+    );
+  }, [widget, showStandardControls, standardControls, onToggleCollapse, onToggleFullWidth, onRemove, onOpenSettings]);
+
   // Check if we're inside a PipBoy tab context (contextual header)
   // Only apply seamless styling when actually inside PipBoy tab components, not on main canvas
   const isInTabContext = false; // Always show proper containers on main canvas
-  const displayTitle = settings?.title || title || 'Widget';
+  const displayTitle = settings?.title || title || widget?.widget_config?.title || widget?.widget_type || 'Widget';
   
   // In tab context: always show header with title and icon, controls are handled externally
   // Standalone: show full header with title and icon
@@ -59,8 +89,8 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
             {/* Title and Icon */}
             {shouldShowTitleAndIcon && (
               <div className="flex items-center gap-2">
-                {Icon && (
-                  <Icon className="h-4 w-4 text-pip-primary" />
+                {ResolvedIcon && (
+                  <ResolvedIcon className="h-4 w-4 text-pip-primary" />
                 )}
                 <div>
                   <CardTitle className="text-pip-text-primary font-pip-display text-sm font-semibold">
@@ -76,10 +106,10 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
             )}
             
             {/* Actions - Show widget-specific actions, standard controls, or custom header actions */}
-            {(widgetSpecificActions || standardControls || headerActions) && (
+            {(widgetSpecificActions || resolvedStandardControls || headerActions) && (
               <div className="flex items-center gap-2">
                 {widgetSpecificActions}
-                {standardControls}
+                {resolvedStandardControls}
                 {headerActions}
               </div>
             )}
@@ -124,4 +154,4 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
       )}
     </Card>
   );
-};
+});

@@ -1,7 +1,7 @@
 import React, { useState, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { StandardWidgetTemplate } from '@/components/widgets/templates/WidgetTemplate';
+import { WidgetTemplate } from '@/components/widgets/WidgetTemplate';
 import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
 import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TestWidget } from '@/components/widgets/TestWidget';
@@ -140,7 +140,7 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
       {/* Widget Grid - Fixed layout that doesn't affect parent height */}
       <div className="grid grid-cols-2 gap-4 auto-rows-max">
         {widgets.map((widget) => (
-          <StandardWidgetTemplate
+          <WidgetTemplate
             key={widget.id}
             widget={widget}
             onRemove={() => handleCloseWidget(widget.id)}
@@ -150,7 +150,7 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
           >
             {/* Widget Content */}
             {renderWidgetContent(widget)}
-          </StandardWidgetTemplate>
+          </WidgetTemplate>
         ))}
       </div>
 

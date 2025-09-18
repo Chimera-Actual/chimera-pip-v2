@@ -27,7 +27,7 @@ import { CalendarIcon, Palette, AlertCircle, CheckCircle2, Info, Eye, EyeOff, Se
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { CheckedState } from '@radix-ui/react-checkbox';
-import { StandardWidgetTemplate } from './templates/WidgetTemplate';
+import { WidgetTemplate } from './WidgetTemplate';
 
 interface TestWidgetProps {
   title?: string;
@@ -83,7 +83,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
   };
 
   return (
-    <StandardWidgetTemplate
+    <WidgetTemplate
       title={title}
       settings={{ title, description: 'Comprehensive UI component testing widget' }}
       icon={TestTube}
@@ -709,6 +709,6 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
         </div>
           </div>
         </ScrollArea>
-    </StandardWidgetTemplate>
+    </WidgetTemplate>
   );
 };

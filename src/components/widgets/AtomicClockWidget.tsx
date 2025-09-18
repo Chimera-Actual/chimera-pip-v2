@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
-import { StandardWidgetTemplate } from './templates/WidgetTemplate';
+import { WidgetTemplate } from './WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { ClockSettingsModal } from './clock/ClockSettingsModal';
@@ -150,7 +150,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   return (
     <>
-      <StandardWidgetTemplate
+      <WidgetTemplate
         title={title}
         settings={{...mergedSettings, theme: mergedSettings.theme}}
         icon={Clock}
@@ -195,7 +195,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             />
           )}
         </div>
-      </StandardWidgetTemplate>
+      </WidgetTemplate>
 
       {/* Settings Modal */}
       <ClockSettingsModal
