@@ -5,6 +5,7 @@ import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
+import { cn } from '@/lib/utils';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -56,8 +57,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
 
   return (
     <div className="h-full flex relative">
-      {/* Fixed Sidebar */}
-      <div className="relative">
+      {/* Sidebar Container */}
+      <div className="relative h-full">
         <TabWidgetDrawer 
           activeTab={activeTab} 
           onAddWidget={handleShowWidgetSelector}
@@ -67,7 +68,11 @@ export const DashboardContent = memo<DashboardContentProps>(({
       </div>
       
       {/* Main Content Area */}
-      <main className={`dashboard-content flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3 transition-all duration-300 ${className || ''}`}>
+      <main className={cn(
+        "dashboard-content flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3 transition-all duration-300",
+        isDrawerCollapsed ? "ml-12" : "ml-80",
+        className
+      )}>
         <DashboardHeaderSection
           activeTab={activeTab}
           description={currentTab?.description}

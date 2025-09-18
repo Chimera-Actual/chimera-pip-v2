@@ -37,7 +37,7 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
 
   return (
     <div className={cn(
-      "fixed left-0 top-0 h-full bg-pip-bg-secondary/95 border-r border-pip-border backdrop-blur-sm z-40 transition-all duration-300",
+      "absolute left-0 top-0 h-full bg-pip-bg-secondary/95 border-r border-pip-border backdrop-blur-sm z-40 transition-all duration-300",
       isCollapsed ? "w-12" : "w-80"
     )}>
       {/* Toggle Button */}
