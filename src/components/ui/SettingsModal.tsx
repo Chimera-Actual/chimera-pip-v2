@@ -38,7 +38,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-2xl h-[85vh] grid grid-rows-[auto,1fr,auto] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-pip-text-bright font-pip-display">
             {title}
@@ -50,7 +50,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="min-h-0 pr-4">
           <div className="space-y-6 py-4">
             {children}
           </div>

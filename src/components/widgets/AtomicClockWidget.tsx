@@ -87,6 +87,35 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   const mergedSettings = { ...defaultSettings, ...settings };
 
+  const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'theme'>>({
+    format24: mergedSettings.format24,
+    showSeconds: mergedSettings.showSeconds,
+    showDate: mergedSettings.showDate,
+    theme: mergedSettings.theme,
+  });
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    if (showSettings) {
+      setTempSettings({
+        format24: mergedSettings.format24,
+        showSeconds: mergedSettings.showSeconds,
+        showDate: mergedSettings.showDate,
+        theme: mergedSettings.theme,
+      });
+      setIsDirty(false);
+    }
+  }, [showSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme]);
+
+  useEffect(() => {
+    const dirty =
+      tempSettings.format24 !== mergedSettings.format24 ||
+      tempSettings.showSeconds !== mergedSettings.showSeconds ||
+      tempSettings.showDate !== mergedSettings.showDate ||
+      tempSettings.theme !== mergedSettings.theme;
+    setIsDirty(dirty);
+  }, [tempSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme]);
+
   // Time update effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -204,36 +233,42 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         onClose={() => setShowSettings(false)}
         title="Clock Settings"
         description="Configure your atomic clock display preferences"
-        onSave={() => setShowSettings(false)}
-        isDirty={false}
+        onSave={() => { handleSettingsUpdate(tempSettings); setShowSettings(false); }}
+        onReset={() => setTempSettings({
+          format24: mergedSettings.format24,
+          showSeconds: mergedSettings.showSeconds,
+          showDate: mergedSettings.showDate,
+          theme: mergedSettings.theme,
+        })}
+        isDirty={isDirty}
       >
         <SettingsGroup title="Display Options" description="Customize how time is displayed">
           <SettingsToggle
             label="24-Hour Format"
             description="Show time in 24-hour format instead of 12-hour with AM/PM"
-            checked={mergedSettings.format24}
-            onCheckedChange={(checked) => handleSettingsUpdate({ format24: checked })}
+            checked={tempSettings.format24}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, format24: checked }))}
           />
 
           <SettingsToggle
             label="Show Seconds"
             description="Display seconds in the time"
-            checked={mergedSettings.showSeconds}
-            onCheckedChange={(checked) => handleSettingsUpdate({ showSeconds: checked })}
+            checked={tempSettings.showSeconds}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, showSeconds: checked }))}
           />
 
           <SettingsToggle
             label="Show Date"
             description="Display the current date below the time" 
-            checked={mergedSettings.showDate}
-            onCheckedChange={(checked) => handleSettingsUpdate({ showDate: checked })}
+            checked={tempSettings.showDate}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, showDate: checked }))}
           />
 
           <SettingsSelect
             label="Theme"
             description="Select the visual theme for the clock"
-            value={mergedSettings.theme}
-            onChange={(value) => handleSettingsUpdate({ theme: value })}
+            value={tempSettings.theme}
+            onChange={(value) => setTempSettings(prev => ({ ...prev, theme: value }))}
             options={[
               { value: 'vault-tec', label: 'Vault-Tec' },
               { value: 'military', label: 'Military' },
