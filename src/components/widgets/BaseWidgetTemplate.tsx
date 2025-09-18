@@ -47,7 +47,7 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
             : "border-b border-pip-border", // Full header standalone
           headerClassName
         )}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end">
             {/* Title and Icon - Only show outside tab context */}
             {shouldShowTitleAndIcon && (
               <div className="flex items-center gap-2">
