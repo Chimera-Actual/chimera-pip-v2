@@ -129,7 +129,7 @@ export const WidgetTemplate = memo<WidgetTemplateProps>(({
             </span>
           </div>
         ) : (
-          <div className="widget-content">
+          <div className="widget-content-direct">
             {children}
           </div>
         )}
