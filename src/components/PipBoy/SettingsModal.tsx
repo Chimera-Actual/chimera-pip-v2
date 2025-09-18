@@ -24,7 +24,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     volume: 50,
     animationSpeed: 1,
     autoSave: true,
-    notifications: true
+    notifications: true,
+    glowEffects: true,
+    scanLines: true
   });
 
   const themeColors: Record<ColorTheme, { color: string; name: string }> = {
@@ -52,7 +54,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       volume: 50,
       animationSpeed: 1,
       autoSave: true,
-      notifications: true
+      notifications: true,
+      glowEffects: true,
+      scanLines: true
     });
   };
 
@@ -133,11 +137,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-pip-mono text-pip-text-primary">GLOW EFFECTS</Label>
-                      <Switch checked={true} className="data-[state=checked]:bg-primary" />
+                      <Switch 
+                        checked={tempSettings.glowEffects} 
+                        onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, glowEffects: checked }))}
+                        className="data-[state=checked]:bg-primary" 
+                      />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-pip-mono text-pip-text-primary">SCAN LINES</Label>
-                      <Switch checked={true} className="data-[state=checked]:bg-primary" />
+                      <Switch 
+                        checked={tempSettings.scanLines} 
+                        onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, scanLines: checked }))}
+                        className="data-[state=checked]:bg-primary" 
+                      />
                     </div>
                   </div>
                 </div>
@@ -180,7 +192,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-pip-mono text-pip-text-primary">ANIMATION SPEED</Label>
-                      <Select value={tempSettings.animationSpeed.toString()}>
+                      <Select 
+                        value={tempSettings.animationSpeed.toString()}
+                        onValueChange={(value) => setTempSettings(prev => ({ ...prev, animationSpeed: parseFloat(value) }))}
+                      >
                         <SelectTrigger className="bg-pip-bg-secondary border-pip-border font-pip-mono">
                           <SelectValue />
                         </SelectTrigger>
