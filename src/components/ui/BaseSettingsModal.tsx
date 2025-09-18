@@ -75,7 +75,7 @@ export const BaseSettingsModal: React.FC<BaseSettingsModalProps> = ({
         <DialogContent 
         className={cn(
           sizeClasses[size],
-          'bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col max-h-[90vh]',
+          'bg-pip-bg-primary/95 backdrop-blur-sm border border-pip-border-bright pip-glow pip-terminal overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 grid grid-rows-[auto_1fr_auto] h-[85vh] max-h-[90vh]',
           className
         )}
       >
