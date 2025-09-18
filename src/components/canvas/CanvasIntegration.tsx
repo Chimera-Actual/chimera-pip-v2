@@ -187,7 +187,7 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
             />
             
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pt-1">
                 <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
                   {getIconComponent(widget)}
                 </div>
