@@ -1,7 +1,6 @@
 // Weather Dashboard Widget - Main Component
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,8 +9,7 @@ import {
   Settings, 
   MapPin, 
   RefreshCw, 
-  Maximize2, 
-  RadioIcon,
+  Maximize2,
   Navigation,
   AlertTriangle
 } from 'lucide-react';
@@ -42,7 +40,6 @@ export interface WeatherDashboardSettings {
   autoRefresh: boolean;
   refreshInterval: number;
   useGPS: boolean;
-  pipBoyMode: boolean;
   fullScreenMode: boolean;
 }
 
@@ -182,10 +179,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
   const headerActions = (
     <div className="flex items-center gap-2">
       {currentLocation && (
-        <Badge variant="secondary" className={cn(
-          "text-xs",
-          settings.pipBoyMode && "bg-primary/20 text-primary border-primary/30"
-        )}>
+        <Badge variant="secondary" className="text-xs">
           <MapPin className="h-3 w-3 mr-1" />
           {currentLocation.city}
         </Badge>
@@ -208,10 +202,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         variant="ghost"
         onClick={handleGetCurrentLocation}
         disabled={gpsLoading}
-        className={cn(
-          "h-8 w-8 p-0",
-          settings.pipBoyMode && "text-primary hover:bg-primary/20"
-        )}
+        className="h-8 w-8 p-0"
         title="Get current location"
       >
         <Navigation className="h-4 w-4" />
@@ -222,10 +213,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         variant="ghost"
         onClick={handleRefresh}
         disabled={!canRefresh}
-        className={cn(
-          "h-8 w-8 p-0",
-          settings.pipBoyMode && "text-primary hover:bg-primary/20"
-        )}
+        className="h-8 w-8 p-0"
         title="Refresh weather"
       >
         <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -235,10 +223,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         size="sm"
         variant="ghost"
         onClick={() => setShowFullScreen(true)}
-        className={cn(
-          "h-8 w-8 p-0",
-          settings.pipBoyMode && "text-primary hover:bg-primary/20"
-        )}
+        className="h-8 w-8 p-0"
         title="Full screen"
       >
         <Maximize2 className="h-4 w-4" />
@@ -248,10 +233,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         size="sm"
         variant="ghost"
         onClick={() => setShowSettings(true)}
-        className={cn(
-          "h-8 w-8 p-0",
-          settings.pipBoyMode && "text-primary hover:bg-primary/20"
-        )}
+        className="h-8 w-8 p-0"
         title="Settings"
       >
         <Settings className="h-4 w-4" />
@@ -265,21 +247,14 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
       return (
         <div className="flex items-center justify-center py-8 text-center">
           <div className="space-y-2">
-            <AlertTriangle className={cn(
-              "h-12 w-12 mx-auto text-destructive",
-              settings.pipBoyMode && "text-primary"
-            )} />
-            <p className={cn(
-              "text-sm text-muted-foreground",
-              settings.pipBoyMode && "text-primary/70 font-mono"
-            )}>
+            <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
+            <p className="text-sm text-muted-foreground">
               {error}
             </p>
             <Button
               size="sm"
               onClick={handleRefresh}
               disabled={!canRefresh}
-              className={settings.pipBoyMode ? "bg-primary/20 text-primary border-primary/30" : ""}
             >
               Try Again
             </Button>
@@ -291,15 +266,9 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     if (!currentLocation) {
       return (
         <div className="space-y-4 p-4">
-          <div className={cn(
-            "text-center space-y-2",
-            settings.pipBoyMode && "text-primary"
-          )}>
+          <div className="text-center space-y-2">
             <Cloud className="h-12 w-12 mx-auto text-muted-foreground" />
-            <p className={cn(
-              "text-sm text-muted-foreground",
-              settings.pipBoyMode && "text-primary/70 font-mono"
-            )}>
+            <p className="text-sm text-muted-foreground">
               Search for a location or use GPS to get started
             </p>
           </div>
@@ -313,7 +282,6 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
             <Button
               onClick={handleGetCurrentLocation}
               disabled={gpsLoading}
-              className={settings.pipBoyMode ? "bg-primary/20 text-primary border-primary/30" : ""}
             >
               <Navigation className="h-4 w-4 mr-2" />
               {gpsLoading ? 'Getting location...' : 'Use Current Location'}
@@ -328,10 +296,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         <div className="flex items-center justify-center py-8">
           <div className="space-y-2 text-center">
             <RefreshCw className="h-8 w-8 mx-auto animate-spin text-primary" />
-            <p className={cn(
-              "text-sm text-muted-foreground",
-              settings.pipBoyMode && "text-primary/70 font-mono"
-            )}>
+            <p className="text-sm text-muted-foreground">
               Loading weather data...
             </p>
           </div>
@@ -350,84 +315,38 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
           placeholder="Search for a city or ZIP code..."
         />
 
-        {/* Pip-Boy Mode Toggle */}
-        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-          <div className="flex items-center gap-2">
-            <RadioIcon className={cn(
-              "h-4 w-4",
-              settings.pipBoyMode && "text-primary"
-            )} />
-            <span className={cn(
-              "text-sm font-medium",
-              settings.pipBoyMode && "text-primary font-mono"
-            )}>
-              Pip-Boy Mode
-            </span>
-          </div>
-          <Switch
-            checked={settings.pipBoyMode}
-            onCheckedChange={(checked) => handleSettingsChange('pipBoyMode', checked)}
-          />
-        </div>
-
         {/* Weather Content */}
-        {settings.pipBoyMode && settings.showRadiation && radiationLevel ? (
+        {weatherData && (
           <div className="space-y-4">
-            <PipBoyRadiationMeter radiationLevel={radiationLevel} />
+            {settings.showRadiation && radiationLevel && (
+              <PipBoyRadiationMeter radiationLevel={radiationLevel} />
+            )}
             
             {settings.showCurrentWeather && (
               <CurrentWeatherCard 
                 weather={weatherData.current} 
-                isPipBoyMode={true}
+              />
+            )}
+            
+            {settings.showForecast && weatherData.forecast && (
+              <ForecastCard 
+                forecast={weatherData.forecast} 
+                units={settings.units}
+              />
+            )}
+            
+            {settings.showAirQuality && weatherData.airQuality && (
+              <AirQualityPanel 
+                airQuality={weatherData.airQuality}
+              />
+            )}
+            
+            {settings.showPollen && weatherData.pollen && (
+              <PollenPanel 
+                pollen={weatherData.pollen}
               />
             )}
           </div>
-        ) : (
-          <Tabs defaultValue="current" className="w-full">
-            <TabsList className="grid grid-cols-4 w-full">
-              <TabsTrigger value="current">Current</TabsTrigger>
-              <TabsTrigger value="forecast">Forecast</TabsTrigger>
-              <TabsTrigger value="air">Air Quality</TabsTrigger>
-              <TabsTrigger value="pollen">Pollen</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="current" className="space-y-4">
-              {settings.showCurrentWeather && (
-                <CurrentWeatherCard 
-                  weather={weatherData.current} 
-                  isPipBoyMode={settings.pipBoyMode}
-                />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="forecast" className="space-y-4">
-              {settings.showForecast && (
-                <ForecastCard 
-                  forecast={weatherData.forecast}
-                  units={settings.units}
-                  isPipBoyMode={settings.pipBoyMode}
-                />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="air" className="space-y-4">
-              {settings.showAirQuality && (
-                <AirQualityPanel 
-                  airQuality={weatherData.airQuality}
-                  isPipBoyMode={settings.pipBoyMode}
-                />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="pollen" className="space-y-4">
-              {settings.showPollen && (
-                <PollenPanel 
-                  pollen={weatherData.pollen}
-                  isPipBoyMode={settings.pipBoyMode}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
         )}
       </div>
     );
@@ -446,9 +365,6 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         onToggleCollapse={onToggleCollapse}
         onToggleFullWidth={onToggleFullWidth}
         onOpenSettings={() => setShowSettings(true)}
-        className={cn(
-          settings.pipBoyMode && "border-primary/50 bg-background/95"
-        )}
       >
         {renderContent()}
       </WidgetTemplate>
@@ -487,6 +403,12 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
               description="Show pollen count and allergen information"
               checked={settings.showPollen}
               onCheckedChange={(checked) => handleSettingsChange('showPollen', checked)}
+            />
+            <SettingsToggle
+              label="Show Radiation Meter"
+              description="Display environmental radiation meter"
+              checked={settings.showRadiation}
+              onCheckedChange={(checked) => handleSettingsChange('showRadiation', checked)}
             />
           </PrimarySettingsGroup>
 
@@ -530,26 +452,6 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
               />
             )}
           </SecondarySettingsGroup>
-
-          <SecondarySettingsGroup
-            title="Pip-Boy Mode"
-            description="Fallout-themed radiation detector display"
-          >
-            <SettingsToggle
-              label="Enable Pip-Boy Mode"
-              description="Transform weather data into radiation readings"
-              checked={settings.pipBoyMode}
-              onCheckedChange={(checked) => handleSettingsChange('pipBoyMode', checked)}
-            />
-            {settings.pipBoyMode && (
-              <SettingsToggle
-                label="Show Radiation Meter"
-                description="Display environmental threat gauge"
-                checked={settings.showRadiation}
-                onCheckedChange={(checked) => handleSettingsChange('showRadiation', checked)}
-              />
-            )}
-          </SecondarySettingsGroup>
         </div>
       </SettingsModal>
 
@@ -571,7 +473,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
           <div className="space-y-6">
             {weatherData && (
               <>
-                {settings.pipBoyMode && radiationLevel && (
+                {settings.showRadiation && radiationLevel && (
                   <PipBoyRadiationMeter radiationLevel={radiationLevel} />
                 )}
                 
@@ -579,29 +481,25 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
                   {settings.showCurrentWeather && (
                     <CurrentWeatherCard 
                       weather={weatherData.current} 
-                      isPipBoyMode={settings.pipBoyMode}
                     />
                   )}
                   
-                  {settings.showForecast && (
+                  {settings.showForecast && weatherData.forecast && (
                     <ForecastCard 
                       forecast={weatherData.forecast}
                       units={settings.units}
-                      isPipBoyMode={settings.pipBoyMode}
                     />
                   )}
                   
-                  {settings.showAirQuality && (
+                  {settings.showAirQuality && weatherData.airQuality && (
                     <AirQualityPanel 
                       airQuality={weatherData.airQuality}
-                      isPipBoyMode={settings.pipBoyMode}
                     />
                   )}
                   
-                  {settings.showPollen && (
+                  {settings.showPollen && weatherData.pollen && (
                     <PollenPanel 
                       pollen={weatherData.pollen}
-                      isPipBoyMode={settings.pipBoyMode}
                     />
                   )}
                 </div>
