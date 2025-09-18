@@ -2,6 +2,7 @@
 
 export { supabaseService } from './supabaseService';
 export { webhookService } from './webhookService';
+export { webauthnService } from './webauthnService';
 export { apiCache } from './cache';
 export { apiErrorHandler, createApiError, handleApiError } from './errorHandler';
 

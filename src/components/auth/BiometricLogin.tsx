@@ -5,6 +5,7 @@ import { Fingerprint, Eye, Smartphone, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { webauthnService } from '@/services/api/webauthnService';
 
 interface BiometricCapability {
   available: boolean;
@@ -23,7 +24,7 @@ export const BiometricLogin: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isEnrollment, setIsEnrollment] = useState(false);
-  const { signIn } = useAuth();
+  const { user, profile, signIn } = useAuth();
   const navigate = useNavigate();
 
   const detectBiometricCapability = async (): Promise<BiometricCapability> => {
@@ -110,17 +111,29 @@ export const BiometricLogin: React.FC = () => {
       return;
     }
 
+    const userId = user?.id || profile?.id;
+    const userEmail = user?.email || profile?.email;
+
+    if (!userId || !userEmail) {
+      setError('User information unavailable. Please sign in using another method first.');
+      setIsEnrollment(true);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
       // Generate random challenge for demo
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
+      const challengeBytes = new Uint8Array(32);
+      crypto.getRandomValues(challengeBytes);
+      const challengeHex = Array.from(challengeBytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
       // In a real app, you'd get these options from your server
       const authenticationOptions = {
-        challenge: Array.from(challenge).map(b => b.toString(16).padStart(2, '0')).join(''),
+        challenge: challengeHex,
         timeout: 60000,
         rpId: window.location.hostname,
         allowCredentials: [], // Should contain registered credential IDs
@@ -130,50 +143,53 @@ export const BiometricLogin: React.FC = () => {
       const authResponse = await startAuthentication({
         optionsJSON: authenticationOptions
       });
-      
-      // Send authResponse to server for verification
-      const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+
+      const verifyResult = await webauthnService.authenticate({
+        userId,
+        email: userEmail,
+        credential: {
+          credentialId: authResponse.id,
+          signature: authResponse.response.signature,
+          authenticatorData: authResponse.response.authenticatorData,
         },
-        body: JSON.stringify({
-          action: 'authenticate',
-          userId: 'current-user-id', // Get from auth context
-          credential: {
-            credentialId: authResponse.id,
-            signature: authResponse.response.signature,
-            authenticatorData: authResponse.response.authenticatorData,
-          },
-          challenge: authenticationOptions.challenge,
-        }),
+        challenge: authenticationOptions.challenge,
       });
 
-      const verifyResult = await verifyResponse.json();
-      
       if (!verifyResult.success) {
-        throw new Error(verifyResult.error || 'Authentication failed');
+        const failureMessage =
+          verifyResult.data?.error ||
+          verifyResult.error ||
+          verifyResult.data?.message ||
+          'Biometric authentication failed';
+
+        setError(failureMessage);
+
+        if (failureMessage.toLowerCase().includes('credential')) {
+          setIsEnrollment(true);
+        }
+
+        return;
       }
 
-      // Sign in with the verified user
-      const { error } = await signIn(verifyResult.email, 'biometric-auth');
-      
+      const loginEmail = verifyResult.data?.email || userEmail;
+      const { error } = await signIn(loginEmail, 'biometric-auth');
+
       if (!error) {
+        setError('');
         navigate('/');
       } else {
-        setError('Biometric authentication failed');
+        setError(error.message || 'Biometric authentication failed');
       }
     } catch (error: any) {
       console.error('Biometric authentication error:', error);
-      
-      if (error.name === 'NotAllowedError') {
+
+      if (error?.name === 'NotAllowedError') {
         setError('Authentication was cancelled or timed out');
-      } else if (error.name === 'InvalidStateError') {
+      } else if (error?.name === 'InvalidStateError') {
         setError('Invalid authentication state. Try enrolling first.');
         setIsEnrollment(true);
       } else {
-        setError('Biometric authentication failed');
+        setError(error?.message || 'Biometric authentication failed');
       }
     } finally {
       setIsLoading(false);
@@ -186,27 +202,36 @@ export const BiometricLogin: React.FC = () => {
       return;
     }
 
+    const userId = user?.id || profile?.id;
+    const userEmail = user?.email || profile?.email;
+
+    if (!userId || !userEmail) {
+      setError('User information unavailable. Please sign in before enrolling biometrics.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
       // Generate random values for demo
       const challenge = new Uint8Array(32);
-      const userId = new Uint8Array(16);
       crypto.getRandomValues(challenge);
-      crypto.getRandomValues(userId);
+      const challengeHex = Array.from(challenge)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
       // In a real app, you'd get these options from your server
       const registrationOptions = {
-        challenge: Array.from(challenge).map(b => b.toString(16).padStart(2, '0')).join(''),
+        challenge: challengeHex,
         rp: {
           name: 'CHIMERA-TEC Security System',
           id: window.location.hostname,
         },
         user: {
-          id: Array.from(userId).map(b => b.toString(16).padStart(2, '0')).join(''),
-          name: 'demo@chimera-tec.com',
-          displayName: 'Demo Vault Dweller',
+          id: userId,
+          name: userEmail,
+          displayName: profile?.character_name || userEmail,
         },
         pubKeyCredParams: [
           { alg: -7, type: 'public-key' as const },
@@ -222,40 +247,37 @@ export const BiometricLogin: React.FC = () => {
       const registrationResponse = await startRegistration({
         optionsJSON: registrationOptions
       });
-      
+
       // Send registrationResponse to server for verification and storage
-      const storeResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      const storeResult = await webauthnService.register({
+        userId,
+        email: userEmail,
+        credential: {
+          credentialId: registrationResponse.id,
+          publicKey: registrationResponse.response.publicKey,
+          deviceName: `${capability.name} on ${navigator.platform}`,
         },
-        body: JSON.stringify({
-          action: 'register',
-          userId: 'current-user-id', // Get from auth context
-          credential: {
-            credentialId: registrationResponse.id,
-            publicKey: registrationResponse.response.publicKey,
-            deviceName: `${capability.name} on ${navigator.platform}`,
-          },
-        }),
       });
 
-      const storeResult = await storeResponse.json();
-      
       if (!storeResult.success) {
-        throw new Error(storeResult.error || 'Registration failed');
+        const failureMessage =
+          storeResult.data?.error ||
+          storeResult.error ||
+          storeResult.data?.message ||
+          'Biometric enrollment failed';
+
+        setError(failureMessage);
+        return;
       }
 
       setIsEnrollment(false);
-      setError('');
-      // Show success message
-      setTimeout(() => {
-        setError('Biometric enrollment successful! You can now use biometric authentication.');
-      }, 100);
+      const successMessage =
+        storeResult.data?.message ||
+        'Biometric enrollment successful! You can now use biometric authentication.';
+      setError(successMessage);
     } catch (error: any) {
       console.error('Biometric enrollment error:', error);
-      
+
       if (error.name === 'NotAllowedError') {
         setError('Enrollment was cancelled or timed out');
       } else {
