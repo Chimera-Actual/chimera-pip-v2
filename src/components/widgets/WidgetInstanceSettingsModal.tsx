@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserWidget } from '@/hooks/useWidgetManager';
-import { iconMapping } from '@/utils/iconMapping';
+import { Label } from '@/components/ui/label';
+import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
+import { getTabIcon } from '@/utils/iconMapping';
+import type { UserWidget } from '@/hooks/useWidgetManager';
 
 interface WidgetInstanceSettingsModalProps {
   open: boolean;
@@ -29,6 +22,7 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
   onSave,
 }) => {
   const [config, setConfig] = useState<any>({});
+  const [showIconModal, setShowIconModal] = useState(false);
 
   useEffect(() => {
     if (widget) {
@@ -59,9 +53,6 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
           <DialogTitle className="text-pip-text-bright font-pip-display">
             Widget Settings
           </DialogTitle>
-          <DialogDescription className="text-pip-text-secondary font-pip-mono">
-            Configure settings for this {widget.widget_type} widget
-          </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -92,28 +83,27 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
             />
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="icon" className="text-right text-pip-text-secondary font-pip-mono">
+          {/* Icon Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-pip-text-primary">
               Icon
             </Label>
-            <Select
-              value={config.icon || 'TestTube'}
-              onValueChange={(value) => updateConfig('icon', value)}
-            >
-              <SelectTrigger className="col-span-3 pip-input">
-                <SelectValue placeholder="Select an icon" />
-              </SelectTrigger>
-              <SelectContent className="pip-dialog max-h-60 bg-pip-bg-secondary z-50">
-                {Object.entries(iconMapping).map(([iconName, IconComponent]) => (
-                  <SelectItem key={iconName} value={iconName} className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="w-4 h-4" />
-                      <span>{iconName}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded border border-pip-border bg-pip-bg-tertiary/50 pip-glow">
+                {(() => {
+                  const IconComponent = getTabIcon('', config.icon || 'CogIcon');
+                  return <IconComponent className="h-5 w-5 text-pip-green-primary" />;
+                })()}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowIconModal(true)}
+                className="flex-1 border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary"
+              >
+                Select Icon
+              </Button>
+            </div>
           </div>
 
           {/* Widget-specific settings based on type */}
@@ -179,6 +169,14 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
           </Button>
         </DialogFooter>
       </DialogContent>
+      
+      <IconSelectionModal
+        isOpen={showIconModal}
+        onClose={() => setShowIconModal(false)}
+        onSelect={(iconName) => updateConfig('icon', iconName)}
+        selectedIcon={config.icon || 'CogIcon'}
+        title="Select Widget Icon"
+      />
     </Dialog>
   );
 };
