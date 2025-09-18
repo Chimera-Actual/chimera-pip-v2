@@ -36,13 +36,13 @@ interface PipBoyTabsProps {
 
 
 // Sortable Tab Component
-const SortableTab = React.memo<{
+const SortableTab = ({ tab, isActive, onTabChange, onContextMenu, isMobile }: {
   tab: TabConfiguration;
   isActive: boolean;
   onTabChange: (tab: string) => void;
   onContextMenu: (e: React.MouseEvent, tab: TabConfiguration) => void;
   isMobile: boolean;
-}>(({ tab, isActive, onTabChange, onContextMenu, isMobile }) => {
+}) => {
   const {
     attributes,
     listeners,
@@ -134,9 +134,9 @@ const SortableTab = React.memo<{
       )}
     </div>
   );
-});
+};
 
-export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange }) => {
+export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
   const { tabs, createTab, updateTab, reorderTabs, isLoading } = useTabManager();
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<TabConfiguration | null>(null);
@@ -304,4 +304,4 @@ export const PipBoyTabs = React.memo<PipBoyTabsProps>(({ currentTab, onTabChange
       )}
     </>
   );
-});
+};
