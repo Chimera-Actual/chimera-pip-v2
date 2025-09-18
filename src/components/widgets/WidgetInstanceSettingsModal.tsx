@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Settings, Palette } from 'lucide-react';
+import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
+import { SettingsInput, SettingsGroup } from '@/components/settings/SettingsControls';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
 import { getTabIcon } from '@/utils/iconMapping';
 import type { UserWidget } from '@/hooks/useWidgetManager';
+import type { SettingsSection } from '@/types/settings';
 
 interface WidgetInstanceSettingsModalProps {
   open: boolean;
@@ -23,10 +22,12 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
 }) => {
   const [config, setConfig] = useState<any>({});
   const [showIconModal, setShowIconModal] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (widget) {
       setConfig(widget.widget_config || {});
+      setIsDirty(false);
     }
   }, [widget]);
 
@@ -42,52 +43,39 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
       ...prev,
       [key]: value,
     }));
+    setIsDirty(true);
   };
 
   if (!widget) return null;
 
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] pip-dialog">
-        <DialogHeader>
-          <DialogTitle className="text-pip-text-bright font-pip-display">
-            Widget Settings
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right text-pip-text-secondary font-pip-mono">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={config.title || ''}
-              onChange={(e) => updateConfig('title', e.target.value)}
-              className="col-span-3 pip-input"
-              placeholder="Widget title"
-            />
-          </div>
+  const sections: SettingsSection[] = [
+    {
+      id: 'basic',
+      title: 'Basic Configuration',
+      description: 'Widget title, description, and display settings',
+      icon: Settings,
+      order: 1,
+      content: (
+        <SettingsGroup>
+          <SettingsInput
+            label="Widget Title"
+            description="Display name for this widget instance"
+            value={config.title || ''}
+            onChange={(value) => updateConfig('title', value)}
+            placeholder="Widget title"
+          />
           
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right text-pip-text-secondary font-pip-mono">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={config.description || ''}
-              onChange={(e) => updateConfig('description', e.target.value)}
-              className="col-span-3 pip-input"
-              placeholder="Widget description"
-              rows={3}
-            />
-          </div>
+          <SettingsInput
+            label="Description"
+            description="Brief description of this widget instance"
+            value={config.description || ''}
+            onChange={(value) => updateConfig('description', value)}
+            placeholder="Widget description"
+            type="text"
+          />
 
-          {/* Icon Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-pip-text-primary">
-              Icon
-            </Label>
+            <label className="text-sm font-medium text-pip-text-primary">Icon</label>
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded border border-pip-border bg-pip-bg-tertiary/50 pip-glow">
                 {(() => {
@@ -95,80 +83,73 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
                   return <IconComponent className="h-5 w-5 text-pip-green-primary" />;
                 })()}
               </div>
-              <Button
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setShowIconModal(true)}
-                className="flex-1 border-pip-border text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary"
+                className="flex-1 px-3 py-2 text-left border border-pip-border rounded bg-pip-bg-secondary/50 hover:bg-pip-bg-secondary/70 text-pip-text-secondary hover:text-pip-green-secondary"
               >
                 Select Icon
-              </Button>
+              </button>
             </div>
           </div>
+        </SettingsGroup>
+      )
+    }
+  ];
 
-          {/* Widget-specific settings based on type */}
-          {['test', 'test_widget'].includes((widget.widget_type || '').toLowerCase()) && (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="textInput" className="text-right text-pip-text-secondary font-pip-mono">
-                  Text Input
-                </Label>
-                <Input
-                  id="textInput"
-                  value={config.textInput || ''}
-                  onChange={(e) => updateConfig('textInput', e.target.value)}
-                  className="col-span-3 pip-input"
-                  placeholder="Enter text"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="numberInput" className="text-right text-pip-text-secondary font-pip-mono">
-                  Number
-                </Label>
-                <Input
-                  id="numberInput"
-                  type="number"
-                  value={config.numberInput || 0}
-                  onChange={(e) => updateConfig('numberInput', parseInt(e.target.value) || 0)}
-                  className="col-span-3 pip-input"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="colorValue" className="text-right text-pip-text-secondary font-pip-mono">
-                  Color
-                </Label>
-                <Input
-                  id="colorValue"
-                  type="color"
-                  value={config.colorValue || '#00ff00'}
-                  onChange={(e) => updateConfig('colorValue', e.target.value)}
-                  className="col-span-3 pip-input h-10"
-                />
-              </div>
-            </>
-          )}
-        </div>
-        
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-            className="pip-button-secondary"
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="button" 
-            onClick={handleSave}
-            className="pip-button-primary"
-          >
-            Save Settings
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+  // Add widget-specific settings for test widgets
+  if (['test', 'test_widget'].includes((widget.widget_type || '').toLowerCase())) {
+    sections.push({
+      id: 'test-settings',
+      title: 'Test Widget Settings',
+      description: 'Special configuration options for test widgets',
+      icon: Palette,
+      order: 2,
+      content: (
+        <SettingsGroup>
+          <SettingsInput
+            label="Text Input"
+            description="Custom text value for testing"
+            value={config.textInput || ''}
+            onChange={(value) => updateConfig('textInput', value)}
+            placeholder="Enter text"
+          />
+          
+          <SettingsInput
+            label="Number Input"
+            description="Custom number value for testing"
+            value={config.numberInput?.toString() || '0'}
+            onChange={(value) => updateConfig('numberInput', parseInt(value) || 0)}
+            type="number"
+          />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-pip-text-primary">Color Value</label>
+            <p className="text-xs text-pip-text-muted">Choose a color for testing purposes</p>
+            <input
+              type="color"
+              value={config.colorValue || '#00ff00'}
+              onChange={(e) => updateConfig('colorValue', e.target.value)}
+              className="w-full h-10 rounded border border-pip-border bg-pip-bg-secondary"
+            />
+          </div>
+        </SettingsGroup>
+      )
+    });
+  }
+
+  return (
+    <>
+      <UniversalSettingsTemplate
+        isOpen={open}
+        onClose={onClose}
+        title="Widget Settings"
+        description="Configure this widget instance"
+        sections={sections}
+        onSave={handleSave}
+        isDirty={isDirty}
+        size="default"
+      />
       
       <IconSelectionModal
         isOpen={showIconModal}
@@ -177,6 +158,6 @@ export const WidgetInstanceSettingsModal: React.FC<WidgetInstanceSettingsModalPr
         selectedIcon={config.icon || 'CogIcon'}
         title="Select Widget Icon"
       />
-    </Dialog>
+    </>
   );
 };

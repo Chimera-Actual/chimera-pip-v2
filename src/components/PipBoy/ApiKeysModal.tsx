@@ -1,7 +1,8 @@
 import React from 'react';
-import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
 import { Key } from 'lucide-react';
+import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
 import { ApiKeyManager } from './ApiKeyManager';
+import type { SettingsSection } from '@/types/settings';
 
 interface ApiKeysModalProps {
   isOpen: boolean;
@@ -9,28 +10,27 @@ interface ApiKeysModalProps {
 }
 
 export const ApiKeysModal: React.FC<ApiKeysModalProps> = ({ isOpen, onClose }) => {
+  const sections: SettingsSection[] = [
+    {
+      id: 'api-keys',
+      title: 'API Key Management',
+      description: 'Manage external service integrations and authentication',
+      icon: Key,
+      order: 1,
+      content: <ApiKeyManager />
+    }
+  ];
+
   return (
-    <BaseSettingsModal
+    <UniversalSettingsTemplate
       isOpen={isOpen}
       onClose={onClose}
       title="EXTERNAL SERVICE KEYS"
       description="MANAGE API KEYS FOR THIRD-PARTY INTEGRATIONS"
+      sections={sections}
       size="large"
       showSaveButton={false}
       showResetButton={false}
-    >
-      <div className="space-y-4">
-        <div className="flex items-center mb-6">
-          <Key className="h-5 w-5 text-primary mr-2" />
-          <h3 className="text-lg font-pip-display font-semibold text-pip-text-bright pip-text-glow">
-            API KEY MANAGEMENT
-          </h3>
-        </div>
-        
-        <div className="pl-7">
-          <ApiKeyManager />
-        </div>
-      </div>
-    </BaseSettingsModal>
+    />
   );
 };

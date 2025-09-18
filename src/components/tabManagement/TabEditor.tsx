@@ -2,13 +2,13 @@ import { useState, useEffect, memo, useCallback } from 'react';
 import { TabConfiguration } from '@/types/tabManagement';
 import { reportError } from '@/lib/errorReporting';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { BaseSettingsModal } from '@/components/ui/BaseSettingsModal';
+import { Edit, Palette, Info } from 'lucide-react';
+import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
+import { SettingsInput, SettingsGroup } from '@/components/settings/SettingsControls';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
 import { getTabIcon } from '@/utils/iconMapping';
 import { validateTabName, TabValidationResult } from '@/utils/validation/tabValidation';
+import type { SettingsSection } from '@/types/settings';
 
 interface TabEditorProps {
   tab?: TabConfiguration;
@@ -138,77 +138,65 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
     }
   }, [formData, onSave, onClose, validateName, tab, canSave]);
 
-  return (
-    <>
-      <BaseSettingsModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={tab ? 'EDIT TAB' : 'CREATE NEW TAB'}
-        description="TAB_MANAGEMENT_PROTOCOL_v2.1"
-        size="large"
-        onSave={handleSubmit}
-        saveLabel={tab ? 'UPDATE TAB' : 'CREATE TAB'}
-        isDirty={isDirty}
-        isLoading={isSubmitting}
-        className="pip-widget-dialog"
-      >
-        <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-          {/* Tab Name */}
-          <div className="space-y-2">
-            <Label htmlFor="tab-name" className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
-              TAB NAME
-            </Label>
-            <Input
-              id="tab-name"
-              type="text"
-              value={formData.name}
-              onChange={handleNameChange}
-              placeholder="MY_CUSTOM_TAB"
-              className={`bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted pip-glow ${
-                nameError ? 'border-red-500 focus:border-red-500' : ''
-              }`}
-              required
-              maxLength={20}
-              disabled={tab?.isDefault || isSubmitting}
-            />
-            {nameError && (
-              <p className="text-sm text-red-400 font-pip-mono mt-1">
-                {nameError}
-              </p>
-            )}
-            {validation.warnings.length > 0 && !nameError && (
-              <p className="text-sm text-yellow-400 font-pip-mono mt-1">
-                ⚠ {validation.warnings[0]}
-              </p>
-            )}
-            {tab?.isDefault && (
-              <p className="text-xs text-pip-text-muted font-pip-mono mt-1">
-                Default tabs cannot be renamed
-              </p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="tab-description" className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
-              DESCRIPTION
-            </Label>
-            <Textarea
-              id="tab-description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="DESCRIBE WHAT THIS TAB IS FOR..."
-              rows={3}
-              className="bg-pip-bg-tertiary/80 border-pip-border focus:border-pip-green-primary font-pip-mono text-pip-green-primary placeholder:text-pip-text-muted resize-none pip-glow"
-              maxLength={100}
-            />
-          </div>
-
-          {/* Icon Selection */}
+  const sections: SettingsSection[] = [
+    {
+      id: 'basic',
+      title: 'Basic Information',
+      description: 'Configure tab name and description',
+      icon: Edit,
+      order: 1,
+      content: (
+        <SettingsGroup>
+          <SettingsInput
+            label="Tab Name"
+            description={tab?.isDefault ? "Default tabs cannot be renamed" : "Enter a unique name for your tab"}
+            value={formData.name}
+            onChange={(value) => {
+              setFormData(prev => ({ ...prev, name: value }));
+              if (value.trim()) {
+                validateName(value.trim());
+              } else {
+                setNameError('');
+                setValidation({ isValid: false, errors: [], warnings: [] });
+              }
+            }}
+            placeholder="MY_CUSTOM_TAB"
+            disabled={tab?.isDefault || isSubmitting}
+          />
+          {nameError && (
+            <p className="text-sm text-red-400 font-pip-mono mt-1">
+              {nameError}
+            </p>
+          )}
+          {validation.warnings.length > 0 && !nameError && (
+            <p className="text-sm text-yellow-400 font-pip-mono mt-1">
+              ⚠ {validation.warnings[0]}
+            </p>
+          )}
+          
+          <SettingsInput
+            label="Description"
+            description="Describe what this tab is for (optional)"
+            value={formData.description}
+            onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+            placeholder="DESCRIBE WHAT THIS TAB IS FOR..."
+            type="text"
+          />
+        </SettingsGroup>
+      )
+    },
+    {
+      id: 'appearance',
+      title: 'Appearance',
+      description: 'Customize tab icon and color scheme',
+      icon: Palette,
+      order: 2,
+      content: (
+        <div className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+            <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
               ICON SELECTION
-            </Label>
+            </h4>
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-12 h-12 rounded border border-pip-border bg-pip-bg-tertiary/50 pip-glow">
                 {(() => {
@@ -227,11 +215,10 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
             </div>
           </div>
 
-          {/* Color Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
+            <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
               ACCENT COLOR [OPTIONAL]
-            </Label>
+            </h4>
             <div className="flex gap-2 flex-wrap">
               {colorOptions.map((colorOption) => (
                 <button
@@ -253,7 +240,23 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
             </div>
           </div>
         </div>
-      </BaseSettingsModal>
+      )
+    }
+  ];
+
+  return (
+    <>
+      <UniversalSettingsTemplate
+        isOpen={isOpen}
+        onClose={onClose}
+        title={tab ? 'EDIT TAB' : 'CREATE NEW TAB'}
+        description="TAB_MANAGEMENT_PROTOCOL_v2.1"
+        sections={sections}
+        onSave={handleSubmit}
+        isDirty={isDirty}
+        isLoading={isSubmitting}
+        size="large"
+      />
       
       <IconSelectionModal
         isOpen={showIconModal}
