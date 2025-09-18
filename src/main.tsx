@@ -1,7 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import App from './App.tsx'
 import './index.css'
+import { queryClient } from '@/lib/queryClient'
+import { setupSessionListener } from '@/lib/auth/session'
 
 const rootElement = document.getElementById("root");
 
@@ -9,10 +13,16 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
-// Render the app immediately
+// Setup session monitoring
+setupSessionListener();
+
+// Render the app immediately with React Query
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   </StrictMode>
 );
 
