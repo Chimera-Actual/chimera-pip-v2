@@ -152,14 +152,14 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
           <Label className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
             ICON SELECTION
           </Label>
-          <div className="grid grid-cols-8 gap-2 p-3 border border-pip-border rounded-md bg-pip-bg-tertiary/50 max-h-48 overflow-y-auto pip-glow custom-scrollbar">
+          <div className="grid grid-cols-10 gap-1 p-3 border border-pip-border rounded-md bg-pip-bg-tertiary/50 max-h-48 overflow-y-auto pip-glow custom-scrollbar">
             {availableIcons.map((iconOption) => {
               const IconComponent = iconOption.icon;
               return (
                 <button
                   key={iconOption.name}
                   type="button"
-                  className={`aspect-square flex items-center justify-center p-2 rounded border transition-all pip-button-glow ${
+                  className={`aspect-square flex items-center justify-center p-1 rounded border transition-all pip-button-glow ${
                     formData.icon === iconOption.name
                       ? 'border-pip-green-primary bg-pip-green-primary/20 text-pip-green-primary pip-glow'
                       : 'border-pip-border bg-pip-bg-tertiary/40 text-pip-text-secondary hover:border-pip-green-secondary hover:text-pip-green-secondary'
@@ -167,7 +167,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave }: TabEditorProps)
                   onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
                   title={iconOption.label}
                 >
-                  <IconComponent className="h-4 w-4" />
+                  <IconComponent className="h-3 w-3" />
                 </button>
               );
             })}
