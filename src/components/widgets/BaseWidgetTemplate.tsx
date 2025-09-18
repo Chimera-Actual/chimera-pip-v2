@@ -22,11 +22,10 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   const isInTabContext = window.location.pathname === '/';
   const displayTitle = settings?.title || title || 'Widget';
   
-  // Contextual display logic: 
-  // - In tab context: only show header if we have control actions, no redundant title/icon
-  // - Standalone: show full header with title and icon
-  const shouldShowHeader = !isInTabContext || headerActions;
-  const shouldShowTitleAndIcon = !isInTabContext && (settings?.showTitle !== false);
+  // In tab context: always show header with title and icon, controls are handled externally
+  // Standalone: show full header with title and icon
+  const shouldShowHeader = true;
+  const shouldShowTitleAndIcon = settings?.showTitle !== false;
   
   return (
     <Card className={cn(
@@ -39,21 +38,25 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
       cardClassName,
       className
     )}>
-      {/* Header - Contextual Display */}
+      {/* Header - Always show when there's content to display */}
       {shouldShowHeader && (
         <CardHeader className={cn(
           isInTabContext 
-            ? "px-0 py-2 border-0" // Minimal header in tab context
+            ? "pb-3" // Standard spacing in tab context
             : "border-b border-pip-border", // Full header standalone
           headerClassName
         )}>
-          <div className="flex items-center justify-end">
-            {/* Title and Icon - Only show outside tab context */}
+          <div className="flex items-center justify-between">
+            {/* Title and Icon */}
             {shouldShowTitleAndIcon && (
-              <div className="flex items-center gap-2">
-                {Icon && <Icon className="h-5 w-5 text-pip-text-bright" />}
+              <div className="flex items-center gap-3">
+                {Icon && (
+                  <div className="p-2 rounded-lg bg-pip-bg-tertiary border border-pip-border">
+                    <Icon className="h-5 w-5 text-pip-text-bright" />
+                  </div>
+                )}
                 <div>
-                  <CardTitle className="text-pip-text-bright font-pip-display pip-text-glow">
+                  <CardTitle className="text-pip-text-bright font-pip-display pip-text-glow text-sm">
                     {displayTitle}
                   </CardTitle>
                   {settings?.description && settings?.showDescription !== false && (
@@ -65,8 +68,12 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
               </div>
             )}
             
-            {/* Actions - Always show when provided */}
-            {headerActions}
+            {/* Actions - Show when provided */}
+            {headerActions && (
+              <div className="flex items-center">
+                {headerActions}
+              </div>
+            )}
           </div>
         </CardHeader>
       )}
@@ -74,8 +81,6 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
       {/* Content */}
       <CardContent className={cn(
         "p-0", 
-        // Adjust padding based on context
-        isInTabContext ? "pt-0" : "pt-4",
         contentClassName
       )}>
         {children}
