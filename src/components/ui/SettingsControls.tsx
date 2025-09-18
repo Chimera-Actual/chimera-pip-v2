@@ -19,9 +19,9 @@ export const SettingsGroup: React.FC<SettingsGroupProps> = ({
   <div className="space-y-4">
     {title && (
       <div className="space-y-1">
-        <h4 className="text-sm font-semibold text-pip-text-bright">{title}</h4>
+        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
         {description && (
-          <p className="text-xs text-pip-text-muted">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </div>
     )}
@@ -48,9 +48,9 @@ export const SettingsToggle: React.FC<SettingsToggleProps> = ({
 }) => (
   <div className="flex items-center justify-between space-x-4">
     <div className="space-y-1 flex-1">
-      <Label className="text-sm text-pip-text-bright">{label}</Label>
+      <Label className="text-sm text-foreground">{label}</Label>
       {description && (
-        <p className="text-xs text-pip-text-muted">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       )}
     </div>
     <Switch 
@@ -81,9 +81,9 @@ export const SettingsInput: React.FC<SettingsInputProps> = ({
   type = 'text',
 }) => (
   <div className="space-y-2">
-    <Label className="text-sm text-pip-text-bright">{label}</Label>
+    <Label className="text-sm text-foreground">{label}</Label>
     {description && (
-      <p className="text-xs text-pip-text-muted">{description}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
     )}
     <Input
       type={type}
@@ -91,7 +91,7 @@ export const SettingsInput: React.FC<SettingsInputProps> = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className="bg-pip-background border-pip-border"
+      className="bg-background border-border"
     />
   </div>
 );
@@ -114,12 +114,12 @@ export const SettingsSelect: React.FC<SettingsSelectProps> = ({
   disabled,
 }) => (
   <div className="space-y-2">
-    <Label className="text-sm text-pip-text-bright">{label}</Label>
+    <Label className="text-sm text-foreground">{label}</Label>
     {description && (
-      <p className="text-xs text-pip-text-muted">{description}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
     )}
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="bg-pip-background border-pip-border">
+      <SelectTrigger className="bg-background border-border">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -160,15 +160,15 @@ export const SettingsSlider: React.FC<SettingsSliderProps> = ({
 }) => (
   <div className="space-y-2">
     <div className="flex justify-between items-center">
-      <Label className="text-sm text-pip-text-bright">{label}</Label>
+      <Label className="text-sm text-foreground">{label}</Label>
       {showValue && (
-        <span className="text-xs text-pip-text-muted">
+        <span className="text-xs text-muted-foreground">
           {value}{unit}
         </span>
       )}
     </div>
     {description && (
-      <p className="text-xs text-pip-text-muted">{description}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
     )}
     <Slider
       value={[value]}
