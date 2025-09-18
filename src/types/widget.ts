@@ -40,7 +40,11 @@ export interface WidgetSettingsTab {
   id: string;
   label: string;
   icon?: React.ComponentType<any>;
-  content: React.ReactNode;
+  content: React.ReactNode | ((props: {
+    localSettings: BaseWidgetSettings;
+    updateSetting: (key: keyof BaseWidgetSettings, value: any) => void;
+    updateEffectSetting: (key: string, value: any) => void;
+  }) => React.ReactNode);
 }
 
 export interface BaseWidgetSettingsModalProps {

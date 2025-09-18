@@ -56,6 +56,14 @@ export const BaseWidgetSettingsModal: React.FC<BaseWidgetSettingsModalProps> = (
     setIsDirty(false);
   };
 
+  // Create enhanced custom tabs with access to state management functions
+  const enhancedCustomTabs = customTabs.map(tab => ({
+    ...tab,
+    content: typeof tab.content === 'function' 
+      ? tab.content({ localSettings, updateSetting, updateEffectSetting })
+      : tab.content
+  }));
+
   const defaultTabs = [
     ...(showGeneralTab ? [{
       id: 'general',
@@ -130,6 +138,7 @@ export const BaseWidgetSettingsModal: React.FC<BaseWidgetSettingsModalProps> = (
                 <SelectItem value="minimal">Minimal</SelectItem>
                 <SelectItem value="retro">Retro</SelectItem>
                 <SelectItem value="modern">Modern</SelectItem>
+                <SelectItem value="current">Current</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -173,7 +182,7 @@ export const BaseWidgetSettingsModal: React.FC<BaseWidgetSettingsModalProps> = (
         </div>
       )
     }] : []),
-    ...customTabs
+    ...enhancedCustomTabs
   ];
 
   return (

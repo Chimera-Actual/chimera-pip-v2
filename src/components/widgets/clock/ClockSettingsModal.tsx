@@ -21,17 +21,6 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
   settings,
   onSave,
 }) => {
-  const updateSetting = (key: keyof AtomicClockSettings, value: any) => {
-    onSave({ ...settings, [key]: value });
-  };
-
-  const updateEffectSetting = (key: string, value: any) => {
-    onSave({
-      ...settings,
-      effects: { ...settings.effects, [key]: value }
-    });
-  };
-
   const themeOptions = [
     { value: 'vault-tec', label: 'Vault-Tec', description: 'Classic Fallout green phosphor' },
     { value: 'military', label: 'Military', description: 'Orange tactical display' },
@@ -53,17 +42,18 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
     onSave(newSettings as AtomicClockSettings);
   };
 
+  // Use function-based custom tabs that receive state management functions
   const customTabs: WidgetSettingsTab[] = [
     {
       id: 'display',
       label: 'Display',
       icon: Clock,
-      content: (
+      content: ({ localSettings, updateSetting }: any) => (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="text-pip-text-secondary font-pip-mono">24-Hour Format</Label>
             <Switch
-              checked={settings.format24}
+              checked={localSettings.format24}
               onCheckedChange={(checked) => updateSetting('format24', checked)}
             />
           </div>
@@ -71,7 +61,7 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
           <div className="flex items-center justify-between">
             <Label className="text-pip-text-secondary font-pip-mono">Show Seconds</Label>
             <Switch
-              checked={settings.showSeconds}
+              checked={localSettings.showSeconds}
               onCheckedChange={(checked) => updateSetting('showSeconds', checked)}
             />
           </div>
@@ -79,7 +69,7 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
           <div className="flex items-center justify-between">
             <Label className="text-pip-text-secondary font-pip-mono">Show Date</Label>
             <Switch
-              checked={settings.showDate}
+              checked={localSettings.showDate}
               onCheckedChange={(checked) => updateSetting('showDate', checked)}
             />
           </div>
@@ -87,7 +77,7 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
           <div className="flex items-center justify-between">
             <Label className="text-pip-text-secondary font-pip-mono">Show Timezone</Label>
             <Switch
-              checked={settings.showTimezone}
+              checked={localSettings.showTimezone}
               onCheckedChange={(checked) => updateSetting('showTimezone', checked)}
             />
           </div>
@@ -98,14 +88,14 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
       id: 'theme',
       label: 'Theme',
       icon: Palette,
-      content: (
+      content: ({ localSettings, updateSetting }: any) => (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto custom-scrollbar">
             {themeOptions.map((theme) => (
               <div
                 key={theme.value}
                 className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
-                  settings.theme === theme.value
+                  localSettings.theme === theme.value
                     ? 'border-primary bg-pip-bg-primary/50 ring-1 ring-primary/50 shadow-lg shadow-primary/20'
                     : 'border-pip-border hover:border-primary/50 hover:bg-pip-bg-primary/20'
                 }`}
@@ -115,16 +105,16 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
                   <div className="relative">
                     <ClockThemePreview
                       theme={theme.value}
-                      showSeconds={settings.showSeconds}
-                      format24={settings.format24}
-                      showDate={settings.showDate}
+                      showSeconds={localSettings.showSeconds}
+                      format24={localSettings.format24}
+                      showDate={localSettings.showDate}
                     />
                     <div className={`absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
-                      settings.theme === theme.value
+                      localSettings.theme === theme.value
                         ? 'border-primary bg-primary text-pip-bg-primary shadow-md'
                         : 'border-pip-border bg-pip-bg-primary/50'
                     }`}>
-                      {settings.theme === theme.value && (
+                      {localSettings.theme === theme.value && (
                         <Check className="w-3 h-3" />
                       )}
                     </div>
