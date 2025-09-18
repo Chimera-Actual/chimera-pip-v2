@@ -55,11 +55,6 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
                 )}
               </div>
             </div>
-            {settings?.theme && (
-              <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                {settings.theme}
-              </Badge>
-            )}
           </div>
         </CardHeader>
       )}
