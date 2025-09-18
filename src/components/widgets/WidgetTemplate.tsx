@@ -117,6 +117,13 @@ export const WidgetTemplate = memo<WidgetTemplateProps>(({
         </CardHeader>
       )}
 
+      {/* Full-width component below header */}
+      <div className="w-full px-4 py-2 bg-pip-bg-secondary/30 border-b border-pip-border">
+        <div className="text-pip-text-secondary font-pip-mono text-xs">
+          Widget Status Bar - Full Width Component
+        </div>
+      </div>
+
       {/* Content */}
       <CardContent className={cn(
         isCollapsed ? "p-4" : (shouldShowHeader ? "px-4 pb-4 pt-0" : "p-4"), 
