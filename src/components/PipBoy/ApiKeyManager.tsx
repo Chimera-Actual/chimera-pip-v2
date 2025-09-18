@@ -84,10 +84,10 @@ export function ApiKeyManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.serviceName || !formData.keyName || !formData.apiUrl || !formData.apiKey) {
+    if (!formData.serviceName || !formData.keyName || !formData.apiKey) {
       toast({
         title: 'Error',
-        description: 'All fields are required',
+        description: 'Service, key name, and API key are required',
         variant: 'destructive',
       });
       return;
@@ -279,7 +279,7 @@ export function ApiKeyManager() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="apiUrl" className="text-foreground">API URL</Label>
+                <Label htmlFor="apiUrl" className="text-foreground">API URL (Optional)</Label>
                 <Input
                   id="apiUrl"
                   value={formData.apiUrl}
