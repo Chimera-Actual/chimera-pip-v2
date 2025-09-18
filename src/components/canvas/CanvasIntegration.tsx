@@ -1,9 +1,9 @@
 import React, { useState, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { WidgetTemplate } from '@/components/widgets/WidgetTemplate';
-import { WidgetInstanceSettingsModal } from '@/components/widgets/WidgetInstanceSettingsModal';
-import { useTabWidgets } from '@/hooks/useTabWidgets';
+
+
+
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,7 +37,7 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
   onUpdateWidget,
   onToggleCollapsed
 }) => {
-  const [settingsWidget, setSettingsWidget] = useState<UserWidget | null>(null);
+  
 
   // Widget interaction handlers with optimistic updates
   const handleCloseWidget = async (widgetId: string) => {
@@ -53,13 +53,9 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
     await onUpdateWidget(widget.id, { widget_width: newWidth });
   };
 
-  const handleSettings = (widget: UserWidget) => {
-    setSettingsWidget(widget);
-  };
 
   const handleSaveSettings = async (widgetId: string, config: any) => {
     await onUpdateWidget(widgetId, { widget_config: config });
-    setSettingsWidget(null);
   };
 
   const renderWidgetContent = (widget: UserWidget) => {
@@ -72,11 +68,10 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             title={widget.widget_config?.title || 'Test Widget'}
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-            widget={null} // Remove circular dependency
-            onRemove={undefined} // Managed by parent
-            onToggleCollapse={undefined} // Managed by parent
-            onToggleFullWidth={undefined} // Managed by parent
-            onOpenSettings={undefined} // Managed by parent
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
           />
         );
       case 'atomicclock':
@@ -87,11 +82,10 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             settings={widget.widget_config || {}}
             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
             widgetId={widget.id}
-            widget={null} // Remove circular dependency
-            onRemove={undefined} // Managed by parent
-            onToggleCollapse={undefined} // Managed by parent
-            onToggleFullWidth={undefined} // Managed by parent
-            onOpenSettings={undefined} // Managed by parent
+            widget={widget}
+            onRemove={() => handleCloseWidget(widget.id)}
+            onToggleCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
           />
         );
       default:
@@ -140,27 +134,15 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
       {/* Widget Grid - Fixed layout that doesn't affect parent height */}
       <div className="grid grid-cols-2 gap-4 auto-rows-max">
         {widgets.map((widget) => (
-          <WidgetTemplate
+          <div
             key={widget.id}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-            onOpenSettings={() => handleSettings(widget)}
+            className={widget.widget_width === 'full' ? 'col-span-2' : 'col-span-1'}
           >
-            {/* Widget Content */}
             {renderWidgetContent(widget)}
-          </WidgetTemplate>
+          </div>
         ))}
       </div>
 
-      {/* Settings Modal */}
-      <WidgetInstanceSettingsModal
-        open={!!settingsWidget}
-        onClose={() => setSettingsWidget(null)}
-        widget={settingsWidget}
-        onSave={handleSaveSettings}
-      />
     </div>
   );
 });
