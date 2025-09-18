@@ -10,6 +10,7 @@ export const useTabManager = () => {
   const [activeTab, setActiveTab] = useState<string>('MAIN');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Load tabs from database
   const loadTabs = useCallback(async () => {
@@ -107,21 +108,23 @@ export const useTabManager = () => {
       } else {
         setTabs(formattedTabs);
 
-        // Validate and set active tab - production-ready logic
-        const currentTab = formattedTabs.find(t => t.name === activeTab);
-        
-        if (!currentTab) {
-          // Current active tab doesn't exist, find best alternative
-          const mainTab = formattedTabs.find(t => t.name === 'MAIN');
-          const firstTab = formattedTabs[0];
+        // Validate and set active tab - but skip during updates to prevent unwanted navigation
+        if (!isUpdating) {
+          const currentTab = formattedTabs.find(t => t.name === activeTab);
           
-          if (mainTab) {
-            setActiveTab('MAIN');
-          } else if (firstTab) {
-            setActiveTab(firstTab.name);
+          if (!currentTab) {
+            // Current active tab doesn't exist, find best alternative
+            const mainTab = formattedTabs.find(t => t.name === 'MAIN');
+            const firstTab = formattedTabs[0];
+            
+            if (mainTab) {
+              setActiveTab('MAIN');
+            } else if (firstTab) {
+              setActiveTab(firstTab.name);
+            }
+            
+            console.warn(`Active tab "${activeTab}" not found, switched to ${mainTab ? 'MAIN' : firstTab?.name || 'none'}`);
           }
-          
-          console.warn(`Active tab "${activeTab}" not found, switched to ${mainTab ? 'MAIN' : firstTab?.name || 'none'}`);
         }
       }
     } catch (err) {
@@ -135,7 +138,7 @@ export const useTabManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, activeTab]);
+  }, [user?.id, isUpdating]);
 
   // Create a new tab - Production-ready with comprehensive validation
   const createTab = useCallback(async (tabData: Partial<TabConfiguration>): Promise<TabConfiguration | null> => {
@@ -300,6 +303,14 @@ export const useTabManager = () => {
     const newName = updates.name;
 
     try {
+      // Set updating flag to prevent loadTabs validation from interfering
+      setIsUpdating(true);
+
+      // Update activeTab immediately if the renamed tab is currently active
+      if (newName && activeTab === oldName) {
+        setActiveTab(newName);
+      }
+
       // Prepare database updates
       const dbUpdates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
@@ -319,11 +330,6 @@ export const useTabManager = () => {
       ).sort((a, b) => a.position - b.position);
 
       setTabs(optimisticTabs);
-
-      // Update activeTab if the renamed tab is currently active
-      if (newName && activeTab === oldName) {
-        setActiveTab(newName);
-      }
 
       // Perform database update - triggers will handle cascading updates
       const { error: updateError } = await supabase
@@ -379,6 +385,9 @@ export const useTabManager = () => {
           variant: 'destructive',
         });
       }
+    } finally {
+      // Clear updating flag
+      setIsUpdating(false);
     }
   }, [user?.id, tabs, activeTab]);
 
