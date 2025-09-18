@@ -81,9 +81,10 @@ export const useTabManager = () => {
     isUpdating: isCreating || isUpdating || isDeleting,
     error: tabsError,
 
-    // Actions
+    // Actions  
     setActiveTab,
     addTab,
+    createTab: addTab,  // Expose createTab for direct access
     updateTab: updateTabById,
     deleteTab: deleteTabById,
     renameTab,
@@ -93,5 +94,22 @@ export const useTabManager = () => {
     createTabMutation: createTab,
     updateTabMutation: updateTab,
     deleteTabMutation: deleteTab,
+    
+    // Additional methods for compatibility
+    archiveTab: deleteTabById,
+    duplicateTab: async (tabId: string) => {
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return { success: false, error: 'Tab not found' };
+      
+      return addTab({
+        name: `${tab.name} Copy`,
+        icon: tab.icon,
+        description: tab.description,
+        color: tab.color,
+        position: tabs.length,
+        isDefault: false,
+        isCustom: true,
+      });
+    },
   };
 };

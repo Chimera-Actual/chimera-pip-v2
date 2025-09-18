@@ -6,7 +6,7 @@ import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardContentProps {

@@ -137,7 +137,7 @@ const SortableTab = ({ tab, isActive, onTabChange, onContextMenu, isMobile }: {
 };
 
 export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
-  const { tabs, createTab, updateTab, reorderTabs, isLoading } = useTabManagerContext();
+  const { tabs, createTab, updateTab, reorderTab, isLoading } = useTabManagerContext();
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<TabConfiguration | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -174,12 +174,12 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
     });
   };
 
-  const handleCreateTab = useCallback(async (tabData: any) => {
+  const handleCreateTabAction = useCallback(async (tabData: any) => {
     await createTab(tabData);
     setShowTabEditor(false);
   }, [createTab]);
 
-  const handleUpdateTab = useCallback(async (tabData: any) => {
+  const handleUpdateTabAction = useCallback(async (tabData: any) => {
     if (editingTab) {
       await updateTab(editingTab.id, tabData);
       setShowTabEditor(false);
@@ -233,7 +233,10 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
       const newIndex = tabs.findIndex((tab) => tab.id === over.id);
       
       const newOrder = arrayMove(tabs, oldIndex, newIndex);
-      reorderTabs(newOrder);
+      // Update positions for each tab
+      newOrder.forEach((tab, index) => {
+        reorderTab(tab.id, index);
+      });
     }
   };
 
@@ -289,7 +292,7 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
         tab={editingTab}
         isOpen={showTabEditor}
         onClose={handleCloseEditor}
-        onSave={editingTab ? handleUpdateTab : handleCreateTab}
+        onSave={editingTab ? handleUpdateTabAction : handleCreateTabAction}
         existingTabs={tabs.map(t => ({ name: t.name, isDefault: t.isDefault, id: t.id }))}
       />
 
