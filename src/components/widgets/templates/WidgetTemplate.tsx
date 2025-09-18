@@ -24,6 +24,7 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
   onOpenSettings,
   widgetSpecificActions,
   showStandardControls = true,
+  children,
   ...props
 }) => {
   const { deleteWidget, updateWidget } = useWidgetManager();
@@ -82,10 +83,24 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
 
   return (
     <BaseWidgetTemplate
-      {...props}
-      widgetSpecificActions={widgetSpecificActions}
-      standardControls={standardControls}
+      title={widget?.widget_config?.title || 'Widget'}
+      widgetId={widget?.id}
+      settings={widget?.widget_config || {}}
+      icon={widget?.widget_config?.icon}
+      showControls={showStandardControls}
       headerActions={props.headerActions}
-    />
+      widgetSpecificActions={widgetSpecificActions}
+      standardControls={showStandardControls ? standardControls : undefined}
+      contentClassName={widget?.is_collapsed ? 'hidden' : ''}
+      {...props}
+    >
+      {widget?.is_collapsed ? (
+        <div className="text-xs text-muted-foreground py-2 px-4">
+          Widget collapsed - click expand to restore
+        </div>
+      ) : (
+        children
+      )}
+    </BaseWidgetTemplate>
   );
 };

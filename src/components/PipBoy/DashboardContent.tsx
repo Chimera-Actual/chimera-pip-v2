@@ -67,7 +67,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
         isCollapsed={isDrawerCollapsed}
         onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
       />
-      <main className={`dashboard-content flex-1 px-6 pb-6 pt-3 transition-all duration-300 ${
+      <main className={`dashboard-content h-full flex flex-col px-6 pb-6 pt-3 transition-all duration-300 ${
         isDrawerCollapsed ? 'ml-12' : 'ml-80'
       } ${className || ''}`}>
         <DashboardHeaderSection
@@ -79,8 +79,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
           isDefaultTab={currentTab?.isDefault || false}
         />
 
-        {/* Canvas Content */}
-        <div className="widget-content">
+        {/* Canvas Content - Takes remaining space with minimum height */}
+        <div className="widget-content flex-1 min-h-[500px]">
           <CanvasIntegration 
             key={`${activeTab}-${refreshKey}`}
             tab={activeTab} 

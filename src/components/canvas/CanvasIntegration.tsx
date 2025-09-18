@@ -148,8 +148,8 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
 
   if (isLoading) {
     return (
-      <div className={`canvas-integration ${className || ''}`}>
-        <div className="flex items-center justify-center h-96">
+      <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
+        <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <div className="text-pip-text-secondary">Loading widgets...</div>
           </div>
@@ -161,10 +161,10 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   if (widgets.length === 0) {
     return (
       <div 
-        className={`canvas-integration ${className || ''}`}
+        className={`canvas-integration relative h-full ${className || ''}`}
         onDoubleClick={onDoubleClick}
       >
-        <div className="flex items-center justify-center h-96 border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+        <div className="flex items-center justify-center min-h-[300px] border-2 border-dashed border-pip-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-foreground mb-2">
               {tab} Content Area
@@ -179,37 +179,27 @@ export const CanvasIntegration: React.FC<CanvasIntegrationProps> = ({ tab, class
   }
 
   return (
-    <div className={`canvas-integration ${className || ''}`}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={`canvas-integration relative h-full ${className || ''}`} onDoubleClick={onDoubleClick}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-min h-full content-start">
         {widgets.map((widget) => (
           <div
             key={widget.id}
-            className={`${
+            className={`relative group min-h-[120px] ${
               widget.widget_config?.fullWidth ? 'md:col-span-2' : ''
             }`}
           >
-            {!widget.is_collapsed && renderWidgetContent(widget)}
-            
-            {widget.is_collapsed && (
-              <Card className="bg-pip-bg-secondary border-pip-border">
-                <CardContent className="p-6">
-                  <div className="text-center text-pip-text-secondary font-pip-mono text-xs italic">
-                    Widget collapsed
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {renderWidgetContent(widget)}
           </div>
         ))}
       </div>
 
-        {/* Widget Instance Settings Modal */}
-        <WidgetInstanceSettingsModal
-          open={!!settingsWidget}
-          onClose={() => setSettingsWidget(null)}
-          widget={settingsWidget}
-          onSave={handleSaveSettings}
-        />
+      {/* Widget Instance Settings Modal */}
+      <WidgetInstanceSettingsModal
+        open={!!settingsWidget}
+        onClose={() => setSettingsWidget(null)}
+        widget={settingsWidget}
+        onSave={handleSaveSettings}
+      />
     </div>
   );
 };

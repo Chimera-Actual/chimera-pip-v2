@@ -82,9 +82,9 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   }
 
   return (
-    <div className={`min-h-screen pip-scanlines ${className}`}>
-      <div className="container mx-auto p-4 max-w-7xl">
-        <Card variant="pip-terminal" className="min-h-[800px] flex flex-col">
+    <div className={`h-screen pip-scanlines ${className}`}>
+      <div className="container mx-auto p-4 max-w-7xl h-full">
+        <Card variant="pip-terminal" className="h-full flex flex-col">
           {/* Dashboard Header */}
           <DashboardHeader 
             colorTheme={colorTheme}
@@ -99,8 +99,10 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
             onTabChange={(tab) => setActiveTab(tab)}
           />
           
-          {/* Dashboard Content */}
-          <DashboardContent activeTab={activeTab} />
+          {/* Dashboard Content - Takes remaining space */}
+          <div className="flex-1 min-h-0">
+            <DashboardContent activeTab={activeTab} />
+          </div>
           
           {/* Dashboard Footer */}
           <DashboardFooter />
