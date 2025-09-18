@@ -70,11 +70,11 @@
     --pip-animation-speed: 0.3s;
     --radius: 6px;
     
-  /* Pip-Boy Effects */
-  --scan-line-opacity: 0.03;
-  --phosphor-glow: 0 0 20px hsl(var(--pip-glow) / 0.3);
-  --text-glow: 0 0 10px hsl(var(--pip-glow) / 0.5);
-  --button-glow: 0 0 15px hsl(var(--pip-glow) / 0.4);
+  /* Pip-Boy Effects - Dynamic intensity based */
+  --scan-line-opacity: calc(0.15 * var(--scan-line-intensity, 0));
+  --phosphor-glow: 0 0 calc(20px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.4 * var(--glow-intensity, 0)));
+  --text-glow: 0 0 calc(15px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.6 * var(--glow-intensity, 0)));
+  --button-glow: 0 0 calc(25px * var(--glow-intensity, 0)) hsl(var(--pip-glow) / calc(0.5 * var(--glow-intensity, 0)));
   --transition-glow: all 0.2s ease-in-out;
 }
 
@@ -202,13 +202,20 @@
       hsl(var(--pip-bg-primary));
   }
   
-  /* Pip-Boy Visual Effects - Only apply when globally enabled */
+  /* Pip-Boy Visual Effects - Enhanced with intensity */
   .glow-effects-enabled .pip-glow {
     box-shadow: var(--phosphor-glow);
+    transition: var(--transition-glow);
   }
   
   .glow-effects-enabled .pip-text-glow {
     text-shadow: var(--text-glow);
+    transition: var(--transition-glow);
+  }
+  
+  .glow-effects-enabled .pip-button-glow {
+    box-shadow: var(--button-glow);
+    transition: var(--transition-glow);
   }
   
   .scan-lines-enabled .pip-scanlines {
@@ -231,6 +238,38 @@
     );
     pointer-events: none;
     z-index: 10;
+    animation: scan-sweep 3s linear infinite;
+  }
+  
+  /* Moving scan line effect */
+  .scan-lines-enabled .pip-scanlines::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      hsl(var(--pip-green-primary) / calc(0.8 * var(--scan-line-intensity, 0))), 
+      transparent
+    );
+    pointer-events: none;
+    z-index: 11;
+    animation: scan-line-move 2s ease-in-out infinite;
+  }
+  
+  @keyframes scan-sweep {
+    0% { opacity: 1; }
+    50% { opacity: calc(0.7 * var(--scan-line-intensity, 0)); }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes scan-line-move {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
   }
   
   .pip-button-glow {
@@ -246,13 +285,13 @@
   }
   
   .pip-widget {
-    @apply pip-terminal pip-glow;
+    @apply pip-terminal pip-glow pip-scanlines;
     border: 2px solid hsl(var(--pip-border-bright) / 0.3);
     backdrop-filter: blur(8px);
   }
   
   .pip-tab-active {
-    @apply pip-button-glow pip-text-glow;
+    @apply pip-button-glow pip-text-glow pip-scanlines;
     background: linear-gradient(135deg, hsl(var(--pip-green-primary) / 0.2), hsl(var(--pip-green-secondary) / 0.1));
     border-color: hsl(var(--pip-green-primary));
   }

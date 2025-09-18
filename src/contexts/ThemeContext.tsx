@@ -9,10 +9,10 @@ interface ThemeContextType {
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
   toggleSound: () => void;
-  glowEffects: boolean;
-  setGlowEffects: (enabled: boolean) => void;
-  scanLines: boolean;
-  setScanLines: (enabled: boolean) => void;
+  glowIntensity: number;
+  setGlowIntensity: (intensity: number) => void;
+  scanLineIntensity: number;
+  setScanLineIntensity: (intensity: number) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -43,12 +43,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return localStorageService.get<boolean>('pip-boy-sound-enabled') ?? true;
   });
 
-  const [glowEffects, setGlowEffectsState] = useState(() => {
-    return localStorageService.get<boolean>('pip-boy-glow-effects') ?? true;
+  const [glowIntensity, setGlowIntensityState] = useState(() => {
+    return localStorageService.get<number>('pip-boy-glow-intensity') ?? 75;
   });
 
-  const [scanLines, setScanLinesState] = useState(() => {
-    return localStorageService.get<boolean>('pip-boy-scan-lines') ?? true;
+  const [scanLineIntensity, setScanLineIntensityState] = useState(() => {
+    return localStorageService.get<number>('pip-boy-scan-line-intensity') ?? 50;
   });
 
   const setTheme = useCallback((theme: PipBoyTheme) => {
@@ -65,14 +65,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     handleSetSoundEnabled(!soundEnabled);
   }, [soundEnabled, handleSetSoundEnabled]);
 
-  const setGlowEffects = useCallback((enabled: boolean) => {
-    setGlowEffectsState(enabled);
-    localStorageService.set('pip-boy-glow-effects', enabled);
+  const setGlowIntensity = useCallback((intensity: number) => {
+    setGlowIntensityState(intensity);
+    localStorageService.set('pip-boy-glow-intensity', intensity);
   }, []);
 
-  const setScanLines = useCallback((enabled: boolean) => {
-    setScanLinesState(enabled);
-    localStorageService.set('pip-boy-scan-lines', enabled);
+  const setScanLineIntensity = useCallback((intensity: number) => {
+    setScanLineIntensityState(intensity);
+    localStorageService.set('pip-boy-scan-line-intensity', intensity);
   }, []);
 
   useEffect(() => {
@@ -80,14 +80,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const root = document.documentElement;
     root.setAttribute('data-theme', currentTheme);
     
-    // Apply visual effects classes
-    if (glowEffects) {
+    // Apply visual effects with intensity
+    root.style.setProperty('--glow-intensity', `${glowIntensity / 100}`);
+    root.style.setProperty('--scan-line-intensity', `${scanLineIntensity / 100}`);
+    
+    // Apply classes based on intensity (0 = disabled)
+    if (glowIntensity > 0) {
       root.classList.add('glow-effects-enabled');
     } else {
       root.classList.remove('glow-effects-enabled');
     }
     
-    if (scanLines) {
+    if (scanLineIntensity > 0) {
       root.classList.add('scan-lines-enabled');
     } else {
       root.classList.remove('scan-lines-enabled');
@@ -207,7 +211,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         root.style.setProperty('--ring', '120 100% 65%');
         break;
     }
-  }, [currentTheme, glowEffects, scanLines]);
+  }, [currentTheme, glowIntensity, scanLineIntensity]);
 
   const value = {
     currentTheme,
@@ -215,10 +219,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     soundEnabled,
     setSoundEnabled: handleSetSoundEnabled,
     toggleSound,
-    glowEffects,
-    setGlowEffects,
-    scanLines,
-    setScanLines,
+    glowIntensity,
+    setGlowIntensity,
+    scanLineIntensity,
+    setScanLineIntensity,
   };
 
   return (

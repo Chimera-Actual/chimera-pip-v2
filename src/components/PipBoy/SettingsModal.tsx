@@ -17,7 +17,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { currentTheme, setTheme, soundEnabled, setSoundEnabled, glowEffects, setGlowEffects, scanLines, setScanLines } = useTheme();
+  const { currentTheme, setTheme, soundEnabled, setSoundEnabled, glowIntensity, setGlowIntensity, scanLineIntensity, setScanLineIntensity } = useTheme();
   const [tempSettings, setTempSettings] = useState({
     theme: currentTheme,
     sound: soundEnabled,
@@ -25,9 +25,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     animationSpeed: 1,
     autoSave: true,
     notifications: true,
-    glowEffects: glowEffects,
-    scanLines: scanLines
+    glowIntensity: glowIntensity,
+    scanLineIntensity: scanLineIntensity
   });
+
+  useEffect(() => {
+    setTempSettings({
+      theme: currentTheme,
+      sound: soundEnabled,
+      volume: 50,
+      animationSpeed: 1,
+      autoSave: true,
+      notifications: true,
+      glowIntensity: glowIntensity,
+      scanLineIntensity: scanLineIntensity
+    });
+  }, [currentTheme, soundEnabled, glowIntensity, scanLineIntensity]);
 
   const themeColors: Record<ColorTheme, { color: string; name: string }> = {
     green: { color: 'hsl(120 100% 50%)', name: 'CLASSIC GREEN' },
@@ -44,8 +57,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const handleSaveSettings = () => {
     setTheme(tempSettings.theme);
     setSoundEnabled(tempSettings.sound);
-    setGlowEffects(tempSettings.glowEffects);
-    setScanLines(tempSettings.scanLines);
+    setGlowIntensity(tempSettings.glowIntensity);
+    setScanLineIntensity(tempSettings.scanLineIntensity);
     onClose();
   };
 
@@ -57,16 +70,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       animationSpeed: 1,
       autoSave: true,
       notifications: true,
-      glowEffects: true,
-      scanLines: true
+      glowIntensity: 75,
+      scanLineIntensity: 50
     });
   };
 
   // Check if settings have changed for dirty state
   const isDirty = tempSettings.theme !== currentTheme || 
                   tempSettings.sound !== soundEnabled || 
-                  tempSettings.glowEffects !== glowEffects || 
-                  tempSettings.scanLines !== scanLines;
+                  tempSettings.glowIntensity !== glowIntensity || 
+                  tempSettings.scanLineIntensity !== scanLineIntensity;
 
   return (
     <BaseSettingsModal
@@ -139,22 +152,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <h3 className="text-lg font-pip-display font-semibold text-pip-text-bright mb-4 pip-text-glow">
                     VISUAL EFFECTS
                   </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-pip-mono text-pip-text-primary">GLOW EFFECTS</Label>
-                      <Switch 
-                        checked={tempSettings.glowEffects} 
-                        onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, glowEffects: checked }))}
-                        className="data-[state=checked]:bg-primary" 
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-pip-mono text-pip-text-primary">GLOW INTENSITY</Label>
+                      <Slider
+                        value={[tempSettings.glowIntensity]}
+                        onValueChange={([value]) => setTempSettings(prev => ({ ...prev, glowIntensity: value }))}
+                        max={100}
+                        step={5}
+                        className="w-full"
                       />
+                      <div className="flex justify-between text-xs font-pip-mono text-pip-text-muted">
+                        <span>OFF</span>
+                        <span>{tempSettings.glowIntensity}%</span>
+                        <span>MAX</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-pip-mono text-pip-text-primary">SCAN LINES</Label>
-                      <Switch 
-                        checked={tempSettings.scanLines} 
-                        onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, scanLines: checked }))}
-                        className="data-[state=checked]:bg-primary" 
+                    <div className="space-y-3">
+                      <Label className="text-sm font-pip-mono text-pip-text-primary">SCAN LINE INTENSITY</Label>
+                      <Slider
+                        value={[tempSettings.scanLineIntensity]}
+                        onValueChange={([value]) => setTempSettings(prev => ({ ...prev, scanLineIntensity: value }))}
+                        max={100}
+                        step={5}
+                        className="w-full"
                       />
+                      <div className="flex justify-between text-xs font-pip-mono text-pip-text-muted">
+                        <span>OFF</span>
+                        <span>{tempSettings.scanLineIntensity}%</span>
+                        <span>MAX</span>
+                      </div>
                     </div>
                   </div>
                 </div>
