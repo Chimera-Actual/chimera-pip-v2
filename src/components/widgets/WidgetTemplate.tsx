@@ -16,6 +16,7 @@ export const WidgetTemplate = memo<WidgetTemplateProps>(({
   headerActions,
   widgetSpecificActions,
   standardControls,
+  statusBarContent,
   children,
   className = '',
   contentClassName = '',
@@ -117,12 +118,12 @@ export const WidgetTemplate = memo<WidgetTemplateProps>(({
         </CardHeader>
       )}
 
-      {/* Full-width component below header */}
-      <div className="w-full px-4 py-2 bg-pip-bg-secondary/30 border-b border-pip-border">
-        <div className="text-pip-text-secondary font-pip-mono text-xs">
-          Widget Status Bar - Full Width Component
+      {/* Status bar - Only show when statusBarContent is provided */}
+      {statusBarContent && (
+        <div className="w-full px-4 py-2 bg-pip-bg-secondary/30 border-b border-pip-border">
+          {statusBarContent}
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <CardContent className={cn(

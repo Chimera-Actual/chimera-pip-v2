@@ -123,14 +123,14 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   const themeClass = `clock-theme-${mergedSettings.theme}`;
 
-  // Widget-specific actions (Clock/Alarms toggle buttons)
-  const widgetSpecificActions = (
-    <div className="flex items-center gap-1">
+  // Status bar content (Clock/Alarms toggle buttons)
+  const statusBarContent = (
+    <div className="flex items-center gap-2">
       <Button
         variant={activePanel === 'clock' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setActivePanel('clock')}
-        className="h-7 px-2 text-xs"
+        className="h-8 px-3 text-xs"
       >
         <Globe className="h-3 w-3 mr-1" />
         Clock
@@ -140,7 +140,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         variant={activePanel === 'alarms' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setActivePanel('alarms')}
-        className="h-7 px-2 text-xs"
+        className="h-8 px-3 text-xs"
       >
         <Bell className="h-3 w-3 mr-1" />
         Alarms
@@ -154,7 +154,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         title={title}
         settings={{...mergedSettings, theme: mergedSettings.theme}}
         icon={Clock}
-        widgetSpecificActions={widgetSpecificActions}
+        statusBarContent={statusBarContent}
         widget={widget}
         onRemove={onRemove}
         onToggleCollapse={onToggleCollapse}
