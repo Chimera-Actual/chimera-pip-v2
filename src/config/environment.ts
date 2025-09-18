@@ -62,6 +62,13 @@ const getNumberEnvVar = (key: string, defaultValue: number): number => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
+const defaultAppBaseUrl = (() => {
+  if (typeof window !== 'undefined' && window.location) {
+    return window.location.origin;
+  }
+  return 'http://localhost:5173';
+})();
+
 // Environment configuration object
 export const environment: EnvironmentConfig = {
   supabase: {
@@ -73,7 +80,7 @@ export const environment: EnvironmentConfig = {
     name: 'Chimera-PIP 4000 mk2',
     version: '2.0.0',
     environment: (import.meta.env.MODE as any) || 'development',
-    baseUrl: getEnvVar('VITE_APP_BASE_URL', window.location.origin),
+    baseUrl: getEnvVar('VITE_APP_BASE_URL', defaultAppBaseUrl),
   },
   
   features: {
