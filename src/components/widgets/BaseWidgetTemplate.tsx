@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
+import { WidgetActionButtons } from './WidgetActionButtons';
 import { cn } from '@/lib/utils';
 import type { WidgetTemplateProps } from '@/types/widget';
 
@@ -64,12 +65,8 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
               </div>
             )}
             
-            {/* Controls - Always show when provided */}
-            {headerActions && (
-              <div className="flex items-center">
-                {headerActions}
-              </div>
-            )}
+            {/* Actions - Always show when provided */}
+            {headerActions}
           </div>
         </CardHeader>
       )}

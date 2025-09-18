@@ -32,6 +32,8 @@ export interface WidgetTemplateProps extends BaseWidgetProps {
   contentClassName?: string;
   headerClassName?: string;
   cardClassName?: string;
+  onSettingsClick?: () => void;
+  additionalActions?: React.ReactNode;
 }
 
 export interface WidgetSettingsTab {

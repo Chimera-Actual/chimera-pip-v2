@@ -1,5 +1,6 @@
 import React from 'react';
 import { BaseWidgetTemplate } from '../BaseWidgetTemplate';
+import { WidgetActionButtons } from '../WidgetActionButtons';
 import { WidgetControlButtons } from '../WidgetControlButtons';
 import { useWidgetManager, type UserWidget } from '@/hooks/useWidgetManager';
 import type { WidgetTemplateProps, BaseWidgetSettings } from '@/types/widget';
@@ -60,12 +61,17 @@ export const StandardWidgetTemplate: React.FC<StandardWidgetTemplateProps> = ({
   };
 
   const headerActions = widget ? (
-    <WidgetControlButtons
-      widget={widget}
-      onClose={handleRemove}
-      onToggleCollapse={handleToggleCollapse}
+    <WidgetActionButtons
       onSettings={handleOpenSettings}
-      onToggleFullWidth={handleToggleFullWidth}
+      additionalActions={
+        <WidgetControlButtons
+          widget={widget}
+          onClose={handleRemove}
+          onToggleCollapse={handleToggleCollapse}
+          onSettings={handleOpenSettings}
+          onToggleFullWidth={handleToggleFullWidth}
+        />
+      }
     />
   ) : props.headerActions;
 

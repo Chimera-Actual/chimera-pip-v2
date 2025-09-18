@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Maximize2, Minimize2, Settings, Expand, Shrink } from 'lucide-react';
+import { X, Maximize2, Minimize2, Expand, Shrink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserWidget } from '@/hooks/useWidgetManager';
 
@@ -18,8 +18,8 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
   onSettings,
   onToggleFullWidth,
 }) => {
-  return (
-    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+  const controlButtons = (
+    <>
       <Button
         variant="ghost"
         size="icon"
@@ -32,16 +32,6 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
         ) : (
           <Expand className="h-3 w-3" />
         )}
-      </Button>
-      
-      <Button
-        variant="ghost"
-        size="icon"
-        className="widget-control-button h-6 w-6 p-0 bg-background/80 hover:bg-background border border-border/50"
-        onClick={onSettings}
-        title="Widget Settings"
-      >
-        <Settings className="h-3 w-3" />
       </Button>
       
       <Button
@@ -67,6 +57,12 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
       >
         <X className="h-3 w-3" />
       </Button>
+    </>
+  );
+
+  return (
+    <div className="flex gap-1">
+      {controlButtons}
     </div>
   );
 };
