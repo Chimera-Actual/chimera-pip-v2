@@ -6,7 +6,7 @@ import { DashboardContent } from './DashboardContent';
 import { DashboardFooter } from './DashboardFooter';
 import { BootSequence } from './BootSequence';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTabManager } from '@/hooks/useTabManager';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
 
 export type ColorTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
 export type PipBoyTab = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
@@ -17,7 +17,7 @@ interface PipBoyContainerProps {
 
 export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) => {
   const { profile, updateProfile } = useAuth();
-  const { tabs, activeTab, setActiveTab, isLoading: tabsLoading } = useTabManager();
+  const { tabs, activeTab, setActiveTab, isLoading: tabsLoading } = useTabManagerContext();
   const [colorTheme, setColorTheme] = useState<ColorTheme>('green');
   const [isBooting, setIsBooting] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);

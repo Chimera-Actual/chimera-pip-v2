@@ -2,7 +2,7 @@ import React, { useState, memo, useCallback, useEffect } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
-import { useTabManager } from '@/hooks/useTabManager';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useWidgetManager } from '@/hooks/useWidgetManager';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 
@@ -21,7 +21,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [refreshKey, setRefreshKey] = useState(0);
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   
-  const { tabs, updateTab, deleteTab, archiveTab } = useTabManager();
+  const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
   const { addWidget } = useWidgetManager();
   
   const currentTab = tabs.find(tab => tab.name === activeTab);

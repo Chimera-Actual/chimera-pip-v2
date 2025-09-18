@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, GripVertical } from 'lucide-react';
 import { PipBoyTab } from './PipBoyContainer';
-import { useTabManager } from '@/hooks/useTabManager';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { TabEditor } from '@/components/tabManagement/TabEditor';
 import { TabContextMenu } from './TabContextMenu';
 import { TabConfiguration } from '@/types/tabManagement';
@@ -137,7 +137,7 @@ const SortableTab = ({ tab, isActive, onTabChange, onContextMenu, isMobile }: {
 };
 
 export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
-  const { tabs, createTab, updateTab, reorderTabs, isLoading } = useTabManager();
+  const { tabs, createTab, updateTab, reorderTabs, isLoading } = useTabManagerContext();
   const [showTabEditor, setShowTabEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<TabConfiguration | null>(null);
   const [contextMenu, setContextMenu] = useState<{

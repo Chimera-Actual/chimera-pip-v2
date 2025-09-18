@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Edit3, Copy, Trash2, X, Settings2, Eye } from 'lucide-react';
 import { TabConfiguration } from '@/types/tabManagement';
-import { useTabManager } from '@/hooks/useTabManager';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,7 +18,7 @@ export const TabContextMenu: React.FC<TabContextMenuProps> = ({
   onClose,
   onEdit
 }) => {
-  const { deleteTab, duplicateTab } = useTabManager();
+  const { deleteTab, duplicateTab } = useTabManagerContext();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

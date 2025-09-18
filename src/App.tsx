@@ -10,6 +10,7 @@ import { PerformanceProvider } from "@/features/state-management";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TabManagerProvider } from "@/contexts/TabManagerContext";
 
 // Lazy load auth components
 const VaultLogin = lazy(() => import("@/components/auth/VaultLogin").then(m => ({ default: m.VaultLogin })));
@@ -76,7 +77,8 @@ const App = () => {
           <TooltipProvider>
             <ThemeProvider>
               <AuthProvider>
-                <PerformanceProvider enableByDefault={import.meta.env.DEV}>
+                <TabManagerProvider>
+                  <PerformanceProvider enableByDefault={import.meta.env.DEV}>
                         <BrowserRouter>
                           <div className="min-h-screen bg-background font-pip-mono antialiased">
                             <Suspense fallback={<LoadingFallback />}>
@@ -120,6 +122,7 @@ const App = () => {
                           </div>
                         </BrowserRouter>
                       </PerformanceProvider>
+                </TabManagerProvider>
               </AuthProvider>
             </ThemeProvider>
           </TooltipProvider>

@@ -586,7 +586,7 @@ export const useTabManager = () => {
   }, [loadTabs]);
 
   return {
-    tabs: tabs.sort((a, b) => a.position - b.position),
+    tabs: [...tabs].sort((a, b) => a.position - b.position),
     activeTab,
     setActiveTab,
     isLoading,
