@@ -146,7 +146,7 @@ export const ClockSettingsModal: React.FC<ClockSettingsModalProps> = ({
 
   const customTabs: WidgetSettingsTab[] = [
     {
-      id: 'display',
+      id: 'clock-display',
       label: 'Display Settings',
       icon: Clock,
       content: () => (
