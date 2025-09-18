@@ -1,36 +1,131 @@
-import React from 'react';
-import { Key } from 'lucide-react';
-import { UniversalSettingsTemplate } from '@/components/settings/UniversalSettingsTemplate';
-import { ApiKeyManager } from './ApiKeyManager';
-import type { SettingsSection } from '@/types/settings';
+import React, { useState } from 'react';
+import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsGroup, SettingsInput } from '@/components/ui/SettingsControls';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 
 interface ApiKeysModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ApiKeysModal: React.FC<ApiKeysModalProps> = ({ isOpen, onClose }) => {
-  const sections: SettingsSection[] = [
-    {
-      id: 'api-keys',
-      title: 'API Key Management',
-      description: 'Manage external service integrations and authentication',
-      icon: Key,
-      order: 1,
-      content: <ApiKeyManager />
-    }
-  ];
+interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  created: Date;
+}
+
+export const ApiKeysModal: React.FC<ApiKeysModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+
+  const addApiKey = () => {
+    if (!newKeyName.trim()) return;
+
+    const newKey: ApiKey = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newKeyName,
+      key: 'ak_' + Math.random().toString(36).substr(2, 20),
+      created: new Date(),
+    };
+
+    setApiKeys(prev => [...prev, newKey]);
+    setNewKeyName('');
+  };
+
+  const removeApiKey = (id: string) => {
+    setApiKeys(prev => prev.filter(key => key.id !== id));
+    setShowKeys(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  };
+
+  const toggleKeyVisibility = (id: string) => {
+    setShowKeys(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
-    <UniversalSettingsTemplate
+    <SettingsModal
       isOpen={isOpen}
       onClose={onClose}
-      title="EXTERNAL SERVICE KEYS"
-      description="MANAGE API KEYS FOR THIRD-PARTY INTEGRATIONS"
-      sections={sections}
-      size="large"
+      title="API Key Management"
+      description="Manage your API keys for external services and integrations"
       showSaveButton={false}
       showResetButton={false}
-    />
+    >
+      <SettingsGroup title="Create New API Key" description="Generate a new API key for service integration">
+        <div className="flex gap-2">
+          <SettingsInput
+            label=""
+            value={newKeyName}
+            onChange={setNewKeyName}
+            placeholder="Enter key name (e.g., 'Weather Service')"
+          />
+          <Button onClick={addApiKey} disabled={!newKeyName.trim()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Key
+          </Button>
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup title="Existing API Keys" description="Manage your current API keys">
+        {apiKeys.length === 0 ? (
+          <div className="text-center py-8 text-pip-text-muted">
+            <p>No API keys configured</p>
+            <p className="text-sm">Create your first API key above</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {apiKeys.map((apiKey) => (
+              <div key={apiKey.id} className="flex items-center justify-between p-3 bg-pip-surface rounded border border-pip-border">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-pip-text-bright">{apiKey.name}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      Active
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm text-pip-text-muted">
+                      {showKeys[apiKey.id] ? apiKey.key : '••••••••••••••••••••'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleKeyVisibility(apiKey.id)}
+                    >
+                      {showKeys[apiKey.id] ? (
+                        <EyeOff className="h-3 w-3" />
+                      ) : (
+                        <Eye className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-pip-text-muted mt-1">
+                    Created: {apiKey.created.toLocaleDateString()}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeApiKey(apiKey.id)}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </SettingsGroup>
+    </SettingsModal>
   );
 };

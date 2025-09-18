@@ -4,7 +4,7 @@ import { Settings, Volume2, VolumeX, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ColorTheme } from './PipBoyContainer';
 import { UserAvatar } from './UserAvatar';
-import { SettingsModal } from './SettingsModal';
+import { PipBoySettingsModal } from './SettingsModal';
 
 interface PipBoyHeaderProps {
   colorTheme: ColorTheme;
@@ -68,7 +68,7 @@ export const PipBoyHeader: React.FC<PipBoyHeaderProps> = ({
       </div>
       
       {/* Settings Modal */}
-      <SettingsModal 
+      <PipBoySettingsModal 
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)} 
       />

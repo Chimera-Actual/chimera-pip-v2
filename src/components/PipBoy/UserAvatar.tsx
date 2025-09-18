@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { UserProfileModal } from './UserProfileModal';
 import { ApiKeysModal } from './ApiKeysModal';
-import { SettingsModal } from './SettingsModal';
+import { PipBoySettingsModal } from './SettingsModal';
 
 interface UserAvatarProps {
   className?: string;
@@ -129,7 +129,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
         isOpen={showApiKeysModal} 
         onClose={() => setShowApiKeysModal(false)} 
       />
-      <SettingsModal 
+      <PipBoySettingsModal 
         isOpen={showSettingsModal} 
         onClose={() => setShowSettingsModal(false)} 
       />
