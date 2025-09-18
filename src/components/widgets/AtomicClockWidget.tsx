@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
+import { BaseWidgetTemplate } from './BaseWidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { ClockSettingsModal } from './clock/ClockSettingsModal';
@@ -113,67 +113,67 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   const themeClass = `clock-theme-${mergedSettings.theme}`;
 
+  const headerActions = (
+    <div className="flex items-center gap-1">
+      <Button
+        variant={activePanel === 'clock' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setActivePanel('clock')}
+        className="h-7 px-2 text-xs"
+      >
+        <Globe className="h-3 w-3 mr-1" />
+        Clock
+      </Button>
+      
+      <Button
+        variant={activePanel === 'alarms' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setActivePanel('alarms')}
+        className="h-7 px-2 text-xs"
+      >
+        <Bell className="h-3 w-3 mr-1" />
+        Alarms
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowSettings(true)}
+        className="h-7 px-2 text-xs"
+      >
+        <Settings className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+
   return (
-    <Card className={`atomic-clock-widget ${themeClass} bg-pip-bg-secondary border-pip-border relative overflow-hidden`}>
-      {/* Visual Effects Canvas */}
-      {mergedSettings.effects.particles && (
-        <VisualEffectsRenderer
-          ref={canvasRef}
-          theme={mergedSettings.theme}
-          effects={mergedSettings.effects}
-        />
-      )}
+    <>
+      <BaseWidgetTemplate
+        title={title}
+        settings={{...mergedSettings, theme: mergedSettings.theme}}
+        icon={Clock}
+        headerActions={headerActions}
+        contentClassName="p-4"
+        className={`atomic-clock-widget clock-theme-${mergedSettings.theme} relative overflow-hidden`}
+      >
+        {/* Visual Effects Canvas */}
+        {mergedSettings.effects.particles && (
+          <VisualEffectsRenderer
+            ref={canvasRef}
+            theme={mergedSettings.theme}
+            effects={mergedSettings.effects}
+          />
+        )}
 
-      {/* Scanlines Overlay */}
-      {mergedSettings.effects.scanlines && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="scanlines opacity-20" />
-        </div>
-      )}
-
-      <CardContent className="p-4 relative z-10">
-        {/* Header with title and controls */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            <h3 className="text-pip-text-bright font-pip-display text-lg">
-              {title}
-            </h3>
+        {/* Scanlines Overlay */}
+        {mergedSettings.effects.scanlines && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="scanlines opacity-20" />
           </div>
-          
-          <div className="flex items-center gap-2">
-            {/* Panel Toggle Buttons */}
-            <Button
-              variant={activePanel === 'clock' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActivePanel('clock')}
-              className="pip-button-secondary text-xs"
-            >
-              <Globe className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant={activePanel === 'alarms' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActivePanel('alarms')}
-              className="pip-button-secondary text-xs"
-            >
-              <Bell className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSettings(true)}
-              className="pip-button-secondary text-xs"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        )}
 
         {/* Panel Content */}
-        <div className="min-h-[200px]">
+        <div className="min-h-[200px] relative z-10">
           {activePanel === 'clock' ? (
             <ConsolidatedClocksPanel
               currentTime={currentTime}
@@ -188,7 +188,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             />
           )}
         </div>
-      </CardContent>
+      </BaseWidgetTemplate>
 
       {/* Settings Modal */}
       <ClockSettingsModal
@@ -197,8 +197,6 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         settings={mergedSettings}
         onSave={handleSettingsUpdate}
       />
-
-      {/* Theme-specific styles are handled via CSS classes */}
-    </Card>
+    </>
   );
 };
