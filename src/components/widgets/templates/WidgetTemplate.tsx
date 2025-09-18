@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { BaseWidgetTemplate } from '@/components/widgets/BaseWidgetTemplate';
 import { WidgetActionButtons } from '@/components/widgets/WidgetActionButtons';
 import { WidgetControlButtons } from '@/components/widgets/WidgetControlButtons';
+import { getTabIcon } from '@/utils/iconMapping';
 import type { UserWidget } from '@/hooks/useWidgetManager';
 
 interface WidgetTemplateProps {
@@ -46,6 +47,13 @@ export const StandardWidgetTemplate = memo<StandardWidgetTemplateProps>(({
           {/* Widget Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
+              {(() => {
+                const IconComponent = getTabIcon(
+                  widget?.widget_type || 'widget',
+                  widget?.widget_config?.icon
+                );
+                return <IconComponent className="w-4 h-4 text-pip-primary" />;
+              })()}
               <h3 className="text-pip-text-primary font-pip-display text-sm font-semibold">
                 {widget?.widget_config?.title || widget?.widget_type || 'Widget'}
               </h3>
