@@ -105,7 +105,7 @@ export const TabWidgetDrawer: React.FC<TabWidgetDrawerProps> = ({
               className="w-full justify-start gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
             >
               <Plus className="h-4 w-4" />
-              Add Widget to {activeTab}
+              Add Widget
             </Button>
 
             {/* Widget Instances */}
