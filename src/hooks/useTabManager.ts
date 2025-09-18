@@ -282,13 +282,11 @@ export const useTabManager = () => {
         throw deleteError;
       }
 
+      const remainingTabs = tabs.filter(t => t.id !== tabId);
       setTabs(prev => prev.filter(t => t.id !== tabId));
 
-      if (activeTab === tab?.name) {
-        const remainingTabs = tabs.filter(t => t.id !== tabId);
-        if (remainingTabs.length > 0) {
-          setActiveTab(remainingTabs[0].name);
-        }
+      if (activeTab === tab?.name && remainingTabs.length > 0) {
+        setActiveTab(remainingTabs[0].name);
       }
 
       toast({
