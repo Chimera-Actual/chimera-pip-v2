@@ -41,25 +41,26 @@ export const timeUtils = {
    */
   formatTime: (date: Date, format24: boolean = false, showSeconds: boolean = true, timezone?: string): string => {
     const timeData = timeUtils.getTimeData(date, timezone);
-    
-    let timeStr = '';
+    const seconds = timeData.seconds.toString().padStart(2, '0');
     
     if (format24) {
-      const hours = date.getHours().toString().padStart(2, '0');
+      // For 24-hour format, get the actual 24-hour value considering timezone
+      const targetDate = timezone ? 
+        new Date(date.toLocaleString("en-US", { timeZone: timezone })) : 
+        date;
+      const hours = targetDate.getHours().toString().padStart(2, '0');
       const minutes = timeData.minutes.toString().padStart(2, '0');
-      timeStr = `${hours}:${minutes}`;
+      
+      return showSeconds ? `${hours}:${minutes}:${seconds}` : `${hours}:${minutes}`;
     } else {
+      // For 12-hour format
       const hours = timeData.hours.toString().padStart(2, '0');
       const minutes = timeData.minutes.toString().padStart(2, '0');
-      timeStr = `${hours}:${minutes} ${timeData.ampm}`;
+      
+      return showSeconds ? 
+        `${hours}:${minutes}:${seconds} ${timeData.ampm}` : 
+        `${hours}:${minutes} ${timeData.ampm}`;
     }
-
-    if (showSeconds) {
-      const seconds = timeData.seconds.toString().padStart(2, '0');
-      timeStr = timeStr.replace(timeData.ampm ? ` ${timeData.ampm}` : '', `:${seconds}${timeData.ampm ? ` ${timeData.ampm}` : ''}`);
-    }
-
-    return timeStr;
   },
 
   /**
