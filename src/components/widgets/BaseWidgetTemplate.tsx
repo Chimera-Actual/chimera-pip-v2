@@ -21,7 +21,8 @@ export const BaseWidgetTemplate: React.FC<WidgetTemplateProps> = ({
   cardClassName = ''
 }) => {
   // Check if we're inside a PipBoy tab context (contextual header)
-  const isInTabContext = window.location.pathname === '/';
+  // Only apply seamless styling when actually inside PipBoy tab components, not on main canvas
+  const isInTabContext = false; // Always show proper containers on main canvas
   const displayTitle = settings?.title || title || 'Widget';
   
   // In tab context: always show header with title and icon, controls are handled externally
