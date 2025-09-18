@@ -5,7 +5,8 @@ import { WidgetTemplate } from './WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsGroup, SettingsToggle, SettingsSelect } from '@/components/ui/SettingsControls';
+import { SettingsGroup, SettingsToggle, SettingsSelect, SettingsSlider } from '@/components/ui/SettingsControls';
+import { ClockThemePreview } from './clock/ClockThemePreview';
 import { VisualEffectsRenderer } from './clock/VisualEffectsRenderer';
 import { useLocalStorage } from '@/hooks/core/useLocalStorage';
 import { timeUtils } from './clock/utils/timeUtils';
@@ -87,11 +88,12 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
 
   const mergedSettings = { ...defaultSettings, ...settings };
 
-  const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'theme'>>({
+  const [tempSettings, setTempSettings] = useState<Pick<AtomicClockSettings, 'format24' | 'showSeconds' | 'showDate' | 'theme' | 'effects'>>({
     format24: mergedSettings.format24,
     showSeconds: mergedSettings.showSeconds,
     showDate: mergedSettings.showDate,
     theme: mergedSettings.theme,
+    effects: mergedSettings.effects,
   });
   const [isDirty, setIsDirty] = useState(false);
 
@@ -102,19 +104,21 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         showSeconds: mergedSettings.showSeconds,
         showDate: mergedSettings.showDate,
         theme: mergedSettings.theme,
+        effects: mergedSettings.effects,
       });
       setIsDirty(false);
     }
-  }, [showSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme]);
+  }, [showSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme, mergedSettings.effects]);
 
   useEffect(() => {
     const dirty =
       tempSettings.format24 !== mergedSettings.format24 ||
       tempSettings.showSeconds !== mergedSettings.showSeconds ||
       tempSettings.showDate !== mergedSettings.showDate ||
-      tempSettings.theme !== mergedSettings.theme;
+      tempSettings.theme !== mergedSettings.theme ||
+      JSON.stringify(tempSettings.effects) !== JSON.stringify(mergedSettings.effects);
     setIsDirty(dirty);
-  }, [tempSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme]);
+  }, [tempSettings, mergedSettings.format24, mergedSettings.showSeconds, mergedSettings.showDate, mergedSettings.theme, mergedSettings.effects]);
 
   // Time update effect
   useEffect(() => {
@@ -239,6 +243,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
           showSeconds: mergedSettings.showSeconds,
           showDate: mergedSettings.showDate,
           theme: mergedSettings.theme,
+          effects: mergedSettings.effects,
         })}
         isDirty={isDirty}
       >
@@ -263,18 +268,70 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             checked={tempSettings.showDate}
             onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, showDate: checked }))}
           />
+        </SettingsGroup>
 
+        <SettingsGroup title="Theme" description="Choose and preview your clock theme">
           <SettingsSelect
-            label="Theme"
+            label="Clock Theme"
             description="Select the visual theme for the clock"
             value={tempSettings.theme}
             onChange={(value) => setTempSettings(prev => ({ ...prev, theme: value }))}
             options={[
               { value: 'vault-tec', label: 'Vault-Tec' },
               { value: 'military', label: 'Military' },
+              { value: 'nixie', label: 'Nixie Tube' },
+              { value: 'led', label: 'LED Display' },
+              { value: 'terminal', label: 'Terminal' },
+              { value: 'plasma', label: 'Plasma' },
+              { value: 'hologram', label: 'Hologram' },
+              { value: 'retro-lcd', label: 'Retro LCD' },
               { value: 'retro', label: 'Retro' },
               { value: 'minimal', label: 'Minimal' },
             ]}
+          />
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-pip-text-bright">Theme Preview</label>
+            <div className="border border-pip-border rounded-lg p-4 bg-pip-surface">
+              <ClockThemePreview
+                theme={tempSettings.theme}
+                showSeconds={tempSettings.showSeconds}
+                format24={tempSettings.format24}
+                showDate={tempSettings.showDate}
+              />
+            </div>
+          </div>
+        </SettingsGroup>
+
+        <SettingsGroup title="Visual Effects" description="Enable atmospheric visual effects">
+          <SettingsToggle
+            label="Particle Effects"
+            description="Show animated particles in the background"
+            checked={tempSettings.effects.particles}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ 
+              ...prev, 
+              effects: { ...prev.effects, particles: checked }
+            }))}
+          />
+
+          <SettingsToggle
+            label="Scanlines"
+            description="Add retro CRT-style scanlines overlay"
+            checked={tempSettings.effects.scanlines}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ 
+              ...prev, 
+              effects: { ...prev.effects, scanlines: checked }
+            }))}
+          />
+
+          <SettingsToggle
+            label="Glow Effect"
+            description="Add atmospheric glow around the clock"
+            checked={tempSettings.effects.glow}
+            onCheckedChange={(checked) => setTempSettings(prev => ({ 
+              ...prev, 
+              effects: { ...prev.effects, glow: checked }
+            }))}
           />
         </SettingsGroup>
       </SettingsModal>
