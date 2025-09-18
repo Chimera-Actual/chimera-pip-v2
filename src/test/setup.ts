@@ -2,18 +2,18 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn(() => ({
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   disconnect: vi.fn(),
   unobserve: vi.fn(),
-}))
+})) as any
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn(() => ({
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   disconnect: vi.fn(),
   unobserve: vi.fn(),
-}))
+})) as any
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -36,7 +36,9 @@ const localStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-}
+  length: 0,
+  key: vi.fn(),
+} as Storage
 global.localStorage = localStorageMock
 
 // Mock console methods in test environment

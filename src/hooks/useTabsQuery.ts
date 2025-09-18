@@ -15,7 +15,7 @@ export const useTabsQuery = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const result = await db.getUserData<TabConfiguration>('user_tabs', user.id, {
+      const result = await db.getUserData<any>('user_tabs', user.id, {
         order: [{ column: 'position', ascending: true }],
       });
       
@@ -23,8 +23,16 @@ export const useTabsQuery = () => {
         throw new Error(result.error?.userMessage || 'Failed to load tabs');
       }
       
-      return result.data.map(tab => ({
-        ...tab,
+      return result.data.map((tab: any) => ({
+        id: tab.id,
+        name: tab.name,
+        icon: tab.icon,
+        description: tab.description || '',
+        color: tab.color || undefined,
+        position: tab.position,
+        isDefault: tab.is_default,
+        isCustom: tab.is_custom,
+        userId: tab.user_id,
         createdAt: new Date(tab.created_at || ''),
         updatedAt: new Date(tab.updated_at || ''),
       }));
@@ -57,12 +65,12 @@ export const useTabsQuery = () => {
       // Update query cache optimistically
       queryClient.setQueryData(
         queryKeys.tabs(user?.id || ''),
-        (old: TabConfiguration[] = []) => [...old, newTab].sort((a, b) => a.position - b.position)
+        (old: TabConfiguration[] = []) => [...old, newTab as TabConfiguration].sort((a, b) => a.position - b.position)
       );
       
       toast({
         title: 'Tab Created',
-        description: `Successfully created tab "${newTab.name}"`,
+        description: `Successfully created tab "${(newTab as any).name}"`,
       });
     },
     onError: (error) => {
@@ -122,7 +130,7 @@ export const useTabsQuery = () => {
     onSuccess: (updatedTab) => {
       toast({
         title: 'Tab Updated',
-        description: `Successfully updated tab "${updatedTab.name}"`,
+        description: `Successfully updated tab "${(updatedTab as any).name}"`,
       });
     },
   });

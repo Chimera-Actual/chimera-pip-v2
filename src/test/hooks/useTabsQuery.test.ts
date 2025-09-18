@@ -1,4 +1,5 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import React from 'react'
+import { renderHook } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTabsQuery } from '@/hooks/useTabsQuery'
@@ -18,11 +19,9 @@ const createWrapper = () => {
     },
   })
   
-  return ({ children }: { children: any }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children)
+  }
 }
 
 describe('useTabsQuery', () => {
@@ -38,9 +37,9 @@ describe('useTabsQuery', () => {
         name: 'Test Tab',
         icon: 'folder',
         position: 0,
-        isDefault: true,
-        isCustom: false,
-        userId: 'user-1',
+        is_default: true,
+        is_custom: false,
+        user_id: 'user-1',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
@@ -56,7 +55,8 @@ describe('useTabsQuery', () => {
     const wrapper = createWrapper()
     const { result } = renderHook(() => useTabsQuery(), { wrapper })
 
-    await waitFor(() => {
+    // Wait for the query to complete
+    await vi.waitFor(() => {
       expect(result.current.tabs).toHaveLength(1)
     })
 
@@ -84,6 +84,8 @@ describe('useTabsQuery', () => {
       position: 1,
       isDefault: false,
       isCustom: true,
+      description: 'Test description',
+      color: '#ff0000',
     }
 
     vi.mocked(useAuth).mockReturnValue({ user: mockUser } as any)
@@ -101,13 +103,13 @@ describe('useTabsQuery', () => {
     const wrapper = createWrapper()
     const { result } = renderHook(() => useTabsQuery(), { wrapper })
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(result.current.isLoading).toBe(false)
     })
 
     result.current.createTab(newTab)
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(result.current.isCreating).toBe(false)
     })
 
@@ -135,7 +137,7 @@ describe('useTabsQuery', () => {
     const wrapper = createWrapper()
     const { result } = renderHook(() => useTabsQuery(), { wrapper })
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(result.current.error).toBeTruthy()
     })
 
