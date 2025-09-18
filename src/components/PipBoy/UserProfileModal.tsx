@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsGroup, SettingsToggle, SettingsInput } from '@/components/ui/SettingsControls';
+import { SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls';
+import { PrimarySettingsGroup, SecondarySettingsGroup, DangerZoneGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Upload, User, Shield, Bell, AlertTriangle } from 'lucide-react';
@@ -77,7 +78,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       isDirty={isDirty}
       isLoading={isLoading}
     >
-      <SettingsGroup title="Character Profile" description="Your Pip-Boy character information">
+      <PrimarySettingsGroup 
+        title="Character Profile" 
+        description="Manage your Pip-Boy character information and appearance"
+      >
         <div className="flex items-center gap-4 p-4 bg-pip-surface rounded-lg border border-pip-border">
           <Avatar className="h-16 w-16">
             <AvatarImage src={user?.user_metadata?.avatar_url} />
@@ -98,7 +102,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         
         <SettingsInput
           label="Character Name"
-          description="Your character's display name"
+          description="Your character's display name shown throughout the interface"
           value={tempSettings.characterName}
           onChange={(value) => {
             setTempSettings(prev => ({ ...prev, characterName: value }));
@@ -109,7 +113,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         
         <SettingsInput
           label="Vault Number"
-          description="Your home vault identification"
+          description="Your home vault identification number"
           value={tempSettings.vaultNumber}
           onChange={(value) => {
             setTempSettings(prev => ({ ...prev, vaultNumber: value }));
@@ -118,14 +122,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           placeholder="e.g., 111"
           type="number"
         />
-      </SettingsGroup>
+      </PrimarySettingsGroup>
 
-      <SettingsGroup title="Account Security" description="Manage your account security settings">
+      <SecondarySettingsGroup 
+        title="Account Security" 
+        description="Manage authentication and security preferences"
+      >
         <div className="flex items-center gap-3 p-3 bg-pip-surface rounded border border-pip-border">
           <Shield className="h-5 w-5 text-pip-accent" />
           <div className="flex-1">
             <p className="text-sm font-medium text-pip-text-bright">Two-Factor Authentication</p>
-            <p className="text-xs text-pip-text-muted">Not configured</p>
+            <p className="text-xs text-pip-text-muted">Add an extra layer of account security</p>
           </div>
           <Button variant="outline" size="sm">Enable</Button>
         </div>
@@ -134,9 +141,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <Shield className="h-4 w-4 mr-2" />
           Change Password
         </Button>
-      </SettingsGroup>
+      </SecondarySettingsGroup>
 
-      <SettingsGroup title="Notification Preferences" description="Control what notifications you receive">
+      <SecondarySettingsGroup 
+        title="Notification Preferences" 
+        description="Control what notifications and alerts you receive"
+      >
         <SettingsToggle
           label="System Notifications"
           description="Important system updates and maintenance alerts"
@@ -166,16 +176,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             setIsDirty(true);
           }}
         />
-      </SettingsGroup>
+      </SecondarySettingsGroup>
 
-      <div className="pt-4 border-t border-pip-border/30">
-        <SettingsGroup title="Danger Zone" description="Irreversible account actions">
-          <Button variant="destructive" className="w-full justify-start">
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            Delete Account
-          </Button>
-        </SettingsGroup>
-      </div>
+      <DangerZoneGroup 
+        title="Danger Zone" 
+        description="Irreversible account actions - proceed with caution"
+      >
+        <Button variant="destructive" className="w-full justify-start">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          Delete Account
+        </Button>
+      </DangerZoneGroup>
     </SettingsModal>
   );
 };

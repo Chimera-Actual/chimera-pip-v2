@@ -5,7 +5,8 @@ import { WidgetTemplate } from './WidgetTemplate';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsGroup, SettingsToggle } from '@/components/ui/SettingsControls';
+import { SettingsToggle } from '@/components/ui/SettingsControls';
+import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { VisualEffectsRenderer } from './clock/VisualEffectsRenderer';
 import { timeUtils } from './clock/utils/timeUtils';
 
@@ -244,7 +245,10 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         })}
         isDirty={isDirty}
       >
-        <SettingsGroup title="Display Options" description="Customize how time is displayed">
+        <PrimarySettingsGroup 
+          title="Time Display" 
+          description="Configure how time and date information is shown"
+        >
           <SettingsToggle
             label="24-Hour Format"
             description="Show time in 24-hour format instead of 12-hour with AM/PM"
@@ -265,10 +269,12 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             checked={tempSettings.showDate}
             onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, showDate: checked }))}
           />
-        </SettingsGroup>
+        </PrimarySettingsGroup>
 
-
-        <SettingsGroup title="Visual Effects" description="Enable atmospheric visual effects">
+        <SecondarySettingsGroup 
+          title="Visual Effects" 
+          description="Customize atmospheric and visual enhancements"
+        >
           <SettingsToggle
             label="Particle Effects"
             description="Show animated particles in the background"
@@ -298,7 +304,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
               effects: { ...prev.effects, glow: checked }
             }))}
           />
-        </SettingsGroup>
+        </SecondarySettingsGroup>
       </SettingsModal>
     </>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsGroup, SettingsToggle, SettingsSelect, SettingsSlider } from '@/components/ui/SettingsControls';
+import { SettingsSelect, SettingsSlider, SettingsToggle } from '@/components/ui/SettingsControls';
+import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { useTheme, type PipBoyTheme, type ScrollingScanLineMode } from '@/contexts/ThemeContext';
 
 interface PipBoySettingsModalProps {
@@ -102,7 +103,10 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
       onReset={handleReset}
       isDirty={isDirty}
     >
-      <SettingsGroup title="Appearance & Theme" description="Customize the visual appearance of your Pip-Boy">
+      <PrimarySettingsGroup 
+        title="Appearance & Theme" 
+        description="Customize the visual appearance of your Pip-Boy interface"
+      >
         <SettingsSelect
           label="Color Theme"
           description="Choose your preferred color scheme"
@@ -120,21 +124,27 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
           max={100}
           unit="%"
         />
-      </SettingsGroup>
+      </PrimarySettingsGroup>
 
-      <SettingsGroup title="Audio & Sound" description="Configure sound and audio preferences">
+      <SecondarySettingsGroup 
+        title="Audio & Sound" 
+        description="Configure sound and audio experience settings"
+      >
         <SettingsToggle
           label="Sound Effects"
-          description="Enable or disable Pip-Boy sound effects"
+          description="Enable or disable Pip-Boy sound effects and audio feedback"
           checked={tempSettings.sound}
           onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, sound: checked }))}
         />
-      </SettingsGroup>
+      </SecondarySettingsGroup>
 
-      <SettingsGroup title="Interface & Performance" description="Adjust interface behavior and performance settings">
+      <SecondarySettingsGroup 
+        title="Interface & Performance" 
+        description="Adjust visual effects and performance optimization settings"
+      >
         <SettingsSlider
           label="Background Scan Lines"
-          description="Intensity of background scan line effects"
+          description="Control the intensity of background scan line effects"
           value={tempSettings.backgroundLines}
           onChange={(value) => setTempSettings(prev => ({ ...prev, backgroundLines: value }))}
           min={0}
@@ -144,12 +154,12 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
         
         <SettingsSelect
           label="Scrolling Scan Lines"
-          description="Style of scrolling scan line effects"
+          description="Choose the style and behavior of scrolling scan line effects"
           value={tempSettings.scrollingLines}
           onChange={(value) => setTempSettings(prev => ({ ...prev, scrollingLines: value as ScrollingScanLineMode }))}
           options={scrollingOptions}
         />
-      </SettingsGroup>
+      </SecondarySettingsGroup>
     </SettingsModal>
   );
 };

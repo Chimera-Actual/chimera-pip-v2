@@ -4,7 +4,8 @@ import { reportError } from '@/lib/errorReporting';
 import { Button } from '@/components/ui/button';
 import { Edit, Palette, Info } from 'lucide-react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsInput, SettingsGroup } from '@/components/ui/SettingsControls';
+import { SettingsInput } from '@/components/ui/SettingsControls';
+import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
 import { getTabIcon } from '@/utils/iconMapping';
 import { validateTabName, TabValidationResult } from '@/utils/validation/tabValidation';
@@ -142,7 +143,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
       id: 'basic',
       title: 'Basic Information',
       content: (
-        <SettingsGroup title="Basic Information" description="Configure tab name and description">
+        <PrimarySettingsGroup title="Tab Configuration" description="Essential information for your new tab">
           <SettingsInput
             label="Tab Name"
             description={tab?.isDefault ? "Default tabs cannot be renamed" : "Enter a unique name for your tab"}
@@ -178,14 +179,14 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
             placeholder="DESCRIBE WHAT THIS TAB IS FOR..."
             type="text"
           />
-        </SettingsGroup>
+        </PrimarySettingsGroup>
       )
     },
     {
       id: 'appearance',
-      title: 'Appearance',
+      title: 'Visual Customization',
       content: (
-        <SettingsGroup title="Appearance" description="Customize tab icon and color scheme">
+        <SecondarySettingsGroup title="Appearance & Branding" description="Customize the visual identity of your tab">
           <div className="space-y-6">
             <div className="space-y-3">
               <h4 className="text-sm font-bold font-pip-mono text-pip-green-primary uppercase tracking-wide">
@@ -234,7 +235,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </SecondarySettingsGroup>
       )
     }
   ];
