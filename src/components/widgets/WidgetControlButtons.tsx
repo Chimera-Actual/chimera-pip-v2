@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Maximize2, Minimize2, Expand, Shrink } from 'lucide-react';
+import { X, Maximize2, Minimize2, Expand, Shrink, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserWidget } from '@/hooks/useWidgetManager';
 
@@ -20,6 +20,16 @@ export const WidgetControlButtons: React.FC<WidgetControlButtonsProps> = ({
 }) => {
   const controlButtons = (
     <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="widget-control-button h-6 w-6 p-0 bg-background/80 hover:bg-background border border-border/50"
+        onClick={onSettings}
+        title="Widget Settings"
+      >
+        <Settings className="h-3 w-3" />
+      </Button>
+      
       <Button
         variant="ghost"
         size="icon"
