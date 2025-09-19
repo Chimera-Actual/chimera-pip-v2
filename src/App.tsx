@@ -1,6 +1,4 @@
 import React, { Suspense, lazy } from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
@@ -101,10 +99,6 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </LoadingSuspense>
-          
-          {/* Toast notifications */}
-          <Toaster />
-          <Sonner />
         </div>
       </ErrorBoundary>
     );

@@ -1,10 +1,14 @@
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/enhanced/ThemeProvider"
 import { Toaster as Sonner, toast } from "sonner"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { colorScheme } = useTheme()
+  
+  // Map our Pip-Boy colorScheme to sonner's expected theme format  
+  // White theme uses light mode, all others use dark mode for better contrast
+  const theme = colorScheme === 'white' ? 'light' : 'dark'
 
   return (
     <Sonner
