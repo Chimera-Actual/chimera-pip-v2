@@ -309,13 +309,6 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
           </div>
         )}
 
-        {/* Location Search - Now integrated in content area */}
-        <LocationSearchInput
-          onLocationSelect={handleLocationSelect}
-          currentLocation={currentLocation}
-          placeholder="Search for a city or ZIP code..."
-        />
-
         {/* Weather Content */}
         {weatherData && (
           <div className="space-y-4">
