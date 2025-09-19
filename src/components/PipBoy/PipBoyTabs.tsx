@@ -256,7 +256,7 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className={`flex border-b border-pip-border ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
+        <div className={`flex border-b border-pip-border h-6 ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
           <SortableContext items={tabs.map(tab => tab.id)} strategy={horizontalListSortingStrategy}>
             {tabs.map((tab) => {
               const isActive = currentTab === tab.name;
