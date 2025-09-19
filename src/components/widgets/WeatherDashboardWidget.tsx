@@ -299,23 +299,15 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     return (
       <div className="space-y-4">
         {/* Location badge and status indicators */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {currentLocation && (
-              <Badge variant="secondary" className="text-xs">
-                <MapPin className="h-3 w-3 mr-1" />
-                {currentLocation.city}
-              </Badge>
-            )}
-            
-            {isStale && (
-              <Badge variant="destructive" className="text-xs">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Stale
-              </Badge>
-            )}
+        {/* Status indicators */}
+        {isStale && (
+          <div className="flex justify-end">
+            <Badge variant="destructive" className="text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Stale
+            </Badge>
           </div>
-        </div>
+        )}
 
         {/* Location Search - Now integrated in content area */}
         <LocationSearchInput
