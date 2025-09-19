@@ -479,6 +479,8 @@ export type Database = {
           id: string
           karma: number | null
           level: number | null
+          numeric_id: string | null
+          quick_access_enabled: boolean | null
           special_stats: Json | null
           theme_config: Json | null
           updated_at: string | null
@@ -493,6 +495,8 @@ export type Database = {
           id?: string
           karma?: number | null
           level?: number | null
+          numeric_id?: string | null
+          quick_access_enabled?: boolean | null
           special_stats?: Json | null
           theme_config?: Json | null
           updated_at?: string | null
@@ -507,6 +511,8 @@ export type Database = {
           id?: string
           karma?: number | null
           level?: number | null
+          numeric_id?: string | null
+          quick_access_enabled?: boolean | null
           special_stats?: Json | null
           theme_config?: Json | null
           updated_at?: string | null

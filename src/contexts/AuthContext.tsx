@@ -10,6 +10,8 @@ export interface UserProfile {
   vault_number: number;
   character_name: string | null;
   avatar_url: string | null;
+  numeric_id: string | null;  // New field for Quick Access
+  quick_access_enabled: boolean;  // New field for Quick Access
   special_stats: {
     strength: number;
     perception: number;
@@ -40,6 +42,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: unknown }>;
   refreshProfile: () => Promise<void>;
+  // Quick Access methods
+  enrollQuickAccess: (numericId: string, pin: string) => Promise<void>;
+  quickUnlockWithIdPin: (numericId: string, pin: string) => Promise<void>;
+  disableQuickAccess: (numericId?: string) => Promise<void>;
   // Security features
   attemptCount: number;
   isLocked: boolean;
@@ -287,6 +293,189 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const enrollQuickAccess = async (numericId: string, pin: string): Promise<void> => {
+    if (!user || !session) {
+      throw new Error('Must be logged in to enroll Quick Access');
+    }
+
+    try {
+      // Check if numeric ID is already taken
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('numeric_id', numericId)
+        .single();
+
+      if (existingUser && existingUser.id !== user.id) {
+        throw new Error('Numeric ID is already in use');
+      }
+
+      // Update user profile with numeric_id
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          numeric_id: numericId,
+          quick_access_enabled: true 
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update profile: ${updateError.message}`);
+      }
+
+      // Encrypt and save session
+      const { encryptSession } = await import('@/lib/quickaccess/crypto');
+      const { createQuickAccessRecord, saveQuickAccess } = await import('@/lib/quickaccess/vault');
+      
+      const sessionPayload = {
+        refresh_token: session.refresh_token,
+        access_token: session.access_token,
+        provider: 'supabase' as const,
+        user_id: user.id,
+        expires_at: session.expires_at
+      };
+
+      const encrypted = await encryptSession(pin, sessionPayload);
+      const record = createQuickAccessRecord(user.id, numericId, encrypted);
+      await saveQuickAccess(record);
+
+      // Update local profile
+      if (profile) {
+        setProfile({
+          ...profile,
+          numeric_id: numericId,
+          quick_access_enabled: true
+        });
+      }
+
+      toast({
+        title: "Quick Access Enrolled",
+        description: "This device is now set up for Quick Access login.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to enroll Quick Access';
+      toast({
+        title: "Enrollment Failed",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const quickUnlockWithIdPin = async (numericId: string, pin: string): Promise<void> => {
+    try {
+      const { loadQuickAccess, recordToEncryptedData } = await import('@/lib/quickaccess/vault');
+      const { decryptSession } = await import('@/lib/quickaccess/crypto');
+      const { isLockedOut, getRemainingLockoutTime, formatLockoutTime, recordFailedAttempt, resetLockout } = await import('@/lib/quickaccess/lockout');
+
+      // Check for lockout
+      if (isLockedOut(numericId)) {
+        const remaining = getRemainingLockoutTime(numericId);
+        throw new Error(`Account locked. Try again in ${formatLockoutTime(remaining)}`);
+      }
+
+      // Load encrypted record
+      const record = await loadQuickAccess(numericId);
+      if (!record) {
+        throw new Error('Device not enrolled for Quick Access');
+      }
+
+      try {
+        // Decrypt session
+        const encrypted = recordToEncryptedData(record);
+        const sessionPayload = await decryptSession(pin, encrypted);
+
+        // Try to restore session
+        let sessionResult;
+        if (sessionPayload.access_token) {
+          sessionResult = await supabase.auth.setSession({
+            access_token: sessionPayload.access_token,
+            refresh_token: sessionPayload.refresh_token
+          });
+        } else {
+          sessionResult = await supabase.auth.refreshSession({
+            refresh_token: sessionPayload.refresh_token
+          });
+        }
+
+        if (sessionResult.error) {
+          throw new Error('Session expired - please log in normally and re-enroll');
+        }
+
+        // Success - reset lockout and fetch profile
+        resetLockout(numericId);
+        setSession(sessionResult.data.session);
+        setUser(sessionResult.data.user);
+        
+        if (sessionResult.data.user) {
+          await fetchProfile(sessionResult.data.user.id);
+        }
+
+        toast({
+          title: "Quick Access Granted",
+          description: "Welcome back to the vault!",
+        });
+      } catch (decryptError) {
+        // Record failed attempt
+        const lockoutState = recordFailedAttempt(numericId);
+        
+        if (lockoutState.lockedUntil > Date.now()) {
+          const remaining = lockoutState.lockedUntil - Date.now();
+          const { formatLockoutTime } = await import('@/lib/quickaccess/lockout');
+          throw new Error(`Too many failed attempts. Locked for ${formatLockoutTime(remaining)}`);
+        } else {
+          const attemptsLeft = 5 - lockoutState.attempts;
+          throw new Error(`Incorrect PIN. ${attemptsLeft} attempts remaining`);
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Quick Access unlock failed';
+      throw new Error(message);
+    }
+  };
+
+  const disableQuickAccess = async (numericId?: string): Promise<void> => {
+    try {
+      if (user && profile) {
+        // Update database
+        const { error } = await supabase
+          .from('users')
+          .update({ quick_access_enabled: false })
+          .eq('id', user.id);
+
+        if (error) {
+          throw error;
+        }
+
+        // Remove local storage
+        const { deleteQuickAccess } = await import('@/lib/quickaccess/vault');
+        if (numericId || profile.numeric_id) {
+          await deleteQuickAccess(numericId || profile.numeric_id!);
+        }
+
+        // Update local profile
+        setProfile({
+          ...profile,
+          quick_access_enabled: false
+        });
+
+        toast({
+          title: "Quick Access Disabled",
+          description: "Quick Access has been disabled on this device.",
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to disable Quick Access';
+      toast({
+        title: "Disable Failed",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -297,6 +486,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     refreshProfile,
+    enrollQuickAccess,
+    quickUnlockWithIdPin,
+    disableQuickAccess,
     attemptCount,
     isLocked,
     lockoutEndTime,
