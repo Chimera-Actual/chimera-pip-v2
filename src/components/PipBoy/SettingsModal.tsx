@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
 import { SettingsSelect, SettingsSlider, SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
-import { useTheme, type PipBoyTheme, type ScrollingScanLineMode } from '@/contexts/ThemeContext';
+import { useTheme, type ColorScheme, type ScrollingScanLineMode } from '@/contexts/theme';
 
 interface PipBoySettingsModalProps {
   isOpen: boolean;
@@ -14,8 +14,8 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   onClose,
 }) => {
   const { 
-    currentTheme, 
-    setTheme,
+    colorScheme, 
+    setColorScheme,
     soundEnabled, 
     setSoundEnabled,
     glowIntensity, 
@@ -27,7 +27,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   } = useTheme();
 
   const [tempSettings, setTempSettings] = useState({
-    theme: currentTheme,
+    theme: colorScheme,
     sound: soundEnabled,
     glow: glowIntensity,
     backgroundLines: backgroundScanLines,
@@ -39,7 +39,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setTempSettings({
-        theme: currentTheme,
+        theme: colorScheme,
         sound: soundEnabled,
         glow: glowIntensity,
         backgroundLines: backgroundScanLines,
@@ -47,21 +47,21 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
       });
       setIsDirty(false);
     }
-  }, [isOpen, currentTheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
+  }, [isOpen, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
 
   useEffect(() => {
     const hasChanges = 
-      tempSettings.theme !== currentTheme ||
+      tempSettings.theme !== colorScheme ||
       tempSettings.sound !== soundEnabled ||
       tempSettings.glow !== glowIntensity ||
       tempSettings.backgroundLines !== backgroundScanLines ||
       tempSettings.scrollingLines !== scrollingScanLines;
     
     setIsDirty(hasChanges);
-  }, [tempSettings, currentTheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
+  }, [tempSettings, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
 
   const handleSave = () => {
-    setTheme(tempSettings.theme);
+    setColorScheme(tempSettings.theme);
     setSoundEnabled(tempSettings.sound);
     setGlowIntensity(tempSettings.glow);
     setBackgroundScanLines(tempSettings.backgroundLines);
@@ -71,7 +71,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
 
   const handleReset = () => {
     setTempSettings({
-      theme: currentTheme,
+      theme: colorScheme,
       sound: soundEnabled,
       glow: glowIntensity,
       backgroundLines: backgroundScanLines,
@@ -111,7 +111,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
           label="Color Theme"
           description="Choose your preferred color scheme"
           value={tempSettings.theme}
-          onChange={(value) => setTempSettings(prev => ({ ...prev, theme: value as PipBoyTheme }))}
+          onChange={(value) => setTempSettings(prev => ({ ...prev, theme: value as ColorScheme }))}
           options={themeOptions}
         />
         

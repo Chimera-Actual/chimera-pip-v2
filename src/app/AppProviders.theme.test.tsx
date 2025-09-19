@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { AppProviders } from './AppProviders';
-import { useTheme } from '@/components/enhanced/ThemeProvider';
+import { useTheme } from '@/contexts/theme';
 
 function ThemeProbe() {
   const { colorScheme } = useTheme();

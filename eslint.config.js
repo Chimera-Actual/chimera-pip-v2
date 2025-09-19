@@ -24,6 +24,21 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          "paths": [
+            {
+              "name": "@/components/enhanced/ThemeProvider",
+              "message": "Import from '@/contexts/theme' instead."
+            },
+            {
+              "name": "@/contexts/ThemeContext",
+              "message": "Import from '@/contexts/theme' instead."
+            }
+          ]
+        }
+      ]
     },
   }
 );

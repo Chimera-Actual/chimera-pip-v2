@@ -1,7 +1,7 @@
 import React from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { ThemeProvider, useTheme } from '@/components/enhanced/ThemeProvider'
+import { ThemeProvider, useTheme } from '@/contexts/theme'
 import { useAuth } from '@/contexts/AuthContext'
 
 // Mock dependencies
@@ -35,9 +35,9 @@ describe('useTheme', () => {
 
     expect(result.current.colorScheme).toBe('green')
     expect(result.current.soundEnabled).toBe(true)
-    expect(result.current.glowIntensity).toBe(0.5)
-    expect(result.current.scanLineIntensity).toBe(0.3)
-    expect(result.current.backgroundScanLines).toBe(true)
+    expect(result.current.glowIntensity).toBe(75)
+    expect(result.current.scanLineIntensity).toBe(50)
+    expect(result.current.backgroundScanLines).toBe(50)
     expect(result.current.scrollingScanLines).toBe('normal')
   })
 
@@ -66,7 +66,7 @@ describe('useTheme', () => {
     const savedTheme = {
       colorScheme: 'amber',
       soundEnabled: false,
-      glowIntensity: 0.8,
+      glowIntensity: 80,
     }
 
     localStorage.setItem('chimera-pip-theme', JSON.stringify(savedTheme))
@@ -82,7 +82,7 @@ describe('useTheme', () => {
 
     expect(result.current.colorScheme).toBe('amber')
     expect(result.current.soundEnabled).toBe(false)
-    expect(result.current.glowIntensity).toBe(0.8)
+    expect(result.current.glowIntensity).toBe(80)
   })
 
   it('should update color scheme', async () => {
@@ -106,6 +106,10 @@ describe('useTheme', () => {
       theme_config: {
         colorScheme: 'red',
         soundEnabled: true,
+        glowIntensity: 75,
+        scanLineIntensity: 50,
+        backgroundScanLines: 50,
+        scrollingScanLines: 'normal',
       }
     })
   })
@@ -131,6 +135,10 @@ describe('useTheme', () => {
       theme_config: {
         colorScheme: 'green',
         soundEnabled: false,
+        glowIntensity: 75,
+        scanLineIntensity: 50,
+        backgroundScanLines: 50,
+        scrollingScanLines: 'normal',
       }
     })
   })

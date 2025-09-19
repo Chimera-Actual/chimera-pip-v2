@@ -5,7 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/components/enhanced/ThemeProvider';
+import { ThemeProvider } from '@/contexts/theme';
 import { TabManagerProvider } from '@/contexts/TabManagerContext';
 import { PerformanceProvider } from '@/features/state-management';
 import { queryClient } from '@/lib/queryClient';
