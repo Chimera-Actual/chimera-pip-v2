@@ -84,7 +84,7 @@ const SortableTab = ({ tab, isActive, onTabChange, onContextMenu, isMobile }: {
       <Button
         variant="ghost"
         title={tab.description}
-        className={`relative flex-1 ${isMobile ? 'h-14 px-2' : 'h-16 px-4'} rounded-none border-r border-pip-border last:border-r-0 font-pip-display font-semibold transition-all ${
+        className={`relative flex-1 h-10 ${isMobile ? 'px-2' : 'px-4'} rounded-none border-r border-pip-border last:border-r-0 font-pip-display font-semibold transition-all ${
           isActive 
             ? 'pip-tab-active text-primary' 
             : 'text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50'
@@ -277,7 +277,7 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
           {/* Add Tab Button */}
           <Button
             variant="ghost"
-            className={`${isMobile ? 'h-14 px-3' : 'h-16 px-4'} border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
+            className={`h-10 ${isMobile ? 'px-3' : 'px-4'} border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
             onClick={() => setShowTabEditor(true)}
             title="Create new tab (Ctrl+T)"
           >
