@@ -13,7 +13,8 @@ import {
   Navigation,
   AlertTriangle
 } from 'lucide-react';
-import { WidgetTemplate } from './WidgetTemplate';
+import { WidgetShell } from './base/WidgetShell';
+import type { WidgetAction } from './base/WidgetActionBar';
 import { LocationSearchInput } from './weather/LocationSearchInput';
 import { CurrentWeatherCard } from './weather/CurrentWeatherCard';
 import { ForecastCard } from './weather/ForecastCard';
@@ -175,71 +176,60 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     }
   }, [canRefresh, refreshWeather, toast]);
 
-  // Widget header actions
-  const headerActions = (
-    <div className="flex items-center gap-2">
-      {currentLocation && (
-        <Badge variant="secondary" className="text-xs">
-          <MapPin className="h-3 w-3 mr-1" />
-          {currentLocation.city}
-        </Badge>
-      )}
-      
-      {isStale && (
-        <Badge variant="destructive" className="text-xs">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Stale
-        </Badge>
-      )}
-    </div>
-  );
-
-  // Widget specific actions
-  const widgetSpecificActions = (
-    <div className="flex items-center gap-1">
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleGetCurrentLocation}
-        disabled={gpsLoading}
-        className="h-8 w-8 p-0"
-        title="Get current location"
-      >
-        <Navigation className="h-4 w-4" />
-      </Button>
-      
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleRefresh}
-        disabled={!canRefresh}
-        className="h-8 w-8 p-0"
-        title="Refresh weather"
-      >
-        <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-      </Button>
-      
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => setShowFullScreen(true)}
-        className="h-8 w-8 p-0"
-        title="Full screen"
-      >
-        <Maximize2 className="h-4 w-4" />
-      </Button>
-      
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => setShowSettings(true)}
-        className="h-8 w-8 p-0"
-        title="Settings"
-      >
-        <Settings className="h-4 w-4" />
-      </Button>
-    </div>
-  );
+  // Function Bar actions - all business functionality
+  const actions: WidgetAction[] = [
+    {
+      type: 'input',
+      id: 'search',
+      placeholder: 'Search for a city or ZIP code...',
+      value: '', // This will be handled by LocationSearchInput component
+      onChange: () => {}, // Handled internally by LocationSearchInput
+      icon: MapPin,
+    },
+    {
+      type: 'button',
+      id: 'gps',
+      label: 'Use current location',
+      onClick: handleGetCurrentLocation,
+      disabled: gpsLoading,
+      icon: Navigation,
+    },
+    {
+      type: 'button',
+      id: 'refresh',
+      label: 'Refresh weather',
+      onClick: handleRefresh,
+      disabled: !canRefresh,
+      icon: RefreshCw,
+    },
+    {
+      type: 'toggle',
+      id: 'units',
+      label: settings.units === 'metric' ? '°C' : '°F',
+      on: settings.units === 'metric',
+      onChange: (isMetric) => handleSettingsChange('units', isMetric ? 'metric' : 'imperial'),
+    },
+    {
+      type: 'button',
+      id: 'fullscreen',
+      label: 'Full screen',
+      onClick: () => setShowFullScreen(true),
+      icon: Maximize2,
+    },
+    {
+      type: 'menu',
+      id: 'settings',
+      icon: Settings,
+      items: [
+        {
+          id: 'widget-settings',
+          label: 'Widget Settings',
+          onClick: () => setShowSettings(true),
+          icon: Settings,
+        },
+      ],
+    },
+  ];
 
   // Main content renderer
   const renderContent = () => {
@@ -308,7 +298,26 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
 
     return (
       <div className="space-y-4">
-        {/* Location Search */}
+        {/* Location badge and status indicators */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {currentLocation && (
+              <Badge variant="secondary" className="text-xs">
+                <MapPin className="h-3 w-3 mr-1" />
+                {currentLocation.city}
+              </Badge>
+            )}
+            
+            {isStale && (
+              <Badge variant="destructive" className="text-xs">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Stale
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Location Search - Now integrated in content area */}
         <LocationSearchInput
           onLocationSelect={handleLocationSelect}
           currentLocation={currentLocation}
@@ -354,20 +363,18 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
 
   return (
     <>
-      <WidgetTemplate
+      <WidgetShell
         title={title}
-        widgetId={widgetId}
         icon={Cloud}
-        headerActions={headerActions}
-        widgetSpecificActions={widgetSpecificActions}
-        widget={widget}
-        onRemove={onRemove}
-        onToggleCollapse={onToggleCollapse}
+        actions={actions}
+        onCollapse={onToggleCollapse}
+        onClose={onRemove}
         onToggleFullWidth={onToggleFullWidth}
-        onOpenSettings={() => setShowSettings(true)}
+        isFullWidth={widget?.widget_width === 'full'}
+        isCollapsed={widget?.collapsed}
       >
         {renderContent()}
-      </WidgetTemplate>
+      </WidgetShell>
 
       {/* Settings Modal */}
       <SettingsModal

@@ -70,5 +70,13 @@ export interface BaseWidgetSettingsModalProps {
   children?: React.ReactNode;
 }
 
+// Widget Action Types for Function Bar
+export type WidgetAction =
+  | { type: 'tab'; id: string; label: string; active: boolean; onSelect: () => void; icon?: React.ComponentType<any> }
+  | { type: 'button'; id: string; label: string; onClick: () => void; icon?: React.ComponentType<any>; disabled?: boolean }
+  | { type: 'toggle'; id: string; label: string; on: boolean; onChange: (v: boolean) => void; icon?: React.ComponentType<any> }
+  | { type: 'input'; id: string; placeholder?: string; value: string; onChange: (v: string) => void; icon?: React.ComponentType<any> }
+  | { type: 'menu'; id: string; label?: string; icon?: React.ComponentType<any>; items: { id: string; label: string; onClick: () => void; icon?: React.ComponentType<any> }[] };
+
 export type WidgetSize = 'half' | 'full';
 export type WidgetTheme = 'default' | 'minimal' | 'retro' | 'modern';

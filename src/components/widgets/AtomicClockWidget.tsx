@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Clock, Globe, Bell } from 'lucide-react';
-import { WidgetTemplate } from './WidgetTemplate';
+import { WidgetShell } from './base/WidgetShell';
+import type { WidgetAction } from './base/WidgetActionBar';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
 import { SettingsModal } from '@/components/ui/SettingsModal';
@@ -158,44 +159,51 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
     onSettingsChange(updated);
   }, [mergedSettings, onSettingsChange]);
 
-  // Status bar content (Clock/Alarms toggle buttons)
-  const statusBarContent = (
-    <div className="flex items-center gap-2">
-      <Button
-        variant={activePanel === 'clock' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setActivePanel('clock')}
-        className="h-8 px-3 text-xs"
-      >
-        <Globe className="h-3 w-3 mr-1" />
-        Clock
-      </Button>
-      
-      <Button
-        variant={activePanel === 'alarms' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setActivePanel('alarms')}
-        className="h-8 px-3 text-xs"
-      >
-        <Bell className="h-3 w-3 mr-1" />
-        Alarms
-      </Button>
-    </div>
-  );
+  // Function Bar actions (Clock/Alarms mode tabs + settings)
+  const actions: WidgetAction[] = [
+    {
+      type: 'tab',
+      id: 'clock',
+      label: 'Clock',
+      active: activePanel === 'clock',
+      onSelect: () => setActivePanel('clock'),
+      icon: Globe,
+    },
+    {
+      type: 'tab', 
+      id: 'alarms',
+      label: 'Alarms',
+      active: activePanel === 'alarms',
+      onSelect: () => setActivePanel('alarms'),
+      icon: Bell,
+    },
+    {
+      type: 'menu',
+      id: 'settings',
+      icon: Settings,
+      items: [
+        {
+          id: 'widget-settings',
+          label: 'Widget Settings',
+          onClick: () => setShowSettings(true),
+          icon: Settings,
+        },
+      ],
+    },
+  ];
 
   return (
     <>
-      <WidgetTemplate
+      <WidgetShell
         title={title}
-        settings={mergedSettings}
         icon={Clock}
-        statusBarContent={statusBarContent}
-        widget={widget}
-        onRemove={onRemove}
-        onToggleCollapse={onToggleCollapse}
+        actions={actions}
+        onCollapse={onToggleCollapse}
+        onClose={onRemove}
         onToggleFullWidth={onToggleFullWidth}
-        onOpenSettings={() => setShowSettings(true)}
-        contentClassName="p-4"
+        isFullWidth={widget?.widget_width === 'full'}
+        isCollapsed={widget?.collapsed}
+        effects={mergedSettings.effects}
         className="atomic-clock-widget clock-theme-vault-tec relative overflow-hidden"
       >
         {/* Visual Effects Canvas */}
@@ -228,7 +236,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             />
           )}
         </div>
-      </WidgetTemplate>
+      </WidgetShell>
 
       {/* Settings Modal */}
       <SettingsModal
