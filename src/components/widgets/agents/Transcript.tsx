@@ -38,8 +38,8 @@ export function Transcript({ messages, className = '' }: TranscriptProps) {
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatTime = (ts: number) => {
+    const date = new Date(ts);
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
@@ -170,7 +170,7 @@ export function Transcript({ messages, className = '' }: TranscriptProps) {
               text-xs text-muted-foreground mt-1 px-1
               ${message.role === 'user' ? 'text-right' : 'text-left'}
             `}>
-              {formatTime(message.timestamp)}
+              {formatTime(message.ts)}
             </div>
           </div>
         </div>

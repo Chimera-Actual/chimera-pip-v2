@@ -4,7 +4,7 @@ export interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
-  timestamp: string;
+  ts: number; // epoch milliseconds
   status?: 'ok' | 'pending' | 'error';
 }
 
@@ -12,9 +12,16 @@ export interface AgentDefinition {
   id: string;
   name: string;
   description?: string;
-  icon?: string; // lucide icon name
+  icon?: React.ComponentType<any>; // Lucide icon component
   webhook_url?: string;
   system_prompt?: string;
+}
+
+export interface AgentConfig {
+  defaultAgentId: string;
+  webhookUrl: string;
+  authHeaderName?: string;
+  authHeaderValue?: string;
 }
 
 export interface AgentWidgetConfig {
