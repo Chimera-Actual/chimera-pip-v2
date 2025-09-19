@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { WeatherDashboardWidget } from '@/components/widgets/WeatherDashboardWidget';
+import AIAgentWidget from '@/components/widgets/AIAgentWidget';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { UserWidget } from '@/hooks/useWidgetManager';
 
@@ -15,6 +16,7 @@ const widgetDescriptions: Record<string, string> = {
   'test_widget': 'A simple test widget for demonstration purposes',
   'atomic_clock': 'Multi-timezone atomic clock with alarms, themes, and retro visual effects',
   'weather_dashboard': 'Complete weather station with current conditions, forecast, air quality, and Pip-Boy radiation mode',
+  'ai_agent': 'Chat with AI agents using custom webhooks or the built-in Supabase AI service',
   // Add more widget descriptions as needed
 };
 
@@ -102,6 +104,15 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             onRemove={() => handleCloseWidget(widget.id)}
             onToggleCollapse={() => handleToggleCollapse(widget)}
             onToggleFullWidth={() => handleToggleFullWidth(widget)}
+          />
+        );
+      case 'aiagent':
+      case 'ai-agent':
+        return (
+          <AIAgentWidget
+            widgetId={widget.id}
+            widget={widget}
+            onConfigUpdate={(config) => handleSaveSettings(widget.id, config)}
           />
         );
       default:
