@@ -109,6 +109,13 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     });
   }, [settings.units, settings.autoRefresh, settings.refreshInterval, settings.showRadiation, updateWeatherSettings]);
 
+  // Refresh weather data when units change
+  useEffect(() => {
+    if (weatherData && currentLocation && !loading) {
+      refreshWeather();
+    }
+  }, [settings.units]); // Only depend on units change
+
   // Auto-load GPS location if enabled
   useEffect(() => {
     if (settings.useGPS && !currentLocation && !loading) {

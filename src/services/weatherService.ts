@@ -103,7 +103,7 @@ class WeatherService {
   }
 
   async getCurrentWeather(location: WeatherLocation, units: string = 'metric'): Promise<CurrentWeather> {
-    const cacheKey = this.getCacheKey('weather', location);
+    const cacheKey = this.getCacheKey('weather', location) + `_${units}`;
     const cached = this.getCachedData<CurrentWeather>(cacheKey);
     if (cached) return cached;
 
@@ -113,17 +113,18 @@ class WeatherService {
     });
 
     if (!response.success) {
-      // Return mock data for development
+      // Return mock data for development with unit-appropriate values
+      const isMetric = units === 'metric';
       const mockWeather: CurrentWeather = {
         location: location.city,
         country: location.country,
-        temperature: 22,
-        feelsLike: 25,
+        temperature: isMetric ? 22 : 72, // 22°C = 72°F
+        feelsLike: isMetric ? 25 : 77, // 25°C = 77°F
         humidity: 65,
         pressure: 1013,
-        windSpeed: 8.5,
+        windSpeed: isMetric ? 8.5 : 5.3, // 8.5 km/h = 5.3 mph
         windDirection: 180,
-        visibility: 10,
+        visibility: isMetric ? 10 : 6.2, // 10 km = 6.2 miles
         uvIndex: 6,
         description: 'Partly cloudy',
         icon: 'partly-cloudy',
@@ -139,17 +140,18 @@ class WeatherService {
   }
 
   async getForecast(location: WeatherLocation, units: string = 'metric'): Promise<ForecastDay[]> {
-    const cacheKey = this.getCacheKey('forecast', location);
+    const cacheKey = this.getCacheKey('forecast', location) + `_${units}`;
     const cached = this.getCachedData<ForecastDay[]>(cacheKey);
     if (cached) return cached;
 
-    // Mock forecast data for development
+    // Mock forecast data for development with unit-appropriate values
+    const isMetric = units === 'metric';
     const mockForecast: ForecastDay[] = [
-      { date: new Date().toISOString(), icon: 'sunny', high: 25, low: 15, description: 'Sunny', humidity: 50, windSpeed: 10, precipitation: 0 },
-      { date: new Date(Date.now() + 86400000).toISOString(), icon: 'cloudy', high: 23, low: 12, description: 'Cloudy', humidity: 60, windSpeed: 8, precipitation: 10 },
-      { date: new Date(Date.now() + 172800000).toISOString(), icon: 'rainy', high: 20, low: 10, description: 'Light rain', humidity: 80, windSpeed: 12, precipitation: 70 },
-      { date: new Date(Date.now() + 259200000).toISOString(), icon: 'stormy', high: 18, low: 8, description: 'Thunderstorms', humidity: 85, windSpeed: 15, precipitation: 90 },
-      { date: new Date(Date.now() + 345600000).toISOString(), icon: 'partly-cloudy', high: 24, low: 14, description: 'Partly cloudy', humidity: 55, windSpeed: 7, precipitation: 20 }
+      { date: new Date().toISOString(), icon: 'sunny', high: isMetric ? 25 : 77, low: isMetric ? 15 : 59, description: 'Sunny', humidity: 50, windSpeed: isMetric ? 10 : 6.2, precipitation: 0 },
+      { date: new Date(Date.now() + 86400000).toISOString(), icon: 'cloudy', high: isMetric ? 23 : 73, low: isMetric ? 12 : 54, description: 'Cloudy', humidity: 60, windSpeed: isMetric ? 8 : 5, precipitation: 10 },
+      { date: new Date(Date.now() + 172800000).toISOString(), icon: 'rainy', high: isMetric ? 20 : 68, low: isMetric ? 10 : 50, description: 'Light rain', humidity: 80, windSpeed: isMetric ? 12 : 7.5, precipitation: 70 },
+      { date: new Date(Date.now() + 259200000).toISOString(), icon: 'stormy', high: isMetric ? 18 : 64, low: isMetric ? 8 : 46, description: 'Thunderstorms', humidity: 85, windSpeed: isMetric ? 15 : 9.3, precipitation: 90 },
+      { date: new Date(Date.now() + 345600000).toISOString(), icon: 'partly-cloudy', high: isMetric ? 24 : 75, low: isMetric ? 14 : 57, description: 'Partly cloudy', humidity: 55, windSpeed: isMetric ? 7 : 4.3, precipitation: 20 }
     ];
 
     this.setCachedData(cacheKey, mockForecast);
