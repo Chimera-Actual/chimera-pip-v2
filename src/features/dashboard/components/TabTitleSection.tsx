@@ -19,7 +19,7 @@ export const TabTitleSection = ({ activeTab, description }: TabTitleSectionProps
 
   return (
     <div className="flex items-baseline gap-4">
-      <h2 className="text-3xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
+      <h2 className="text-2xl font-pip-display font-bold text-pip-text-bright pip-text-glow">
         {activeTab}
       </h2>
       <span className="text-sm text-pip-text-secondary font-pip-mono opacity-70">
