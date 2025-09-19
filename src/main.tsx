@@ -1,10 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import App from './App.tsx'
 import './index.css'
-import { queryClient } from '@/lib/queryClient'
+import { AppProviders } from '@/app/AppProviders'
 import { setupSessionListener } from '@/lib/auth/session'
 
 const rootElement = document.getElementById("root");
@@ -16,13 +15,13 @@ if (!rootElement) {
 // Setup session monitoring
 setupSessionListener();
 
-// Render the app immediately with React Query
+// Render the app with properly ordered providers
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <AppProviders>
       <App />
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
+    </AppProviders>
   </StrictMode>
 );
 

@@ -45,7 +45,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   defaultTheme = {},
 }) => {
-  const { user, profile, updateProfile } = useAuth();
+  // Safely get auth context - it may not be available during initialization
+  let authContext;
+  try {
+    authContext = useAuth();
+  } catch (error) {
+    // Auth context not available - will use localStorage fallback
+    console.warn('Auth context not available, using localStorage for theme');
+    authContext = { user: null, profile: null, updateProfile: null };
+  }
+  
+  const { user, profile, updateProfile } = authContext;
   const [theme, setTheme] = useState<ThemeConfig>({ ...DEFAULT_THEME, ...defaultTheme });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -135,7 +145,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Persist theme changes
   const persistTheme = async (newTheme: ThemeConfig) => {
-    if (user) {
+    if (user && updateProfile) {
       // Persist to user profile
       setIsLoading(true);
       try {
@@ -165,7 +175,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         setIsLoading(false);
       }
     } else {
-      // Persist to localStorage for guests
+      // Persist to localStorage for guests or when auth is not available
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newTheme));
       } catch (error) {

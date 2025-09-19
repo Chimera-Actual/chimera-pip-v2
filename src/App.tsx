@@ -1,17 +1,10 @@
 import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/components/enhanced/ThemeProvider";
-import { PerformanceProvider } from "@/features/state-management";
+import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { LoadingSuspense } from "@/components/ui/LoadingSuspense";
-import { TabManagerProvider } from "@/contexts/TabManagerContext";
 
 // Lazy load auth components
 const VaultLogin = lazy(() => import("@/components/auth/VaultLogin").then(m => ({ default: m.VaultLogin })));
@@ -26,15 +19,7 @@ const Index = lazy(() => import("./pages/Index"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Use the centralized query client from lib/queryClient
-const appQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Providers are now handled in AppProviders
 
 // Fallback component for when app fails to load
 const AppErrorFallback = ({ error }: { error?: Error }) => (
@@ -80,64 +65,47 @@ const App = () => {
       <ErrorBoundary onError={(error, errorInfo) => {
         console.error('App Error Boundary:', error, errorInfo);
       }}>
-        <QueryClientProvider client={appQueryClient}>
-          <TooltipProvider>
-            <ThemeProvider>
-              <AuthProvider>
-                <TabManagerProvider>
-                  <PerformanceProvider enableByDefault={import.meta.env.DEV}>
-                        <BrowserRouter>
-                          <div className="min-h-screen bg-background font-mono antialiased">
-                            <LoadingSuspense fallback={<LoadingFallback />} useBootSequence>
-                              <Routes>
-                                {/* Public Landing Page */}
-                                <Route path="/welcome" element={<Landing />} />
-                                
-                                {/* Authentication Routes */}
-                                <Route path="/auth" element={<AuthMethodSelector />} />
-                                <Route path="/auth/login" element={<VaultLogin />} />
-                                <Route path="/auth/register" element={<VaultRegistration />} />
-                                <Route path="/auth/verify" element={<EmailVerification />} />
-                                <Route 
-                                  path="/auth/character" 
-                                  element={
-                                    <ProtectedRoute>
-                                      <CharacterCreation />
-                                    </ProtectedRoute>
-                                  } 
-                                />
-                                
-                                {/* Protected Dashboard Route */}
-                                <Route 
-                                  path="/" 
-                                  element={
-                                    <ProtectedRoute requiresCharacter={true}>
-                                      <ErrorBoundary>
-                                        <Index />
-                                      </ErrorBoundary>
-                                    </ProtectedRoute>
-                                  } 
-                                />
-                                
-                                {/* Catch-all route */}
-                                <Route path="*" element={<NotFound />} />
-                              </Routes>
-                            </LoadingSuspense>
-                            
-                            {/* Toast notifications */}
-                            <Toaster />
-                            <Sonner />
-                            
-                            {/* Dev tools */}
-                            {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-                          </div>
-                        </BrowserRouter>
-                      </PerformanceProvider>
-                </TabManagerProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </TooltipProvider>
-        </QueryClientProvider>
+        <div className="min-h-screen bg-background font-mono antialiased">
+          <LoadingSuspense fallback={<LoadingFallback />} useBootSequence>
+            <Routes>
+              {/* Public Landing Page */}
+              <Route path="/welcome" element={<Landing />} />
+              
+              {/* Authentication Routes */}
+              <Route path="/auth" element={<AuthMethodSelector />} />
+              <Route path="/auth/login" element={<VaultLogin />} />
+              <Route path="/auth/register" element={<VaultRegistration />} />
+              <Route path="/auth/verify" element={<EmailVerification />} />
+              <Route 
+                path="/auth/character" 
+                element={
+                  <ProtectedRoute>
+                    <CharacterCreation />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Protected Dashboard Route */}
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute requiresCharacter={true}>
+                    <ErrorBoundary>
+                      <Index />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </LoadingSuspense>
+          
+          {/* Toast notifications */}
+          <Toaster />
+          <Sonner />
+        </div>
       </ErrorBoundary>
     );
   } catch (error) {
