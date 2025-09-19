@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PipBoyTabs } from './PipBoyTabs';
+import { VerticalAppDrawer } from './VerticalAppDrawer';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardContent } from './DashboardContent';
 import { DashboardFooter } from './DashboardFooter';
 import { BootSequence } from './BootSequence';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
+import { useTheme } from '@/contexts/theme';
+import { cn } from '@/lib/utils';
 
 export type ColorTheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
 export type PipBoyTab = 'STAT' | 'INV' | 'DATA' | 'MAP' | 'RADIO';
@@ -19,6 +22,7 @@ interface PipBoyContainerProps {
 export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) => {
   const { profile, updateProfile } = useAuth();
   const { tabs, activeTab, setActiveTab, isLoading: tabsLoading } = useTabManagerContext();
+  const { layoutMode } = useTheme();
   const [colorTheme, setColorTheme] = useState<ColorTheme>('green');
   const [soundEnabled, setSoundEnabled] = useState(true);
   
@@ -123,31 +127,62 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
   }
 
   return (
-    <div className={`h-screen pip-scanlines ${className}`}>
+    <div className={cn("h-screen pip-scanlines", className)}>
       <div className="container mx-auto p-4 max-w-7xl h-full">
-        <Card variant="pip-terminal" className="h-full flex flex-col">
-          {/* Dashboard Header */}
-          <DashboardHeader 
-            colorTheme={colorTheme}
-            onColorThemeChange={setColorTheme}
-            soundEnabled={soundEnabled}
-            onSoundToggle={handleSoundToggle}
-          />
-          
-          {/* Tab Navigation */}
-          <PipBoyTabs 
-            currentTab={activeTab}
-            onTabChange={(tab) => setActiveTab(tab)}
-          />
-          
-          {/* Dashboard Content - Takes remaining space */}
-          <div className="flex-1 min-h-0">
-            <DashboardContent activeTab={activeTab} />
-          </div>
-          
-          {/* Dashboard Footer */}
-          <DashboardFooter />
-        </Card>
+        {layoutMode === 'drawer' ? (
+          // Vertical Drawer Layout
+          <Card variant="pip-terminal" className="h-full flex">
+            {/* Vertical App Drawer */}
+            <VerticalAppDrawer 
+              currentTab={activeTab}
+              onTabChange={(tab) => setActiveTab(tab)}
+            />
+            
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Dashboard Header */}
+              <DashboardHeader 
+                colorTheme={colorTheme}
+                onColorThemeChange={setColorTheme}
+                soundEnabled={soundEnabled}
+                onSoundToggle={handleSoundToggle}
+              />
+              
+              {/* Dashboard Content - Takes remaining space */}
+              <div className="flex-1 min-h-0">
+                <DashboardContent activeTab={activeTab} />
+              </div>
+              
+              {/* Dashboard Footer */}
+              <DashboardFooter />
+            </div>
+          </Card>
+        ) : (
+          // Traditional Tabbed Layout
+          <Card variant="pip-terminal" className="h-full flex flex-col">
+            {/* Dashboard Header */}
+            <DashboardHeader 
+              colorTheme={colorTheme}
+              onColorThemeChange={setColorTheme}
+              soundEnabled={soundEnabled}
+              onSoundToggle={handleSoundToggle}
+            />
+            
+            {/* Tab Navigation */}
+            <PipBoyTabs 
+              currentTab={activeTab}
+              onTabChange={(tab) => setActiveTab(tab)}
+            />
+            
+            {/* Dashboard Content - Takes remaining space */}
+            <div className="flex-1 min-h-0">
+              <DashboardContent activeTab={activeTab} />
+            </div>
+            
+            {/* Dashboard Footer */}
+            <DashboardFooter />
+          </Card>
+        )}
       </div>
     </div>
   );

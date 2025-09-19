@@ -7,6 +7,7 @@ import { localStorageService } from '@/services/storage/localStorageService';
 // Types
 export type ColorScheme = 'green' | 'amber' | 'blue' | 'red' | 'white';
 export type ScrollingScanLineMode = 'off' | 'normal' | 'random';
+export type LayoutMode = 'tabbed' | 'drawer';
 
 export interface ThemeConfig {
   colorScheme: ColorScheme;
@@ -15,6 +16,7 @@ export interface ThemeConfig {
   scanLineIntensity: number;
   backgroundScanLines: number;
   scrollingScanLines: ScrollingScanLineMode;
+  layoutMode: LayoutMode;
 }
 
 interface ThemeContextValue extends ThemeConfig {
@@ -25,6 +27,7 @@ interface ThemeContextValue extends ThemeConfig {
   setScanLineIntensity: (intensity: number) => void;
   setBackgroundScanLines: (intensity: number) => void;
   setScrollingScanLines: (mode: ScrollingScanLineMode) => void;
+  setLayoutMode: (mode: LayoutMode) => void;
   isLoading: boolean;
 }
 
@@ -47,6 +50,7 @@ const DEFAULT_THEME: ThemeConfig = {
   scanLineIntensity: 50,
   backgroundScanLines: 50,
   scrollingScanLines: 'normal',
+  layoutMode: 'tabbed',
 };
 
 const STORAGE_KEY = 'chimera-pip-theme';
@@ -310,6 +314,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     updateTheme({ scrollingScanLines });
   }, [updateTheme]);
 
+  const setLayoutMode = useCallback((layoutMode: LayoutMode) => {
+    updateTheme({ layoutMode });
+  }, [updateTheme]);
+
   const contextValue: ThemeContextValue = {
     ...theme,
     setColorScheme,
@@ -319,6 +327,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     setScanLineIntensity,
     setBackgroundScanLines,
     setScrollingScanLines,
+    setLayoutMode,
     isLoading,
   };
 

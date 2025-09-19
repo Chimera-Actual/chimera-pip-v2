@@ -8,6 +8,7 @@ import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/contexts/theme';
 
 interface DashboardContentProps {
   activeTab: string;
@@ -25,25 +26,43 @@ export const DashboardContent = memo<DashboardContentProps>(({
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
   const { toast } = useToast();
+  const { layoutMode } = useTheme();
   
-  // Centralized widget state management
-  const { 
-    widgets, 
-    isLoading: widgetsLoading, 
-    error: widgetsError,
-    addWidget,
-    deleteWidget,
-    updateWidget,
-    toggleCollapsed,
-    toggleVisibility,
-    loadWidgets
-  } = useTabWidgets(activeTab);
+  // Get widget data for all tabs to preserve state
+  const tabWidgetData = tabs.reduce((acc, tab) => {
+    const { 
+      widgets, 
+      isLoading: widgetsLoading, 
+      error: widgetsError,
+      addWidget,
+      deleteWidget,
+      updateWidget,
+      toggleCollapsed,
+      toggleVisibility,
+      loadWidgets
+    } = useTabWidgets(tab.name);
+    
+    acc[tab.name] = {
+      widgets,
+      isLoading: widgetsLoading,
+      error: widgetsError,
+      addWidget,
+      deleteWidget,
+      updateWidget,
+      toggleCollapsed,
+      toggleVisibility,
+      loadWidgets
+    };
+    return acc;
+  }, {} as Record<string, any>);
   
+  // Get current tab data
+  const currentTabData = tabWidgetData[activeTab];
   const currentTab = tabs.find(tab => tab.name === activeTab);
 
   // Real-time subscription for widget changes
   useEffect(() => {
-    if (!activeTab) return;
+    if (!activeTab || !currentTabData) return;
 
     const channel = supabase
       .channel(`widgets-${activeTab}`)
@@ -58,7 +77,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
         (payload) => {
           console.log('Widget change detected:', payload);
           // Reload widgets when any change occurs
-          loadWidgets();
+          currentTabData.loadWidgets();
         }
       )
       .subscribe();
@@ -66,7 +85,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeTab, loadWidgets]);
+  }, [activeTab, currentTabData]);
 
   const handleArchiveTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
@@ -89,7 +108,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    const result = await addWidget(widgetType, settings);
+    const result = await currentTabData?.addWidget(widgetType, settings);
     if (result) {
       toast({
         title: "Widget Added",
@@ -97,7 +116,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
       });
     }
     setShowWidgetSelector(false);
-  }, [addWidget, toast]);
+  }, [currentTabData?.addWidget, toast]);
 
   const handleShowWidgetSelector = useCallback(() => {
     setShowWidgetSelector(true);
@@ -105,45 +124,65 @@ export const DashboardContent = memo<DashboardContentProps>(({
 
   return (
     <div className="h-full flex relative">
-      {/* Sidebar Container */}
-      <div className="relative h-full">
-        <TabWidgetDrawer 
-          activeTab={activeTab} 
-          widgets={widgets}
-          isLoading={widgetsLoading}
-          onAddWidget={handleShowWidgetSelector}
-          onToggleVisibility={toggleVisibility}
-          isCollapsed={isDrawerCollapsed}
-          onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
-        />
-      </div>
+      {/* Only show sidebar in tabbed mode */}
+      {layoutMode === 'tabbed' && (
+        <div className="relative h-full">
+          <TabWidgetDrawer 
+            activeTab={activeTab} 
+            widgets={currentTabData?.widgets || []}
+            isLoading={currentTabData?.isLoading || false}
+            onAddWidget={handleShowWidgetSelector}
+            onToggleVisibility={currentTabData?.toggleVisibility}
+            isCollapsed={isDrawerCollapsed}
+            onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
+          />
+        </div>
+      )}
       
-      {/* Main Content Area */}
+      {/* Main Content Area - preserve all tab content */}
       <main className={cn(
         "dashboard-content flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3 transition-all duration-300",
-        isDrawerCollapsed ? "ml-12" : "ml-80",
+        layoutMode === 'tabbed' ? (isDrawerCollapsed ? "ml-12" : "ml-80") : "",
         className
       )}>
-        <DashboardHeaderSection
-          activeTab={activeTab}
-          description={currentTab?.description}
-          onShowTabEditor={() => setShowTabEditor(true)}
-          onArchiveTab={handleArchiveTab}
-          onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-          isDefaultTab={currentTab?.isDefault || false}
-        />
-
-        {/* Canvas Content - Controlled scrolling container */}
-        <div className="widget-content flex-1 min-h-0 overflow-auto">
-          <CanvasIntegration 
-            tab={activeTab}
-            widgets={widgets}
-            isLoading={widgetsLoading}
-            onDoubleClick={handleShowWidgetSelector}
-            onDeleteWidget={deleteWidget}
-            onUpdateWidget={updateWidget}
-            onToggleCollapsed={toggleCollapsed}
+        {/* Only show header section in tabbed mode */}
+        {layoutMode === 'tabbed' && (
+          <DashboardHeaderSection
+            activeTab={activeTab}
+            description={currentTab?.description}
+            onShowTabEditor={() => setShowTabEditor(true)}
+            onArchiveTab={handleArchiveTab}
+            onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
+            isDefaultTab={currentTab?.isDefault || false}
           />
+        )}
+
+        {/* Canvas Content Container - All tabs rendered but only active visible */}
+        <div className="widget-content flex-1 min-h-0 relative">
+          {tabs.map((tab) => {
+            const tabData = tabWidgetData[tab.name];
+            const isActive = activeTab === tab.name;
+            
+            return (
+              <div
+                key={tab.name}
+                className={cn(
+                  "absolute inset-0 overflow-auto transition-opacity duration-200",
+                  isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                )}
+              >
+                <CanvasIntegration 
+                  tab={tab.name}
+                  widgets={tabData?.widgets || []}
+                  isLoading={tabData?.isLoading || false}
+                  onDoubleClick={handleShowWidgetSelector}
+                  onDeleteWidget={tabData?.deleteWidget}
+                  onUpdateWidget={tabData?.updateWidget}
+                  onToggleCollapsed={tabData?.toggleCollapsed}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <WidgetSelectorModal

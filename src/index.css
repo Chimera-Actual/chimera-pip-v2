@@ -1203,3 +1203,99 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--pip-text-secondary));
 }
+
+/* Layout transition animations */
+.layout-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawer-slide-in {
+  animation: drawer-slide-in 0.3s ease-out;
+}
+
+.drawer-slide-out {
+  animation: drawer-slide-out 0.3s ease-out;
+}
+
+.tab-fade-in {
+  animation: tab-fade-in 0.2s ease-out;
+}
+
+.tab-fade-out {
+  animation: tab-fade-out 0.2s ease-out;
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* App switching animations */
+.app-content-enter {
+  animation: app-content-enter 0.2s ease-out;
+}
+
+.app-content-exit {
+  animation: app-content-exit 0.2s ease-out;
+}
+
+@keyframes app-content-enter {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes app-content-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}

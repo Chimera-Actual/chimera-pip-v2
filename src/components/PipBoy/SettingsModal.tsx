@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
 import { SettingsSelect, SettingsSlider, SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
-import { useTheme, type ColorScheme, type ScrollingScanLineMode } from '@/contexts/theme';
+import { useTheme, type ColorScheme, type ScrollingScanLineMode, type LayoutMode } from '@/contexts/theme';
 
 interface PipBoySettingsModalProps {
   isOpen: boolean;
@@ -23,7 +23,9 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     backgroundScanLines, 
     setBackgroundScanLines,
     scrollingScanLines, 
-    setScrollingScanLines
+    setScrollingScanLines,
+    layoutMode,
+    setLayoutMode
   } = useTheme();
 
   const [tempSettings, setTempSettings] = useState({
@@ -32,6 +34,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     glow: glowIntensity,
     backgroundLines: backgroundScanLines,
     scrollingLines: scrollingScanLines,
+    layout: layoutMode,
   });
 
   const [isDirty, setIsDirty] = useState(false);
@@ -44,10 +47,11 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
         glow: glowIntensity,
         backgroundLines: backgroundScanLines,
         scrollingLines: scrollingScanLines,
+        layout: layoutMode,
       });
       setIsDirty(false);
     }
-  }, [isOpen, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
+  }, [isOpen, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines, layoutMode]);
 
   useEffect(() => {
     const hasChanges = 
@@ -55,10 +59,11 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
       tempSettings.sound !== soundEnabled ||
       tempSettings.glow !== glowIntensity ||
       tempSettings.backgroundLines !== backgroundScanLines ||
-      tempSettings.scrollingLines !== scrollingScanLines;
+      tempSettings.scrollingLines !== scrollingScanLines ||
+      tempSettings.layout !== layoutMode;
     
     setIsDirty(hasChanges);
-  }, [tempSettings, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines]);
+  }, [tempSettings, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines, layoutMode]);
 
   const handleSave = () => {
     setColorScheme(tempSettings.theme);
@@ -66,6 +71,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     setGlowIntensity(tempSettings.glow);
     setBackgroundScanLines(tempSettings.backgroundLines);
     setScrollingScanLines(tempSettings.scrollingLines);
+    setLayoutMode(tempSettings.layout);
     onClose();
   };
 
@@ -76,6 +82,7 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
       glow: glowIntensity,
       backgroundLines: backgroundScanLines,
       scrollingLines: scrollingScanLines,
+      layout: layoutMode,
     });
   };
 
@@ -91,6 +98,11 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     { value: 'off', label: 'Off' },
     { value: 'normal', label: 'Normal' },
     { value: 'random', label: 'Random' },
+  ];
+
+  const layoutOptions = [
+    { value: 'tabbed', label: 'Horizontal Tabs' },
+    { value: 'drawer', label: 'Vertical App Drawer' },
   ];
 
   return (
@@ -135,6 +147,19 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
           description="Enable or disable Pip-Boy sound effects and audio feedback"
           checked={tempSettings.sound}
           onCheckedChange={(checked) => setTempSettings(prev => ({ ...prev, sound: checked }))}
+        />
+      </SecondarySettingsGroup>
+
+      <SecondarySettingsGroup 
+        title="Layout & Navigation" 
+        description="Choose between different interface layout modes"
+      >
+        <SettingsSelect
+          label="Layout Mode"
+          description="Switch between horizontal tabs and vertical app drawer navigation"
+          value={tempSettings.layout}
+          onChange={(value) => setTempSettings(prev => ({ ...prev, layout: value as LayoutMode }))}
+          options={layoutOptions}
         />
       </SecondarySettingsGroup>
 
