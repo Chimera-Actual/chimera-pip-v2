@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { WidgetShell } from '@/components/widgets/base/WidgetShell';
 import { WidgetActionBar, type WidgetAction } from '@/components/widgets/base/WidgetActionBar';
-import { AgentSelector } from '@/components/widgets/agents/AgentSelector';
+import { WidgetSettingsSheet } from '@/components/widgets/base/WidgetSettingsSheet';
 import { Transcript } from '@/components/widgets/agents/Transcript';
 import { Composer } from '@/components/widgets/agents/Composer';
 import { AIAgentSettings } from '@/components/widgets/agents/AIAgentSettings';
@@ -22,6 +22,9 @@ interface AIAgentWidgetProps {
     widget_config: Record<string, any>;
   };
   onConfigUpdate?: (config: Record<string, any>) => void;
+  onClose?: () => void;
+  onCollapse?: () => void;
+  onToggleFullWidth?: () => void;
 }
 
 const DEFAULT_CONFIG: AgentConfig = {
@@ -32,7 +35,10 @@ const DEFAULT_CONFIG: AgentConfig = {
 export default function AIAgentWidget({ 
   widgetId, 
   widget, 
-  onConfigUpdate 
+  onConfigUpdate,
+  onClose,
+  onCollapse,
+  onToggleFullWidth
 }: AIAgentWidgetProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -281,6 +287,7 @@ export default function AIAgentWidget({
     {
       type: 'menu',
       id: 'agent',
+      label: activeAgent.name,
       icon: Bot,
       items: DEFAULT_AGENTS.map(agent => ({
         id: agent.id,
@@ -313,12 +320,11 @@ export default function AIAgentWidget({
       ],
     },
     {
-      type: 'menu',
+      type: 'button',
       id: 'settings',
+      label: 'Settings',
+      onClick: () => setShowSettings(true),
       icon: Settings,
-      items: [
-        { id: 'open', label: 'Widget Settings', onClick: () => setShowSettings(true) },
-      ],
     },
   ], [activeAgent, pending]);
   
@@ -327,20 +333,15 @@ export default function AIAgentWidget({
       <WidgetShell
         title="AI Agent"
         icon={Bot}
-        className="min-h-[500px] flex flex-col"
+        onClose={onClose}
+        onCollapse={onCollapse}
+        onToggleFullWidth={onToggleFullWidth}
+        contentClassName="pt-0 pb-1 px-0"
       >
         <WidgetActionBar actions={actions} />
         
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="p-4 border-b border-pip-border bg-pip-bg-secondary/20">
-            <AgentSelector
-              agents={DEFAULT_AGENTS}
-              selectedAgent={activeAgent}
-              onAgentChange={setActiveAgent}
-            />
-          </div>
-          
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 px-4">
             <Transcript messages={messages} />
           </div>
           
@@ -362,12 +363,17 @@ export default function AIAgentWidget({
         </div>
       </WidgetShell>
       
-      <AIAgentSettings
+      <WidgetSettingsSheet
         open={showSettings}
         onOpenChange={setShowSettings}
-        config={config}
-        onSave={saveConfig}
-      />
+        title="AI Agent Settings"
+        description="Configure your AI agent preferences and connection settings"
+      >
+        <AIAgentSettings
+          config={config}
+          onSave={saveConfig}
+        />
+      </WidgetSettingsSheet>
     </>
   );
 }

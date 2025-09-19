@@ -113,6 +113,9 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             widgetId={widget.id}
             widget={widget}
             onConfigUpdate={(config) => handleSaveSettings(widget.id, config)}
+            onClose={() => handleCloseWidget(widget.id)}
+            onCollapse={() => handleToggleCollapse(widget)}
+            onToggleFullWidth={() => handleToggleFullWidth(widget)}
           />
         );
       default:
