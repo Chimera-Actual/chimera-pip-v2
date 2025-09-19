@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { ChevronLeft, ChevronRight, Plus, Eye, EyeOff } from 'lucide-react';
 import { getTabIcon } from '@/utils/iconMapping';
 import { cn } from '@/lib/utils';
+import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import type { UserWidget } from '@/hooks/useWidgetManager';
 
 interface TabWidgetDrawerProps {
@@ -28,6 +29,7 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
   isCollapsed,
   onToggleCollapsed,
 }) => {
+  const { currentTab } = useTabManagerContext();
 
   const getIconComponent = (widget: UserWidget) => {
     const iconName = widget.widget_config?.icon || 'CogIcon';
@@ -59,7 +61,7 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
         <div className="p-4 border-b border-pip-border">
           <div className="flex items-center gap-2">
             {(() => {
-              const IconComponent = getTabIcon(activeTab, '');
+              const IconComponent = getTabIcon(activeTab, currentTab?.icon || '');
               return <IconComponent className="h-5 w-5 text-pip-text-bright" />;
             })()}
             <h2 className="text-lg font-pip-display font-bold text-pip-text-bright">
@@ -77,7 +79,7 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
         <div className="p-2 pt-16">
           <div className="flex flex-col items-center gap-2">
             {(() => {
-              const IconComponent = getTabIcon(activeTab, '');
+              const IconComponent = getTabIcon(activeTab, currentTab?.icon || '');
               return <IconComponent className="h-5 w-5 text-pip-text-bright" />;
             })()}
             <div className="w-6 h-px bg-pip-border"></div>
