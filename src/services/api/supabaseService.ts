@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { ApiResponse, QueryOptions, MutationOptions } from './types';
 import { apiCache } from './cache';
 import { createApiError, handleApiError } from './errorHandler';

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { reportError } from '@/lib/errorReporting';
 import { Label } from '@/components/ui/label';
 import { Loader2, Key, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 
 interface ResetFormData {
   email: string;

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import type { ChatMessage, AgentDefinition, N8NResponse } from '@/types/agents';
 import { z } from 'zod';
 
