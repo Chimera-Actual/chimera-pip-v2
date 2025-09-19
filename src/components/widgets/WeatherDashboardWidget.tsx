@@ -297,8 +297,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     if (!weatherData) return null;
 
     return (
-      <div className="space-y-4">
-        {/* Location badge and status indicators */}
+      <div className="space-y-4 p-4">
         {/* Status indicators */}
         {isStale && (
           <div className="flex justify-end">
