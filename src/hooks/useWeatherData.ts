@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { weatherService, WeatherData, WeatherLocation, RadiationLevel } from '@/services/weatherService';
 import { useAsyncState } from '@/hooks/core/useAsyncState';
 import { localStorageService } from '@/services/storage';
+import { useRetryWithBackoff } from '@/hooks/useRetryWithBackoff';
 
 interface WeatherSettings {
   units: 'metric' | 'imperial';
@@ -20,6 +21,7 @@ interface UseWeatherDataOptions {
 export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
   const { autoLoad = true, refreshInterval = 10 } = options;
   
+  // Initialize settings from persistent storage
   const [settings, setSettings] = useState<WeatherSettings>(() => {
     return localStorageService.get('weather_settings') || {
       units: 'metric',
@@ -32,36 +34,45 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
   const [currentLocation, setCurrentLocation] = useState<WeatherLocation | null>(null);
   const [radiationLevel, setRadiationLevel] = useState<RadiationLevel | null>(null);
 
-  // Weather data async state
+  // Retry mechanism for failed requests
+  const { executeWithRetry, retryState } = useRetryWithBackoff({
+    maxRetries: 3,
+    initialDelay: 500,
+    maxDelay: 4000
+  });
+
+  // Weather data async state with retry
   const [
     weatherState,
     loadWeatherData,
     resetWeatherData
   ] = useAsyncState(
     async (location: WeatherLocation) => {
-      const weatherData = await weatherService.getCompleteWeatherData(location, settings.units);
-      
-      // Calculate radiation level for Pip-Boy mode
-      const radiation = weatherService.calculateRadiationLevel(weatherData);
-      setRadiationLevel(radiation);
-      
-      return weatherData;
+      return await executeWithRetry(async () => {
+        const weatherData = await weatherService.getCompleteWeatherData(location, settings.units);
+        
+        // Calculate radiation level for Pip-Boy mode
+        const radiation = weatherService.calculateRadiationLevel(weatherData);
+        setRadiationLevel(radiation);
+        
+        return weatherData;
+      });
     },
     { 
       initialData: null,
-      retryCount: 2,
-      retryDelay: 1000
+      retryCount: 0, // We handle retries with our custom hook
+      retryDelay: 0
     }
   );
 
-  // Update settings and persist
+  // Update settings and persist using localStorage
   const updateSettings = useCallback((newSettings: Partial<WeatherSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     localStorageService.set('weather_settings', updated);
   }, [settings]);
 
-  // Load weather for a specific location
+  // Load weather for a specific location with location saving
   const loadWeatherForLocation = useCallback(async (location: WeatherLocation) => {
     setCurrentLocation(location);
     weatherService.saveRecentLocation(location);
@@ -89,12 +100,15 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     return () => clearInterval(interval);
   }, [settings.autoRefresh, settings.refreshInterval, currentLocation, weatherState.loading, refreshWeather]);
 
-  // Load default location on mount
+  // Load recent location on mount if available
   useEffect(() => {
-    if (autoLoad && settings.defaultLocation && !currentLocation) {
-      loadWeatherForLocation(settings.defaultLocation);
+    if (autoLoad && !currentLocation) {
+      const recentLocations = weatherService.getRecentLocations();
+      if (recentLocations.length > 0) {
+        loadWeatherForLocation(recentLocations[0]);
+      }
     }
-  }, [autoLoad, settings.defaultLocation, currentLocation, loadWeatherForLocation]);
+  }, [autoLoad, currentLocation, loadWeatherForLocation]);
 
   // Refresh data when units change to ensure proper conversions
   useEffect(() => {
@@ -158,6 +172,9 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     error: weatherState.error,
     lastUpdated: weatherState.lastUpdated,
     
+    // Retry state
+    retryState,
+    
     // Actions
     loadWeatherForLocation,
     refreshWeather,
@@ -174,6 +191,6 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     isStale: weatherState.lastUpdated ? 
       Date.now() - weatherState.lastUpdated.getTime() > (settings.refreshInterval * 60 * 1000) : 
       false,
-    canRefresh: !weatherState.loading && currentLocation !== null
+    canRefresh: !weatherState.loading && !retryState.isRetrying && currentLocation !== null
   };
 };

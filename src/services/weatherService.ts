@@ -4,6 +4,7 @@ import { reverseGeocode, type ReverseGeocodeResult } from './location/reverseGeo
 import { getBrowserPosition, getLocationWithFallback, GeolocationError } from './location/geolocation';
 import { convertWeatherValues, type WeatherValues } from '@/utils/units';
 import { localStorageService } from '@/services/storage';
+import { weatherCache } from './weather/weatherCache';
 
 export interface WeatherLocation {
   lat: number;
@@ -82,32 +83,10 @@ export interface RadiationLevel {
 }
 
 class WeatherService {
-  private cache = new Map<string, { data: any; timestamp: number }>();
-  private cacheTimeout = 10 * 60 * 1000; // 10 minutes
-
-  private getCacheKey(type: string, location: WeatherLocation): string {
-    return `${type}_${location.lat}_${location.lng}`;
-  }
-
-  private getCachedData<T>(key: string): T | null {
-    const cached = this.cache.get(key);
-    if (!cached) return null;
-    
-    if (Date.now() - cached.timestamp > this.cacheTimeout) {
-      this.cache.delete(key);
-      return null;
-    }
-    
-    return cached.data;
-  }
-
-  private setCachedData(key: string, data: any): void {
-    this.cache.set(key, { data, timestamp: Date.now() });
-  }
-
+  // Enhanced caching with location + units keying
   async getCurrentWeather(location: WeatherLocation, units: string = 'metric'): Promise<CurrentWeather> {
-    const cacheKey = this.getCacheKey('weather', location) + `_${units}`;
-    const cached = this.getCachedData<CurrentWeather>(cacheKey);
+    // Check cache first
+    const cached = weatherCache.get<CurrentWeather>(location, units, 'current');
     if (cached) return cached;
 
     try {
@@ -139,7 +118,7 @@ class WeatherService {
         units
       };
 
-      this.setCachedData(cacheKey, currentWeather);
+      weatherCache.set(location, units, currentWeather, 'current');
       return currentWeather;
       
     } catch (error) {
@@ -162,14 +141,14 @@ class WeatherService {
         lastUpdated: new Date().toISOString(),
         units
       };
-      this.setCachedData(cacheKey, mockWeather);
+      weatherCache.set(location, units, mockWeather, 'current');
       return mockWeather;
     }
   }
 
   async getForecast(location: WeatherLocation, units: string = 'metric'): Promise<ForecastDay[]> {
-    const cacheKey = this.getCacheKey('forecast', location) + `_${units}`;
-    const cached = this.getCachedData<ForecastDay[]>(cacheKey);
+    // Check cache first
+    const cached = weatherCache.get<ForecastDay[]>(location, units, 'forecast');
     if (cached) return cached;
 
     try {
@@ -195,7 +174,7 @@ class WeatherService {
         precipitation: 20 // Not provided by Google Weather
       }));
 
-      this.setCachedData(cacheKey, forecast);
+      weatherCache.set(location, units, forecast, 'forecast');
       return forecast;
       
     } catch (error) {
@@ -210,14 +189,14 @@ class WeatherService {
         { date: new Date(Date.now() + 345600000).toISOString(), icon: 'partly-cloudy', high: isMetric ? 24 : 75, low: isMetric ? 14 : 57, description: 'Partly cloudy', humidity: 55, windSpeed: isMetric ? 10 : 6.2, precipitation: 20 }
       ];
 
-      this.setCachedData(cacheKey, mockForecast);
+      weatherCache.set(location, units, mockForecast, 'forecast');
       return mockForecast;
     }
   }
 
   async getAirQuality(location: WeatherLocation): Promise<AirQuality> {
-    const cacheKey = this.getCacheKey('airquality', location);
-    const cached = this.getCachedData<AirQuality>(cacheKey);
+    // Check cache first
+    const cached = weatherCache.get<AirQuality>(location, 'none', 'airquality');
     if (cached) return cached;
 
     // Mock air quality data
@@ -235,13 +214,13 @@ class WeatherService {
       co: Math.floor(Math.random() * 200) + 50
     };
 
-    this.setCachedData(cacheKey, mockAirQuality);
+    weatherCache.set(location, 'none', mockAirQuality, 'airquality');
     return mockAirQuality;
   }
 
   async getPollenData(location: WeatherLocation): Promise<PollenData> {
-    const cacheKey = this.getCacheKey('pollen', location);
-    const cached = this.getCachedData<PollenData>(cacheKey);
+    // Check cache first
+    const cached = weatherCache.get<PollenData>(location, 'none', 'pollen');
     if (cached) return cached;
 
     // Mock pollen data
@@ -256,8 +235,18 @@ class WeatherService {
       description: overall <= 2 ? 'Low pollen levels' : overall <= 3 ? 'Moderate pollen levels' : 'High pollen levels'
     };
 
-    this.setCachedData(cacheKey, mockPollen);
+    weatherCache.set(location, 'none', mockPollen, 'pollen');
     return mockPollen;
+  }
+
+  // Get cached locations for quick switching
+  getCachedLocations() {
+    return weatherCache.getCachedLocations();
+  }
+
+  // Clear weather cache
+  clearCache() {
+    weatherCache.clear();
   }
 
   async getCompleteWeatherData(location: WeatherLocation, units: string = 'metric'): Promise<WeatherData> {

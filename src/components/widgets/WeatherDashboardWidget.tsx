@@ -23,6 +23,8 @@ import { PollenPanel } from './weather/PollenPanel';
 import { PipBoyRadiationMeter } from './weather/PipBoyRadiationMeter';
 import { WidgetSettingsSheet } from './base/WidgetSettingsSheet';
 import { WeatherSettings } from './weather/WeatherSettings';
+import { WeatherErrorBanner, getErrorType } from './weather/WeatherErrorBanner';
+import { CurrentWeatherSkeleton, ForecastSkeleton } from './weather/WeatherSkeleton';
 import { useWeatherData } from '@/hooks/useWeatherData';
 import { weatherService, WeatherLocation } from '@/services/weatherService';
 import { useToast } from '@/hooks/use-toast';
@@ -226,24 +228,20 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
      },
   ];
 
-  // Main content renderer
+  // Main content renderer with enhanced error handling and loading states
   const renderContent = () => {
     if (error) {
+      const errorType = getErrorType(error);
       return (
-        <div className="flex items-center justify-center py-8 text-center">
-          <div className="space-y-2">
-            <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
-            <p className="text-sm text-muted-foreground">
-              {error}
-            </p>
-            <Button
-              size="sm"
-              onClick={handleRefresh}
-              disabled={!canRefresh}
-            >
-              Try Again
-            </Button>
-          </div>
+        <div className="p-4">
+          <WeatherErrorBanner
+            error={error}
+            errorType={errorType}
+            onRetry={handleRefresh}
+            onOpenSettings={() => setShowSettings(true)}
+            retryDisabled={!canRefresh}
+            isPipBoyMode={false}
+          />
         </div>
       );
     }
@@ -279,13 +277,9 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
 
     if (loading && !weatherData) {
       return (
-        <div className="flex items-center justify-center py-8">
-          <div className="space-y-2 text-center">
-            <RefreshCw className="h-8 w-8 mx-auto animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">
-              Loading weather data...
-            </p>
-          </div>
+        <div className="space-y-4 p-4">
+          <CurrentWeatherSkeleton />
+          {settings.showForecast && <ForecastSkeleton />}
         </div>
       );
     }
