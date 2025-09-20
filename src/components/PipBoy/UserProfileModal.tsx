@@ -14,7 +14,7 @@ import { validateNumericId, validatePin } from '@/lib/quickaccess/crypto';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 
 interface UserProfileModalProps {
   isOpen: boolean;

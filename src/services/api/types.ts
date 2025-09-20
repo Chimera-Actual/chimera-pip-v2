@@ -40,22 +40,6 @@ export interface MutationOptions extends RequestConfig {
   invalidateQueries?: string[]; // Query keys to invalidate on success
 }
 
-export interface SupabaseQueryConfig {
-  table: string;
-  select?: string;
-  filter?: Record<string, any>;
-  order?: { column: string; ascending?: boolean }[];
-  range?: { from: number; to: number };
-  single?: boolean;
-}
-
-export interface SupabaseMutationConfig {
-  table: string;
-  operation: 'insert' | 'update' | 'delete' | 'upsert';
-  data?: Record<string, any>;
-  filter?: Record<string, any>;
-}
-
 export interface WebhookConfig {
   url: string;
   timeout?: number;
