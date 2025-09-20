@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,6 @@ interface SpecialStat {
   description: string;
 }
 
-
 const achievements = [
   { name: 'Vault Dweller', description: 'Welcome to your new PIP-Boy!', earned: true },
   { name: 'Data Analyst', description: 'View 10 different data widgets', earned: false },
@@ -20,10 +19,59 @@ const achievements = [
   { name: 'Communications Expert', description: 'Send 50 messages', earned: false },
 ];
 
-export const StatTab: React.FC = () => {
+const StatTabComponent: React.FC = () => {
   const { profile } = useAuth();
   
-  if (!profile) {
+  // Memoize expensive calculations
+  const computedStats = useMemo(() => {
+    if (!profile) return null;
+
+    const level = profile.level;
+    const experience = profile.experience_points;
+    const nextLevelXP = level * 1000; // Simple XP calculation
+    const xpProgress = (experience / nextLevelXP) * 100;
+    
+    const specialStats: SpecialStat[] = [
+      { name: 'S', fullName: 'Strength', value: profile.special_stats.strength, description: 'Physical power and carry capacity' },
+      { name: 'P', fullName: 'Perception', value: profile.special_stats.perception, description: 'Environmental awareness and accuracy' },
+      { name: 'E', fullName: 'Endurance', value: profile.special_stats.endurance, description: 'Stamina and physical resilience' },
+      { name: 'C', fullName: 'Charisma', value: profile.special_stats.charisma, description: 'Social skills and leadership' },
+      { name: 'I', fullName: 'Intelligence', value: profile.special_stats.intelligence, description: 'Reasoning ability and technical skill' },
+      { name: 'A', fullName: 'Agility', value: profile.special_stats.agility, description: 'Speed and finesse' },
+      { name: 'L', fullName: 'Luck', value: profile.special_stats.luck, description: 'Fate and random chance' }
+    ];
+
+    return {
+      level,
+      experience,
+      nextLevelXP,
+      xpProgress,
+      specialStats,
+      karma: profile.karma,
+      vaultNumber: profile.vault_number
+    };
+  }, [profile]);
+
+  // Memoize karma functions
+  const karmaHelpers = useMemo(() => {
+    const getKarmaLabel = (karma: number) => {
+      if (karma >= 500) return 'VERY GOOD';
+      if (karma >= 200) return 'GOOD';
+      if (karma >= -199) return 'NEUTRAL';
+      if (karma >= -499) return 'EVIL';
+      return 'VERY EVIL';
+    };
+    
+    const getKarmaColor = (karma: number) => {
+      if (karma >= 200) return 'text-pip-green-secondary';
+      if (karma >= -199) return 'text-pip-text-secondary';
+      return 'text-destructive';
+    };
+
+    return { getKarmaLabel, getKarmaColor };
+  }, []);
+  
+  if (!profile || !computedStats) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-pip-text-muted font-pip-mono">Loading profile...</div>
@@ -31,34 +79,8 @@ export const StatTab: React.FC = () => {
     );
   }
 
-  const level = profile.level;
-  const experience = profile.experience_points;
-  const nextLevelXP = level * 1000; // Simple XP calculation
-  const xpProgress = (experience / nextLevelXP) * 100;
-  
-  const specialStats: SpecialStat[] = [
-    { name: 'S', fullName: 'Strength', value: profile.special_stats.strength, description: 'Physical power and carry capacity' },
-    { name: 'P', fullName: 'Perception', value: profile.special_stats.perception, description: 'Environmental awareness and accuracy' },
-    { name: 'E', fullName: 'Endurance', value: profile.special_stats.endurance, description: 'Stamina and physical resilience' },
-    { name: 'C', fullName: 'Charisma', value: profile.special_stats.charisma, description: 'Social skills and leadership' },
-    { name: 'I', fullName: 'Intelligence', value: profile.special_stats.intelligence, description: 'Reasoning ability and technical skill' },
-    { name: 'A', fullName: 'Agility', value: profile.special_stats.agility, description: 'Speed and finesse' },
-    { name: 'L', fullName: 'Luck', value: profile.special_stats.luck, description: 'Fate and random chance' }
-  ];
-  
-  const getKarmaLabel = (karma: number) => {
-    if (karma >= 500) return 'VERY GOOD';
-    if (karma >= 200) return 'GOOD';
-    if (karma >= -199) return 'NEUTRAL';
-    if (karma >= -499) return 'EVIL';
-    return 'VERY EVIL';
-  };
-  
-  const getKarmaColor = (karma: number) => {
-    if (karma >= 200) return 'text-pip-green-secondary';
-    if (karma >= -199) return 'text-pip-text-secondary';
-    return 'text-destructive';
-  };
+  const { level, experience, nextLevelXP, xpProgress, specialStats, karma, vaultNumber } = computedStats;
+  const { getKarmaLabel, getKarmaColor } = karmaHelpers;
 
   return (
     <div className="space-y-6">
@@ -75,7 +97,7 @@ export const StatTab: React.FC = () => {
             <div>
               <div className="text-xs text-pip-text-muted font-pip-mono">VAULT</div>
               <div className="text-2xl font-pip-display font-bold text-primary pip-text-glow">
-                {profile.vault_number.toString().padStart(3, '0')}
+                {vaultNumber.toString().padStart(3, '0')}
               </div>
             </div>
             <div>
@@ -88,8 +110,8 @@ export const StatTab: React.FC = () => {
             </div>
             <div>
               <div className="text-xs text-pip-text-muted font-pip-mono">KARMA</div>
-              <div className={`text-2xl font-pip-display font-bold ${getKarmaColor(profile.karma)}`}>
-                {getKarmaLabel(profile.karma)}
+              <div className={`text-2xl font-pip-display font-bold ${getKarmaColor(karma)}`}>
+                {getKarmaLabel(karma)}
               </div>
             </div>
           </div>
@@ -218,3 +240,13 @@ export const StatTab: React.FC = () => {
     </div>
   );
 };
+
+// Add display name for debugging
+StatTabComponent.displayName = 'StatTab';
+
+// Enable Why Did You Render tracking in development
+if (import.meta.env.DEV) {
+  (StatTabComponent as any).whyDidYouRender = true;
+}
+
+export const StatTab = memo(StatTabComponent);

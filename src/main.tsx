@@ -6,6 +6,11 @@ import './index.css'
 import { AppProviders } from '@/app/AppProviders'
 import { setupSessionListener } from '@/lib/auth/session'
 
+// Load performance monitoring in development
+if (import.meta.env.DEV) {
+  import('./lib/wdyr.ts');
+}
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {

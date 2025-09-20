@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { MapPin, Thermometer, Droplets, Wind, Eye, Sun, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ interface CurrentWeatherCardProps {
   className?: string;
 }
 
-export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
+const CurrentWeatherCardComponent: React.FC<CurrentWeatherCardProps> = ({
   weather,
   units,
   isPipBoyMode = false,
@@ -221,3 +221,13 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
     </Card>
   );
 };
+
+// Add display name for debugging
+CurrentWeatherCardComponent.displayName = 'CurrentWeatherCard';
+
+// Enable Why Did You Render tracking in development
+if (import.meta.env.DEV) {
+  (CurrentWeatherCardComponent as any).whyDidYouRender = true;
+}
+
+export const CurrentWeatherCard = memo(CurrentWeatherCardComponent);

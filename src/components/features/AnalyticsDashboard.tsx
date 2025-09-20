@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,13 +37,71 @@ interface AnalyticsData {
   activityByHour: Array<{ hour: string; events: number }>;
 }
 
-export const AnalyticsDashboard: React.FC = () => {
+const AnalyticsDashboardComponent: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState('7d');
   const { user } = useAuth();
 
-  const loadAnalytics = async () => {
+  // Memoize expensive data processing
+  const processAnalyticsData = useCallback((events: any[]) => {
+    const totalEvents = events?.length || 0;
+    
+    // Count unique sessions
+    const uniqueSessions = new Set(events?.map(e => e.session_id)).size;
+    
+    // Calculate average session duration (mock calculation)
+    const averageSessionDuration = Math.round(Math.random() * 300 + 600); // 10-15 minutes
+
+    // Find most used widget
+    const widgetEvents = events?.filter(e => e.event_name === 'widget_action') || [];
+    const widgetCounts: Record<string, number> = {};
+    widgetEvents.forEach(e => {
+      const properties = e.event_properties as any;
+      const widgetType = properties?.widgetType as string;
+      if (widgetType) {
+        widgetCounts[widgetType] = (widgetCounts[widgetType] || 0) + 1;
+      }
+    });
+    
+    const mostUsedWidget = Object.entries(widgetCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+
+    // Events by type
+    const eventTypeCounts: Record<string, number> = {};
+    events?.forEach(e => {
+      eventTypeCounts[e.event_name] = (eventTypeCounts[e.event_name] || 0) + 1;
+    });
+
+    const eventsByType = Object.entries(eventTypeCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    // Activity by hour
+    const hourCounts: Record<string, number> = {};
+    events?.forEach(e => {
+      const hour = new Date(e.timestamp).getHours();
+      const hourKey = `${hour}:00`;
+      hourCounts[hourKey] = (hourCounts[hourKey] || 0) + 1;
+    });
+
+    const activityByHour = Array.from({ length: 24 }, (_, i) => ({
+      hour: `${i}:00`,
+      events: hourCounts[`${i}:00`] || 0
+    }));
+
+    return {
+      totalEvents,
+      sessionsToday: uniqueSessions,
+      averageSessionDuration,
+      mostUsedWidget,
+      eventsByType,
+      activityByHour
+    };
+  }, []);
+
+  const loadAnalytics = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -63,73 +121,21 @@ export const AnalyticsDashboard: React.FC = () => {
 
       if (error) throw error;
 
-      // Process the data
-      const totalEvents = events?.length || 0;
-      
-      // Count unique sessions
-      const uniqueSessions = new Set(events?.map(e => e.session_id)).size;
-      
-      // Calculate average session duration (mock calculation)
-      const averageSessionDuration = Math.round(Math.random() * 300 + 600); // 10-15 minutes
-
-      // Find most used widget
-      const widgetEvents = events?.filter(e => e.event_name === 'widget_action') || [];
-      const widgetCounts: Record<string, number> = {};
-      widgetEvents.forEach(e => {
-        const properties = e.event_properties as any;
-        const widgetType = properties?.widgetType as string;
-        if (widgetType) {
-          widgetCounts[widgetType] = (widgetCounts[widgetType] || 0) + 1;
-        }
-      });
-      
-      const mostUsedWidget = Object.entries(widgetCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
-
-      // Events by type
-      const eventTypeCounts: Record<string, number> = {};
-      events?.forEach(e => {
-        eventTypeCounts[e.event_name] = (eventTypeCounts[e.event_name] || 0) + 1;
-      });
-
-      const eventsByType = Object.entries(eventTypeCounts)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
-
-      // Activity by hour
-      const hourCounts: Record<string, number> = {};
-      events?.forEach(e => {
-        const hour = new Date(e.timestamp).getHours();
-        const hourKey = `${hour}:00`;
-        hourCounts[hourKey] = (hourCounts[hourKey] || 0) + 1;
-      });
-
-      const activityByHour = Array.from({ length: 24 }, (_, i) => ({
-        hour: `${i}:00`,
-        events: hourCounts[`${i}:00`] || 0
-      }));
-
-      setAnalyticsData({
-        totalEvents,
-        sessionsToday: uniqueSessions,
-        averageSessionDuration,
-        mostUsedWidget,
-        eventsByType,
-        activityByHour
-      });
+      // Process the data using memoized function
+      const processedData = processAnalyticsData(events || []);
+      setAnalyticsData(processedData);
     } catch (error) {
       reportError('Error loading analytics');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id, dateRange, processAnalyticsData]);
 
   useEffect(() => {
     loadAnalytics();
-  }, [user?.id, dateRange]);
+  }, [loadAnalytics]);
 
-  const exportData = async () => {
+  const exportData = useCallback(async () => {
     try {
       const result = await supabase.functions.invoke('backup-generator', {
         body: {
@@ -152,21 +158,23 @@ export const AnalyticsDashboard: React.FC = () => {
     } catch (error) {
       reportError('Error exporting data');
     }
-  };
+  }, [user?.id]);
 
-  const formatDuration = (seconds: number) => {
+  // Memoize utility functions
+  const formatDuration = useCallback((seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
-  };
+  }, []);
 
-  const COLORS = [
+  // Memoize chart colors to prevent recreation
+  const COLORS = useMemo(() => [
     'hsl(var(--pip-green-primary))',
     'hsl(var(--pip-green-secondary))', 
     'hsl(var(--pip-green-muted))',
     'hsl(120 60% 25%)',
     'hsl(120 40% 20%)'
-  ];
+  ], []);
 
   if (isLoading) {
     return (
@@ -334,3 +342,13 @@ export const AnalyticsDashboard: React.FC = () => {
     </div>
   );
 };
+
+// Add display name for debugging
+AnalyticsDashboardComponent.displayName = 'AnalyticsDashboard';
+
+// Enable Why Did You Render tracking in development
+if (import.meta.env.DEV) {
+  (AnalyticsDashboardComponent as any).whyDidYouRender = true;
+}
+
+export const AnalyticsDashboard = memo(AnalyticsDashboardComponent);
