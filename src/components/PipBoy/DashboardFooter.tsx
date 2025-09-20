@@ -9,27 +9,25 @@ export const DashboardFooter: React.FC = () => {
   const [lastSync, setLastSync] = useState<Date>(new Date());
 
   useEffect(() => {
-    const timeInterval = setInterval(() => {
+    let tick = 0;
+    const id = setInterval(() => {
+      tick++;
+      
+      // 1s tasks - update time
       setCurrentTime(new Date());
-    }, 1000);
-
-    // Simulate connection monitoring
-    const connectionInterval = setInterval(() => {
-      setConnectionStatus(navigator.onLine ? 'connected' : 'disconnected');
-    }, 5000);
-
-    // Update last sync time occasionally
-    const syncInterval = setInterval(() => {
-      if (navigator.onLine) {
+      
+      // 5s tasks - check connection
+      if (tick % 5 === 0) {
+        setConnectionStatus(navigator.onLine ? 'connected' : 'disconnected');
+      }
+      
+      // 30s tasks - update sync time
+      if (tick % 30 === 0 && navigator.onLine) {
         setLastSync(new Date());
       }
-    }, 30000);
+    }, 1000);
 
-    return () => {
-      clearInterval(timeInterval);
-      clearInterval(connectionInterval);
-      clearInterval(syncInterval);
-    };
+    return () => clearInterval(id);
   }, []);
 
   const formatTime = (date: Date) => {

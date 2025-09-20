@@ -96,14 +96,13 @@ export const PerformanceProvider: React.FC<PerformanceProviderProps> = ({
 
   // Automatic memory tracking every 30 seconds when profiling is enabled
   useEffect(() => {
-    if (enableProfiling) {
-      memoryCheckInterval.current = setInterval(trackMemoryUsage, 30000);
-      return () => {
-        if (memoryCheckInterval.current) {
-          clearInterval(memoryCheckInterval.current);
-        }
-      };
-    }
+    if (!enableProfiling) return;
+    
+    const id = setInterval(() => {
+      trackMemoryUsage();
+    }, 30000);
+    
+    return () => clearInterval(id);
   }, [enableProfiling, trackMemoryUsage]);
 
   const contextValue = useMemo((): PerformanceContextType => ({

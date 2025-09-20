@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
@@ -74,8 +74,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Use toast hook at top level as required by React
   const { toast } = useToast();
+  const fetchingProfileRef = useRef(false);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
+    if (fetchingProfileRef.current) return;
+    fetchingProfileRef.current = true;
+    
     try {
       const { data, error } = await supabase
         .from('users')
@@ -90,7 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Handle case where user profile doesn't exist yet
       if (!data) {
-        console.warn('User profile not found, user may need to complete registration');
+        if (import.meta.env.DEV) {
+          console.warn('User profile not found, user may need to complete registration');
+        }
         return;
       }
 
@@ -101,11 +107,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         theme_config: data.theme_config as UserProfile['theme_config'],
       };
 
-      setProfile(profileData);
+      // Only update if profile actually changed (shallow compare)
+      setProfile(current => {
+        if (!current) return profileData;
+        const hasChanged = Object.keys(profileData).some(key => 
+          profileData[key as keyof UserProfile] !== current[key as keyof UserProfile]
+        );
+        return hasChanged ? profileData : current;
+      });
     } catch (error) {
       reportError('Profile fetch error', { component: 'AuthContext' });
+    } finally {
+      fetchingProfileRef.current = false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Check if Supabase is available

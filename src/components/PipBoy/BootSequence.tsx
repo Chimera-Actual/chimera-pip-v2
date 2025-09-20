@@ -22,42 +22,33 @@ export const BootSequence: React.FC = () => {
   const vaultNumber = profile?.vault_number || 111;
 
   useEffect(() => {
-    const messageInterval = setInterval(() => {
-      if (currentMessage < bootMessages.length - 1) {
-        setCurrentMessage(prev => prev + 1);
+    const progressRef = { value: 0, msgIndex: 0, charIndex: 0 };
+    let currentMsg = '';
+    
+    const id = setInterval(() => {
+      // Advance progress
+      progressRef.value = Math.min(progressRef.value + 2.5, 100);
+      setProgress(progressRef.value);
+      
+      // Advance message every ~6-7 ticks (500ms equivalent)
+      if (progressRef.value % 15 < 2.5 && progressRef.msgIndex < bootMessages.length - 1) {
+        progressRef.msgIndex++;
+        progressRef.charIndex = 0;
+        currentMsg = '';
+        setCurrentMessage(progressRef.msgIndex);
       }
-    }, 500);
-
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) return 100;
-        return prev + 2.5;
-      });
-    }, 75);
-
-    return () => {
-      clearInterval(messageInterval);
-      clearInterval(progressInterval);
-    };
-  }, [currentMessage]);
-
-  useEffect(() => {
-    // Typewriter effect for the current message
-    const message = bootMessages[currentMessage];
-    let index = 0;
-    setDisplayText('');
-
-    const typewriter = setInterval(() => {
-      if (index < message.length) {
-        setDisplayText(message.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(typewriter);
+      
+      // Typewriter effect - advance characters
+      const message = bootMessages[progressRef.msgIndex];
+      if (progressRef.charIndex < message.length) {
+        progressRef.charIndex++;
+        currentMsg = message.slice(0, progressRef.charIndex);
+        setDisplayText(currentMsg);
       }
-    }, 30);
+    }, 80);
 
-    return () => clearInterval(typewriter);
-  }, [currentMessage]);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center pip-scanlines bg-pip-bg-primary">

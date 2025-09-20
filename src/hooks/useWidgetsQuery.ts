@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
+import { subscribeToTable } from '@/lib/realtime/subscribeToTable';
 import { queryKeys } from '@/services/keys';
 import { toast } from '@/hooks/use-toast';
 import { normalizeError } from '@/lib/errors';
@@ -38,45 +39,49 @@ export const useWidgetsQuery = (tabAssignment: string) => {
     enabled: !!user?.id && !!tabAssignment,
   });
 
-  // Realtime subscription for this tab's widgets
+  // Realtime subscription using new helper to prevent leaks
   React.useEffect(() => {
     if (!user?.id || !tabAssignment) return;
 
     let debounceTimeout: NodeJS.Timeout;
     
-    const channel = supabase
-      .channel(`widgets:${tabAssignment}:${user.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_widgets',
-        filter: `tab_assignment=eq.${tabAssignment}`,
-      }, (payload) => {
-        // Debounce rapid updates to prevent excessive re-renders
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => {
-          queryClient.setQueryData<UserWidget[]>(
-            queryKeys.widgets(tabAssignment, user.id),
-            (prev = []) => {
-              switch (payload.eventType) {
-                case 'INSERT':
-                  return [...prev, payload.new as UserWidget].sort((a, b) => a.display_order - b.display_order);
-                case 'UPDATE':
-                  return prev.map(w => w.id === payload.new.id ? payload.new as UserWidget : w);
-                case 'DELETE':
-                  return prev.filter(w => w.id !== payload.old.id);
-                default:
-                  return prev;
-              }
-            }
-          );
-        }, 100); // 100ms debounce
-      })
-      .subscribe();
+    const unsubscribe = subscribeToTable<UserWidget>(
+      'user_widgets',
+      `tab_assignment=eq.${tabAssignment}&user_id=eq.${user.id}`,
+      {
+        onInsert: (newWidget) => {
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            queryClient.setQueryData<UserWidget[]>(
+              queryKeys.widgets(tabAssignment, user.id),
+              (prev = []) => [...prev, newWidget].sort((a, b) => a.display_order - b.display_order)
+            );
+          }, 100);
+        },
+        onUpdate: (updatedWidget) => {
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            queryClient.setQueryData<UserWidget[]>(
+              queryKeys.widgets(tabAssignment, user.id),
+              (prev = []) => prev.map(w => w.id === updatedWidget.id ? updatedWidget : w)
+            );
+          }, 100);
+        },
+        onDelete: (deletedWidget) => {
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            queryClient.setQueryData<UserWidget[]>(
+              queryKeys.widgets(tabAssignment, user.id),
+              (prev = []) => prev.filter(w => w.id !== deletedWidget.id)
+            );
+          }, 100);
+        }
+      }
+    );
 
     return () => {
       clearTimeout(debounceTimeout);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [user?.id, tabAssignment, queryClient]);
 
