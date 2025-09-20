@@ -14,6 +14,7 @@ import { validateNumericId, validatePin } from '@/lib/quickaccess/crypto';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -47,6 +48,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   
   // Change Password modal state
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  
+  // Avatar upload state
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Quick Access computed values
   const isQuickAccessEnabled = profile?.quick_access_enabled || false;
@@ -144,6 +148,73 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "INVALID FILE TYPE",
+        description: "Please select an image file (JPG, PNG, WebP, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "FILE TOO LARGE",
+        description: "Avatar must be smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      // Create file path with user ID folder
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to Supabase storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { 
+          upsert: true,
+          contentType: file.type
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update user profile with new avatar URL
+      await updateProfile({ avatar_url: publicUrl });
+
+      toast({
+        title: "AVATAR UPDATED",
+        description: "Your profile picture has been successfully updated.",
+      });
+    } catch (error: any) {
+      console.error('Avatar upload failed:', error);
+      toast({
+        title: "UPLOAD FAILED",
+        description: error.message || "Failed to upload avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
   };
@@ -165,18 +236,32 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       >
         <div className="flex items-center gap-4 p-4 bg-pip-surface rounded-lg border border-pip-border">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarImage src={profile?.avatar_url} />
             <AvatarFallback className="bg-pip-accent text-pip-accent-foreground text-lg font-bold">
-              {getInitials(tempSettings.characterName)}
+              {getInitials(profile?.character_name || tempSettings.characterName || user?.email || 'U')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+              id="avatar-upload"
+              disabled={uploadingAvatar}
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+              disabled={uploadingAvatar}
+            >
               <Upload className="h-4 w-4" />
-              Upload Avatar
+              {uploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
             </Button>
             <p className="text-xs text-pip-text-muted mt-1">
-              Recommended: 256x256px, JPG or PNG
+              Max 5MB • JPG, PNG, WebP • Recommended: 256x256px
             </p>
           </div>
         </div>
