@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTabWidgets } from '@/hooks/useTabWidgetsRefactored';
 import { useToast } from '@/hooks/use-toast';
 import { DEFAULT_AGENTS, getAgentById, getDefaultAgent } from '@/services/agents/agentRegistry';
+import { listAgents } from '@/services/agents/agentsRepo';
 import { aiAgentService } from '@/services/agents/aiAgentService';
 import { postToN8N } from '@/services/agents/n8nClient';
 import type { AgentConfig, AgentDefinition, ChatMessage, ChatSession } from '@/types/agents';
@@ -50,6 +51,10 @@ export default function AIAgentWidget({
     return stored ? { ...DEFAULT_CONFIG, ...stored } : DEFAULT_CONFIG;
   });
   
+  // Agent state
+  const [userAgents, setUserAgents] = useState<AgentDefinition[]>([]);
+  const [allAgents, setAllAgents] = useState<AgentDefinition[]>(DEFAULT_AGENTS);
+  
   // Chat state
   const [activeAgent, setActiveAgent] = useState<AgentDefinition>(() => 
     getAgentById(config.defaultAgentId) || getDefaultAgent()
@@ -63,6 +68,25 @@ export default function AIAgentWidget({
   // Refs
   const abortRef = useRef<AbortController | null>(null);
   
+  // Load user agents on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadUserAgents();
+    }
+  }, [user?.id]);
+
+  const loadUserAgents = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const agents = await listAgents(user.id);
+      setUserAgents(agents);
+      setAllAgents([...DEFAULT_AGENTS, ...agents]);
+    } catch (error) {
+      console.error('Failed to load user agents:', error);
+    }
+  };
+
   // Load persisted session on mount
   useEffect(() => {
     const sessionKey = `chimera.agent.${widgetId}.${sessionId}.chat`;
@@ -86,13 +110,11 @@ export default function AIAgentWidget({
     }
   }, [messages, widgetId, sessionId]);
   
-  // Update active agent when config changes
+  // Update active agent when config or agents change
   useEffect(() => {
-    const agent = getAgentById(config.defaultAgentId);
-    if (agent) {
-      setActiveAgent(agent);
-    }
-  }, [config.defaultAgentId]);
+    const agent = allAgents.find(a => a.id === config.defaultAgentId) || getDefaultAgent();
+    setActiveAgent(agent);
+  }, [config.defaultAgentId, allAgents]);
   
   // Save config when it changes
   const saveConfig = (newConfig: AgentConfig) => {
@@ -130,10 +152,13 @@ export default function AIAgentWidget({
     const text = input.trim();
     if (!text || pending) return;
     
-    if (!config.webhookUrl) {
+    // Determine webhook URL (agent-specific or global fallback)
+    const targetWebhook = activeAgent.webhook_url || config.webhookUrl;
+    
+    if (!targetWebhook) {
       toast({
         title: 'Configuration Required',
-        description: 'Please set a webhook URL in settings before sending messages.',
+        description: 'Please set a webhook URL for this agent or configure a global webhook URL in settings.',
         variant: 'destructive',
       });
       return;
@@ -158,45 +183,32 @@ export default function AIAgentWidget({
       let assistantText: string;
       let usage: { prompt?: number; completion?: number } | undefined;
       
-      // Try Supabase AI chat first, then fallback to n8n
-      if (!config.webhookUrl) {
-        // Use Supabase AI chat
-        const response = await aiAgentService.sendMessage({
-          messages: [...messages, userMessage],
-          agent: activeAgent,
-          sessionId,
-          widgetId,
-          signal: controller.signal,
-        });
-        assistantText = response.content;
-        usage = response.usage;
-      } else {
-        // Use direct n8n webhook
-        const body = {
-          sessionId,
-          agent: {
-            id: activeAgent.id,
-            name: activeAgent.name,
-          },
-          messages: [...messages, userMessage].map(({ role, content }) => ({ role, content })),
-          user: user ? { id: user.id, email: user.email ?? null } : { id: 'anonymous' },
-          meta: { widgetId },
-        };
-        
-        const headers = config.authHeaderName && config.authHeaderValue 
-          ? { [config.authHeaderName]: config.authHeaderValue }
-          : undefined;
-        
-        const response = await postToN8N({
-          webhookUrl: config.webhookUrl,
-          headers,
-          body,
-          signal: controller.signal,
-        });
-        
-        assistantText = response.assistantText;
-        usage = response.usage;
-      }
+      // Use webhook with enhanced payload
+      const body = {
+        user_id: user?.id || 'anonymous',
+        session_id: sessionId,
+        system_message: activeAgent.system_prompt,
+        agent: {
+          id: activeAgent.id,
+          name: activeAgent.name,
+        },
+        messages: [...messages, userMessage].map(({ role, content }) => ({ role, content })),
+        meta: { widgetId },
+      };
+      
+      const headers = config.authHeaderName && config.authHeaderValue 
+        ? { [config.authHeaderName]: config.authHeaderValue }
+        : undefined;
+      
+      const response = await postToN8N({
+        webhookUrl: targetWebhook,
+        headers,
+        body,
+        signal: controller.signal,
+      });
+      
+      assistantText = response.assistantText;
+      usage = response.usage;
       
       const assistantMessage: ChatMessage = {
         id: uuid(),
@@ -289,11 +301,14 @@ export default function AIAgentWidget({
       id: 'agent',
       label: activeAgent.name,
       icon: Bot,
-      items: DEFAULT_AGENTS.map(agent => ({
+      items: allAgents.map(agent => ({
         id: agent.id,
-        label: agent.name,
-        onClick: () => setActiveAgent(agent),
-        icon: agent.icon as any, // Cast to any to avoid type conflict
+        label: agent.user_id ? `${agent.name} (Custom)` : agent.name,
+        onClick: () => {
+          setActiveAgent(agent);
+          setConfig(prev => ({ ...prev, defaultAgentId: agent.id }));
+        },
+        icon: agent.icon as any,
       })),
     },
     {
@@ -326,7 +341,7 @@ export default function AIAgentWidget({
       onClick: () => setShowSettings(true),
       icon: Settings,
     },
-  ], [activeAgent, pending]);
+  ], [activeAgent, pending, allAgents]);
   
   return (
     <>
@@ -351,11 +366,11 @@ export default function AIAgentWidget({
               onChange={setInput}
               onSend={sendMessage}
               onStop={pending ? stopRequest : undefined}
-              disabled={!config.webhookUrl}
+              disabled={!activeAgent.webhook_url && !config.webhookUrl}
               pending={pending}
               placeholder={
-                !config.webhookUrl 
-                  ? "Configure webhook URL in settings to start chatting..."
+                !activeAgent.webhook_url && !config.webhookUrl
+                  ? "Configure webhook URL for this agent or set a global webhook in settings..."
                   : `Message ${activeAgent.name}...`
               }
             />

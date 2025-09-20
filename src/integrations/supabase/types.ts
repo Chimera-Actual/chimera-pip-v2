@@ -263,6 +263,39 @@ export type Database = {
           },
         ]
       }
+      user_agents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          system_message: string
+          updated_at: string | null
+          user_id: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          system_message: string
+          updated_at?: string | null
+          user_id: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          system_message?: string
+          updated_at?: string | null
+          user_id?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       user_analytics: {
         Row: {
           event_name: string

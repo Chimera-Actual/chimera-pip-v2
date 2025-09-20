@@ -1,4 +1,5 @@
 export type ChatRole = 'user' | 'assistant' | 'system';
+export type AgentId = string;
 
 export interface ChatMessage {
   id: string;
@@ -9,17 +10,18 @@ export interface ChatMessage {
 }
 
 export interface AgentDefinition {
-  id: string;
+  id: AgentId;
   name: string;
   description?: string;
+  system_prompt: string;
+  webhook_url: string;
   icon?: React.ComponentType<any>; // Lucide icon component
-  webhook_url?: string;
-  system_prompt?: string;
+  user_id?: string; // For custom user agents
 }
 
 export interface AgentConfig {
-  defaultAgentId: string;
-  webhookUrl: string;
+  defaultAgentId: AgentId;
+  webhookUrl?: string; // Global fallback (optional)
   authHeaderName?: string;
   authHeaderValue?: string;
 }

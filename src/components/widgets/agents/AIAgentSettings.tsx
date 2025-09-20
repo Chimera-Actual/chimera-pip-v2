@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { DEFAULT_AGENTS } from '@/services/agents/agentRegistry';
-import type { AgentConfig } from '@/types/agents';
+import { AgentManagement } from './AgentManagement';
+import { useAuth } from '@/contexts/AuthContext';
+import { listAgents, createAgent, updateAgent, deleteAgent } from '@/services/agents/agentsRepo';
+import type { AgentConfig, AgentDefinition } from '@/types/agents';
 
 interface AIAgentSettingsProps {
   config: AgentConfig;
@@ -14,12 +18,62 @@ interface AIAgentSettingsProps {
 }
 
 export function AIAgentSettings({ config, onSave }: AIAgentSettingsProps) {
+  const { user } = useAuth();
   const [localConfig, setLocalConfig] = useState<AgentConfig>(config);
   const [newHeaderKey, setNewHeaderKey] = useState('');
   const [newHeaderValue, setNewHeaderValue] = useState('');
+  const [userAgents, setUserAgents] = useState<AgentDefinition[]>([]);
+  const [loadingAgents, setLoadingAgents] = useState(true);
+
+  // Load user agents on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadUserAgents();
+    }
+  }, [user?.id]);
+
+  const loadUserAgents = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoadingAgents(true);
+      const agents = await listAgents(user.id);
+      setUserAgents(agents);
+    } catch (error) {
+      console.error('Failed to load agents:', error);
+    } finally {
+      setLoadingAgents(false);
+    }
+  };
+
+  // Get all available agents (defaults + user agents)
+  const allAgents = [...DEFAULT_AGENTS, ...userAgents];
 
   const handleSave = () => {
     onSave(localConfig);
+  };
+
+  const handleCreateAgent = async (agentData: Omit<AgentDefinition, 'id'>) => {
+    const newAgent = await createAgent(agentData);
+    setUserAgents(prev => [...prev, newAgent]);
+  };
+
+  const handleUpdateAgent = async (agent: AgentDefinition) => {
+    const updatedAgent = await updateAgent(agent);
+    setUserAgents(prev => prev.map(a => a.id === agent.id ? updatedAgent : a));
+  };
+
+  const handleDeleteAgent = async (agentId: string) => {
+    await deleteAgent(agentId);
+    setUserAgents(prev => prev.filter(a => a.id !== agentId));
+    
+    // If the deleted agent was the default, switch to first available
+    if (localConfig.defaultAgentId === agentId && allAgents.length > 0) {
+      const firstAgent = allAgents.find(a => a.id !== agentId);
+      if (firstAgent) {
+        setLocalConfig(prev => ({ ...prev, defaultAgentId: firstAgent.id }));
+      }
+    }
   };
 
   const addCustomHeader = () => {
@@ -53,6 +107,10 @@ export function AIAgentSettings({ config, onSave }: AIAgentSettingsProps) {
 
   const webhookUrlValid = !localConfig.webhookUrl || isValidUrl(localConfig.webhookUrl);
 
+  if (loadingAgents) {
+    return <div className="text-center text-pip-text-muted">Loading agents...</div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Default Agent */}
@@ -62,15 +120,22 @@ export function AIAgentSettings({ config, onSave }: AIAgentSettingsProps) {
           value={localConfig.defaultAgentId}
           onValueChange={(value) => setLocalConfig(prev => ({ ...prev, defaultAgentId: value }))}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-pip-bg-secondary border-pip-border">
             <SelectValue placeholder="Select default agent" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-pip-bg-primary border-pip-border z-50">
             {DEFAULT_AGENTS.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
+              <SelectItem key={agent.id} value={agent.id} className="text-pip-text-primary hover:bg-pip-bg-secondary">
                 <div className="flex items-center gap-2">
                   {agent.icon && React.createElement(agent.icon, { className: "h-4 w-4" })}
-                  {agent.name}
+                  <span>{agent.name} <span className="text-xs text-pip-text-muted">(Built-in)</span></span>
+                </div>
+              </SelectItem>
+            ))}
+            {userAgents.map((agent) => (
+              <SelectItem key={agent.id} value={agent.id} className="text-pip-text-primary hover:bg-pip-bg-secondary">
+                <div className="flex items-center gap-2">
+                  <span>{agent.name} <span className="text-xs text-pip-text-muted">(Custom)</span></span>
                 </div>
               </SelectItem>
             ))}
@@ -78,19 +143,23 @@ export function AIAgentSettings({ config, onSave }: AIAgentSettingsProps) {
         </Select>
       </div>
 
-      {/* Webhook URL */}
+      {/* Global Webhook URL */}
       <div className="space-y-2">
-        <Label htmlFor="webhook-url">Webhook URL</Label>
+        <Label htmlFor="webhook-url">Global Webhook URL (Optional)</Label>
         <Input
           id="webhook-url"
           type="url"
           placeholder="https://n8n.example.com/webhook/agent-chat"
-          value={localConfig.webhookUrl}
+          value={localConfig.webhookUrl || ''}
           onChange={(e) => setLocalConfig(prev => ({ ...prev, webhookUrl: e.target.value }))}
+          className="bg-pip-bg-secondary border-pip-border"
         />
-        {!webhookUrlValid && (
+        {localConfig.webhookUrl && !webhookUrlValid && (
           <p className="text-sm text-destructive">Please enter a valid HTTPS URL</p>
         )}
+        <p className="text-xs text-pip-text-muted">
+          Fallback URL when custom agents don't specify their own webhook
+        </p>
       </div>
 
       {/* Auth Header */}
@@ -155,11 +224,24 @@ export function AIAgentSettings({ config, onSave }: AIAgentSettingsProps) {
         )}
       </div>
 
+      <Separator className="bg-pip-border" />
+
+      {/* Agent Management */}
+      {user?.id && (
+        <AgentManagement
+          agents={userAgents}
+          onCreateAgent={handleCreateAgent}
+          onUpdateAgent={handleUpdateAgent}
+          onDeleteAgent={handleDeleteAgent}
+          userId={user.id}
+        />
+      )}
+
       {/* Save Button */}
       <div className="pt-4 border-t border-pip-border">
         <Button 
           onClick={handleSave}
-          disabled={!localConfig.webhookUrl || !webhookUrlValid}
+          disabled={localConfig.webhookUrl && !webhookUrlValid}
           className="w-full"
         >
           Save Settings
