@@ -4,8 +4,15 @@ import { SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls'
 import { PrimarySettingsGroup, SecondarySettingsGroup, DangerZoneGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Upload, User, Shield, Bell, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Upload, User, Shield, Bell, AlertTriangle, ShieldCheck, ShieldX, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { validateNumericId, validatePin } from '@/lib/quickaccess/crypto';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -16,7 +23,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { user } = useAuth();
+  const { user, profile, updateProfile, enrollQuickAccess, disableQuickAccess } = useAuth();
+  const { toast } = useToast();
   
   const [tempSettings, setTempSettings] = useState({
     characterName: '',
@@ -26,8 +34,21 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     statusUpdates: false,
   });
 
+  // Quick Access state
+  const [numericId, setNumericId] = useState('');
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [quickAccessLoading, setQuickAccessLoading] = useState(false);
+  const [showPinFields, setShowPinFields] = useState(false);
+
   const [isDirty, setIsDirty] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Quick Access computed values
+  const isQuickAccessEnabled = profile?.quick_access_enabled || false;
+  const hasNumericId = Boolean(profile?.numeric_id);
+  const canEnroll = user && validateNumericId(numericId) && validatePin(pin) && pin === confirmPin;
+  const canUpdateId = validateNumericId(numericId) && numericId !== profile?.numeric_id;
 
   useEffect(() => {
     if (isOpen && user) {
@@ -38,9 +59,65 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         securityAlerts: true,
         statusUpdates: false,
       });
+      // Initialize Quick Access state
+      setNumericId(profile?.numeric_id || '');
+      setPin('');
+      setConfirmPin('');
+      setShowPinFields(false);
       setIsDirty(false);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, profile]);
+
+  // Quick Access handlers
+  const handleUpdateNumericId = async () => {
+    if (!canUpdateId) return;
+    
+    setQuickAccessLoading(true);
+    try {
+      await updateProfile({ numeric_id: numericId });
+      toast({
+        title: "Numeric ID Updated",
+        description: "Your Numeric ID has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Failed to update numeric ID:', error);
+    } finally {
+      setQuickAccessLoading(false);
+    }
+  };
+
+  const handleEnrollQuickAccess = async () => {
+    if (!canEnroll) return;
+    
+    setQuickAccessLoading(true);
+    try {
+      await enrollQuickAccess(numericId, pin);
+      setPin('');
+      setConfirmPin('');
+      setShowPinFields(false);
+    } catch (error) {
+      console.error('Failed to enroll Quick Access:', error);
+    } finally {
+      setQuickAccessLoading(false);
+    }
+  };
+
+  const handleDisableQuickAccess = async () => {
+    setQuickAccessLoading(true);
+    try {
+      await disableQuickAccess(profile?.numeric_id || undefined);
+    } catch (error) {
+      console.error('Failed to disable Quick Access:', error);
+    } finally {
+      setQuickAccessLoading(false);
+    }
+  };
+
+  const handleReEnroll = () => {
+    setPin('');
+    setConfirmPin('');
+    setShowPinFields(true);
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -141,6 +218,237 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <Shield className="h-4 w-4 mr-2" />
           Change Password
         </Button>
+      </SecondarySettingsGroup>
+
+      <SecondarySettingsGroup 
+        title="Quick Access" 
+        description="Set up glove-friendly PIN access for this device"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant={isQuickAccessEnabled ? "default" : "secondary"} className="font-mono">
+            {isQuickAccessEnabled ? (
+              <>
+                <ShieldCheck className="h-3 w-3 mr-1" />
+                Enabled
+              </>
+            ) : (
+              <>
+                <ShieldX className="h-3 w-3 mr-1" />
+                Disabled
+              </>
+            )}
+          </Badge>
+        </div>
+
+        <Alert className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Quick Access stores encrypted session data on this device only. 
+            Your PIN is never stored or transmitted - it only encrypts local data.
+          </AlertDescription>
+        </Alert>
+
+        {/* Numeric ID Section */}
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="numeric-id" className="font-mono uppercase text-sm">
+              Numeric ID
+            </Label>
+            {hasNumericId && (
+              <Badge variant="outline" className="font-mono">
+                Current: {profile?.numeric_id}
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex space-x-2">
+            <Input
+              id="numeric-id"
+              type="tel"
+              value={numericId}
+              onChange={(e) => setNumericId(e.target.value.replace(/\D/g, '').slice(0, 9))}
+              placeholder="Enter 3-9 digits"
+              maxLength={9}
+              className={cn(
+                "font-mono",
+                validateNumericId(numericId) && "border-primary/50 bg-primary/5"
+              )}
+              disabled={quickAccessLoading}
+            />
+            {canUpdateId && (
+              <Button
+                onClick={handleUpdateNumericId}
+                disabled={quickAccessLoading}
+                variant="outline"
+                className="font-mono"
+              >
+                Update
+              </Button>
+            )}
+          </div>
+          
+          {numericId && !validateNumericId(numericId) && (
+            <p className="text-sm text-destructive">
+              Numeric ID must be 3-9 digits and unique across all users
+            </p>
+          )}
+        </div>
+
+        {/* Quick Access Status */}
+        {hasNumericId && (
+          <div className="space-y-4 mb-4">
+            {isQuickAccessEnabled ? (
+              <div className="space-y-3">
+                <Alert>
+                  <ShieldCheck className="h-4 w-4" />
+                  <AlertDescription>
+                    Quick Access is enabled on this device. You can log in using your Numeric ID and PIN.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handleReEnroll}
+                    variant="outline"
+                    disabled={quickAccessLoading}
+                    className="font-mono"
+                  >
+                    Change PIN
+                  </Button>
+                  <Button
+                    onClick={handleDisableQuickAccess}
+                    variant="destructive"
+                    disabled={quickAccessLoading}
+                    className="font-mono"
+                  >
+                    Disable Quick Access
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Quick Access is not enabled on this device. Set a PIN to enable glove-friendly login.
+                  </AlertDescription>
+                </Alert>
+                
+                <Button
+                  onClick={() => setShowPinFields(true)}
+                  disabled={quickAccessLoading}
+                  className="font-mono"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Set Up Quick Access
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* PIN Setup */}
+        {showPinFields && hasNumericId && (
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/50 mb-4">
+            <h4 className="font-mono uppercase text-sm font-medium">
+              {isQuickAccessEnabled ? 'Change PIN' : 'Set PIN for Quick Access'}
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="pin" className="font-mono text-sm">
+                  PIN (4-8 digits)
+                </Label>
+                <Input
+                  id="pin"
+                  type="password"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="Enter PIN"
+                  maxLength={8}
+                  className={cn(
+                    "font-mono text-center",
+                    validatePin(pin) && "border-primary/50 bg-primary/5"
+                  )}
+                  disabled={quickAccessLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirm-pin" className="font-mono text-sm">
+                  Confirm PIN
+                </Label>
+                <Input
+                  id="confirm-pin"
+                  type="password"
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="Confirm PIN"
+                  maxLength={8}
+                  className={cn(
+                    "font-mono text-center",
+                    pin && confirmPin && pin === confirmPin && "border-primary/50 bg-primary/5"
+                  )}
+                  disabled={quickAccessLoading}
+                />
+              </div>
+            </div>
+            
+            {pin && !validatePin(pin) && (
+              <p className="text-sm text-destructive">
+                PIN must be 4-8 digits
+              </p>
+            )}
+            
+            {pin && confirmPin && pin !== confirmPin && (
+              <p className="text-sm text-destructive">
+                PINs do not match
+              </p>
+            )}
+            
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleEnrollQuickAccess}
+                disabled={!canEnroll || quickAccessLoading}
+                className="font-mono"
+              >
+                {quickAccessLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                    {isQuickAccessEnabled ? 'Updating...' : 'Enrolling...'}
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    {isQuickAccessEnabled ? 'Update PIN' : 'Enable Quick Access'}
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowPinFields(false);
+                  setPin('');
+                  setConfirmPin('');
+                }}
+                variant="outline"
+                disabled={quickAccessLoading}
+                className="font-mono"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Security Notice */}
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            <strong>Security Notice:</strong> Quick Access provides convenience but uses lower-entropy PINs. 
+            For maximum security, use standard email/password login. Quick Access sessions expire and may 
+            require re-enrollment if your password changes.
+          </AlertDescription>
+        </Alert>
       </SecondarySettingsGroup>
 
       <SecondarySettingsGroup 

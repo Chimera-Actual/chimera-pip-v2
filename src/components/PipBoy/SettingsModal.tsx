@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { SettingsModal } from '@/components/ui/SettingsModal';
 import { SettingsSelect, SettingsSlider, SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
-import { QuickAccessSettings } from '@/components/settings/QuickAccessSettings';
 import { useTheme, type ColorScheme, type ScrollingScanLineMode, type LayoutMode } from '@/contexts/theme';
 
 interface PipBoySettingsModalProps {
@@ -163,11 +162,6 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
           options={layoutOptions}
         />
       </SecondarySettingsGroup>
-
-      {/* Quick Access Settings */}
-      <div className="space-y-6">
-        <QuickAccessSettings />
-      </div>
 
       <SecondarySettingsGroup 
         title="Interface & Performance" 
