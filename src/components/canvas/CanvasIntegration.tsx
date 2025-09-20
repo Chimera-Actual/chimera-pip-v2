@@ -3,9 +3,6 @@ import { Card } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useMemoizedSelector } from '@/features/state-management/hooks/useMemoizedSelector';
 
-
-
-import { TestWidget } from '@/components/widgets/TestWidget';
 import { AtomicClockWidget } from '@/components/widgets/AtomicClockWidget';
 import { WeatherDashboardWidget } from '@/components/widgets/WeatherDashboardWidget';
 import AIAgentWidget from '@/components/widgets/AIAgentWidget';
@@ -14,7 +11,6 @@ import type { UserWidget } from '@/hooks/useWidgetManager';
 
 // Widget descriptions mapping
 const widgetDescriptions: Record<string, string> = {
-  'test_widget': 'A simple test widget for demonstration purposes',
   'atomic_clock': 'Multi-timezone atomic clock with alarms, themes, and retro visual effects',
   'weather_dashboard': 'Complete weather station with current conditions, forecast, air quality, and Pip-Boy radiation mode',
   'ai_agent': 'Chat with AI agents using custom webhooks or the built-in Supabase AI service',
@@ -89,19 +85,6 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
     const { handleCloseWidget, handleToggleCollapse, handleToggleFullWidth, handleSaveSettings } = memoizedHandlers;
     
     switch (normalizedType) {
-      case 'test':
-      case 'testwidget':
-        return (
-          <TestWidget
-            title={widget.widget_config?.title || 'Test Widget'}
-            settings={widget.widget_config || {}}
-            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-          />
-        );
       case 'atomicclock':
       case 'clockwidget':
         return (

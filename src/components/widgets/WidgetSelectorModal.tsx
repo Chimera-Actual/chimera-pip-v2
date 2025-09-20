@@ -89,7 +89,9 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
   const handleShowSettings = (e: React.MouseEvent, widgetType: WidgetType) => {
     e.stopPropagation();
     // TODO: Implement widget type settings modal
-    console.log('Settings for widget type:', widgetType);
+    if (import.meta.env.DEV) {
+      console.log('Settings for widget type:', widgetType);
+    }
   };
 
   const handleSettingsSaved = () => {

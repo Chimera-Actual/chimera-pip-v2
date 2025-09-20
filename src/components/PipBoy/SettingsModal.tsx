@@ -188,6 +188,3 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     </SettingsModal>
   );
 };
-
-// Legacy export for backwards compatibility
-export { PipBoySettingsModal as SettingsModal };

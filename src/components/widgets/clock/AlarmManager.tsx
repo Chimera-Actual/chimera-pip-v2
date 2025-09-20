@@ -120,7 +120,9 @@ export const AlarmManager: React.FC<AlarmManagerProps> = ({
 
   const playTestSound = (sound: string) => {
     // In a real implementation, this would play the actual sound
-    console.log(`Playing test sound: ${sound}`);
+    if (import.meta.env.DEV) {
+      console.log(`Playing test sound: ${sound}`);
+    }
   };
 
   return (

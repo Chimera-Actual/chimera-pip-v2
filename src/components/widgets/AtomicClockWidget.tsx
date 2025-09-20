@@ -134,7 +134,9 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             if (alarm.enabled && 
                 alarm.days.includes(currentDay) && 
                 alarm.time === currentTimeStr.substring(0, 5)) {
-              console.log(`Alarm triggered: ${alarm.label}`);
+              if (import.meta.env.DEV) {
+                console.log(`Alarm triggered: ${alarm.label}`);
+              }
             }
           });
         }
