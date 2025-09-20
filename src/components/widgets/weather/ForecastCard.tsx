@@ -2,26 +2,22 @@ import React from 'react';
 import { Calendar, CloudRain, Wind, Droplets } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ForecastDay } from '@/services/weatherService';
-import { formatTemperature, formatWindSpeed } from '@/utils/units';
+import { fmtTemp, fmtWind, type Units } from '@/utils/weatherFormatters';
 import { cn } from '@/lib/utils';
 
 interface ForecastCardProps {
   forecast: ForecastDay[];
-  units?: string;
+  units: Units;
   isPipBoyMode?: boolean;
   className?: string;
 }
 
 export const ForecastCard: React.FC<ForecastCardProps> = ({
   forecast,
-  units = 'metric',
+  units,
   isPipBoyMode = false,
   className
 }) => {
-  const getTemperatureDisplay = (temp: number) => {
-    return formatTemperature(temp, units as 'metric' | 'imperial');
-  };
-
   const formatDate = (dateString: string, isToday = false) => {
     const date = new Date(dateString);
     if (isToday) return 'Today';
@@ -106,7 +102,7 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
                   "text-sm font-bold",
                   isPipBoyMode && "text-primary font-mono"
                 )}>
-                  {getTemperatureDisplay(day.high)}
+                  {fmtTemp(day.high, units)}
                 </div>
                 <div className={cn(
                   "text-xs text-muted-foreground",
@@ -118,7 +114,7 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
                   "text-sm text-muted-foreground",
                   isPipBoyMode && "text-primary/70 font-mono"
                 )}>
-                  {getTemperatureDisplay(day.low)}
+                  {fmtTemp(day.low, units)}
                 </div>
               </div>
 
@@ -141,7 +137,7 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
                    isPipBoyMode && "text-primary/70"
                  )}>
                    <Wind className="h-3 w-3" />
-                   <span>{formatWindSpeed(day.windSpeed, units as 'metric' | 'imperial')}</span>
+                   <span>{fmtWind(day.windSpeed, units)}</span>
                  </div>
 
                 {/* Humidity */}

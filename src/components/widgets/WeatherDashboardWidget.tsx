@@ -313,7 +313,8 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
             
             {settings.showCurrentWeather && (
               <CurrentWeatherCard 
-                weather={weatherData.current} 
+                weather={weatherData.current}
+                units={settings.units}
               />
             )}
             
@@ -394,7 +395,8 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {settings.showCurrentWeather && (
                     <CurrentWeatherCard 
-                      weather={weatherData.current} 
+                      weather={weatherData.current}
+                      units={settings.units}
                     />
                   )}
                   

@@ -3,17 +3,19 @@ import { MapPin, Thermometer, Droplets, Wind, Eye, Sun, Clock } from 'lucide-rea
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CurrentWeather } from '@/services/weatherService';
-import { formatTemperature, formatWindSpeed, formatVisibility } from '@/utils/units';
+import { fmtTemp, fmtWind, fmtVisibility, fmtPressure, getWindDirection, type Units } from '@/utils/weatherFormatters';
 import { cn } from '@/lib/utils';
 
 interface CurrentWeatherCardProps {
   weather: CurrentWeather;
+  units: Units;
   isPipBoyMode?: boolean;
   className?: string;
 }
 
 export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
   weather,
+  units,
   isPipBoyMode = false,
   className
 }) => {
@@ -22,15 +24,6 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
       hour: '2-digit', 
       minute: '2-digit' 
     });
-  };
-
-  const getTemperatureDisplay = (temp: number, units: string) => {
-    return formatTemperature(temp, units as 'metric' | 'imperial');
-  };
-
-  const getWindDirection = (degrees: number) => {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    return directions[Math.round(degrees / 22.5) % 16];
   };
 
   return (
@@ -65,7 +58,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
               "text-4xl font-bold",
               isPipBoyMode && "font-mono text-primary"
             )}>
-              {getTemperatureDisplay(weather.temperature, weather.units)}
+              {fmtTemp(weather.temperature, units)}
             </div>
             <div className="space-y-1">
               <div className={cn(
@@ -79,7 +72,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
                 isPipBoyMode && "text-primary/70"
               )}>
                 <Thermometer className="h-3 w-3" />
-                Feels like {getTemperatureDisplay(weather.feelsLike, weather.units)}
+                Feels like {fmtTemp(weather.feelsLike, units)}
               </div>
             </div>
           </div>
@@ -144,7 +137,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
                  "text-sm font-medium",
                  isPipBoyMode && "text-primary font-mono"
                )}>
-                 {formatWindSpeed(weather.windSpeed, weather.units as 'metric' | 'imperial')} {getWindDirection(weather.windDirection)}
+                 {fmtWind(weather.windSpeed, units)} {getWindDirection(weather.windDirection)}
                </div>
             </div>
           </div>
@@ -169,7 +162,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
                  "text-sm font-medium",
                  isPipBoyMode && "text-primary font-mono"
                )}>
-                 {formatVisibility(weather.visibility, weather.units as 'metric' | 'imperial')}
+                 {fmtVisibility(weather.visibility, units)}
                </div>
             </div>
           </div>
@@ -217,7 +210,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
           isPipBoyMode && "border-primary/20 text-primary/70 font-mono"
         )}>
           <div className="flex items-center gap-1">
-            <span>Pressure: {weather.pressure} hPa</span>
+            <span>Pressure: {fmtPressure(weather.pressure)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
