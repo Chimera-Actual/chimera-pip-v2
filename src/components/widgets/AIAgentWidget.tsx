@@ -6,7 +6,7 @@ import { Transcript } from '@/components/widgets/agents/Transcript';
 import { Composer } from '@/components/widgets/agents/Composer';
 import { AIAgentSettings } from '@/components/widgets/agents/AIAgentSettings';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTabWidgets } from '@/hooks/useTabWidgetsRefactored';
+import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { useToast } from '@/hooks/use-toast';
 import { DEFAULT_AGENTS, getAgentById, getDefaultAgent } from '@/services/agents/agentRegistry';
 import { listAgents } from '@/services/agents/agentsRepo';

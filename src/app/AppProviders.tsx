@@ -14,22 +14,21 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* IMPORTANT: AuthProvider MUST wrap any consumer of useAuth */}
-        <AuthProvider>
-          {/* IMPORTANT: ThemeProvider MUST wrap any consumer of useTheme */}
-          <ThemeProvider>
-            <TabManagerProvider>
-              <PerformanceProvider enableByDefault={import.meta.env.DEV}>
+        {/* Provider order: Theme → Performance → Auth → TabManager */}
+        <ThemeProvider>
+          <PerformanceProvider enableByDefault={import.meta.env.DEV}>
+            <AuthProvider>
+              <TabManagerProvider>
                 <BrowserRouter>
                   {children}
                   {/* Keep global UI INSIDE ThemeProvider so it can read theme */}
                   <Toaster />
                   <Sonner />
                 </BrowserRouter>
-              </PerformanceProvider>
-            </TabManagerProvider>
-          </ThemeProvider>
-        </AuthProvider>
+              </TabManagerProvider>
+            </AuthProvider>
+          </PerformanceProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

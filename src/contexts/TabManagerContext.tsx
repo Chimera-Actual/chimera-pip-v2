@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { useTabManager } from '@/hooks/useTabManagerRefactored';
+import { useTabManager } from '@/hooks/useTabManager';
 
 // Creates a single shared instance of useTabManager across the app
 const TabManagerContext = createContext<ReturnType<typeof useTabManager> | null>(null);
