@@ -121,8 +121,7 @@ describe('DashboardContent Performance', () => {
   });
 
   it('should handle tab switching without performance degradation', async () => {
-    let container: any;
-    const { rerender } = render(
+    const { rerender, container } = render(
       <TestWrapper>
         <DashboardContent activeTab="MAIN" />
       </TestWrapper>
@@ -130,12 +129,11 @@ describe('DashboardContent Performance', () => {
 
     // Switch to different tab
     await act(async () => {
-      const result = rerender(
+      rerender(
         <TestWrapper>
           <DashboardContent activeTab="DATA" />
         </TestWrapper>
       );
-      container = result?.container ?? document.body;
     });
 
     // Verify active tab switched

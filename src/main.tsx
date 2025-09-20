@@ -32,9 +32,8 @@ if (import.meta.env.PROD) {
     import('react-helmet-async').catch(() => null),
     import('./lib/serviceWorker').catch(() => null),
     import('./lib/sentry').catch(() => null),
-    import('./lib/analytics').catch(() => null),
-    import('sonner').catch(() => null)
-  ]).then(([helmetModule, swModule, sentryModule, analyticsModule, sonnerModule]) => {
+    import('./lib/analytics').catch(() => null)
+  ]).then(([helmetModule, swModule, sentryModule, analyticsModule]) => {
     // Initialize Sentry if available
     if (sentryModule?.default) {
       try {
@@ -66,19 +65,24 @@ if (import.meta.env.PROD) {
     }
 
     // Register Service Worker if available
-    if (swModule?.default && sonnerModule?.toast) {
+    if (swModule?.default) {
       try {
         swModule.default.register({
           enabled: true,
           onUpdate: () => {
-            sonnerModule.toast('New version available!', {
-              description: 'Click to update to the latest version',
-              action: {
-                label: 'Update',
-                onClick: () => swModule.default.skipWaiting()
-              },
-              duration: Infinity,
-            });
+            // Use browser notification for service worker updates
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('Chimera PIP-Boy Update Available', {
+                body: 'Click to update to the latest version',
+                icon: '/chimera-tec-logo.png',
+                tag: 'app-update'
+              }).onclick = () => {
+                swModule.default.skipWaiting();
+              };
+            } else {
+              // Fallback to console log if notifications aren't available
+              console.info('New app version available! Refresh to update.');
+            }
           },
           onSuccess: () => {
             console.info('Service Worker registered successfully');

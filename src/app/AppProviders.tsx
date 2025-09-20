@@ -3,7 +3,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/theme';
 import { TabManagerProvider } from '@/contexts/TabManagerContext';
@@ -21,9 +20,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
               <TabManagerProvider>
                 <BrowserRouter>
                   {children}
-                  {/* Keep global UI INSIDE ThemeProvider so it can read theme */}
+                  {/* Unified toast system using shadcn-ui toasts */}
                   <Toaster />
-                  <Sonner />
                 </BrowserRouter>
               </TabManagerProvider>
             </AuthProvider>
