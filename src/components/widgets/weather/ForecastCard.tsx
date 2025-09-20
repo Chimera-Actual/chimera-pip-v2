@@ -1,8 +1,8 @@
-// 5-Day Weather Forecast Display
 import React from 'react';
 import { Calendar, CloudRain, Wind, Droplets } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ForecastDay } from '@/services/weatherService';
+import { formatTemperature, formatWindSpeed } from '@/utils/units';
 import { cn } from '@/lib/utils';
 
 interface ForecastCardProps {
@@ -19,8 +19,7 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
   className
 }) => {
   const getTemperatureDisplay = (temp: number) => {
-    const symbol = units === 'metric' ? '°C' : '°F';
-    return `${Math.round(temp)}${symbol}`;
+    return formatTemperature(temp, units as 'metric' | 'imperial');
   };
 
   const formatDate = (dateString: string, isToday = false) => {
@@ -137,13 +136,13 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
                 )}
 
                 {/* Wind */}
-                <div className={cn(
-                  "flex items-center gap-1 text-xs text-muted-foreground",
-                  isPipBoyMode && "text-primary/70"
-                )}>
-                  <Wind className="h-3 w-3" />
-                  <span>{day.windSpeed.toFixed(1)}</span>
-                </div>
+                 <div className={cn(
+                   "flex items-center gap-1 text-xs text-muted-foreground",
+                   isPipBoyMode && "text-primary/70"
+                 )}>
+                   <Wind className="h-3 w-3" />
+                   <span>{formatWindSpeed(day.windSpeed, units as 'metric' | 'imperial')}</span>
+                 </div>
 
                 {/* Humidity */}
                 <div className={cn(

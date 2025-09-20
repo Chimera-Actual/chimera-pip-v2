@@ -1,5 +1,6 @@
 // Weather Service for Google APIs Integration
-import { webhookService } from '@/services/api/webhookService';
+import { fetchGMWeather, type Units, type LatLng } from './weather/googleWeather';
+import { convertWeatherValues, type WeatherValues } from '@/utils/units';
 import { localStorageService } from '@/services/storage';
 
 export interface WeatherLocation {
@@ -107,12 +108,40 @@ class WeatherService {
     const cached = this.getCachedData<CurrentWeather>(cacheKey);
     if (cached) return cached;
 
-    const response = await webhookService.callWeatherApi({
-      location: `${location.lat},${location.lng}`,
-      units
-    });
+    try {
+      // Get Google Maps API key from environment
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        throw new Error('Google Maps API key not configured');
+      }
 
-    if (!response.success) {
+      const latlng: LatLng = { lat: location.lat, lng: location.lng };
+      const unitsType: Units = units as Units;
+      
+      const weatherData = await fetchGMWeather(latlng, unitsType, apiKey);
+      
+      const currentWeather: CurrentWeather = {
+        location: location.city,
+        country: location.country,
+        temperature: Math.round(weatherData.current.temp),
+        feelsLike: Math.round(weatherData.current.feelsLike),
+        humidity: weatherData.current.humidity,
+        pressure: 1013, // Not provided by Google Weather, use standard
+        windSpeed: Math.round(weatherData.current.wind * 10) / 10,
+        windDirection: 180, // Not provided by Google Weather
+        visibility: Math.round(weatherData.current.visibilityKm * 10) / 10,
+        uvIndex: 6, // Not provided by Google Weather, use moderate
+        description: weatherData.current.desc,
+        icon: weatherData.current.icon,
+        lastUpdated: new Date().toISOString(),
+        units
+      };
+
+      this.setCachedData(cacheKey, currentWeather);
+      return currentWeather;
+      
+    } catch (error) {
+      console.warn('Weather API error:', error);
       // Return mock data for development with unit-appropriate values
       const isMetric = units === 'metric';
       const mockWeather: CurrentWeather = {
@@ -122,7 +151,7 @@ class WeatherService {
         feelsLike: isMetric ? 25 : 77, // 25°C = 77°F
         humidity: 65,
         pressure: 1013,
-        windSpeed: isMetric ? 8.5 : 5.3, // 8.5 km/h = 5.3 mph
+        windSpeed: isMetric ? 15 : 9.3, // 15 km/h = 9.3 mph
         windDirection: 180,
         visibility: isMetric ? 10 : 6.2, // 10 km = 6.2 miles
         uvIndex: 6,
@@ -134,9 +163,6 @@ class WeatherService {
       this.setCachedData(cacheKey, mockWeather);
       return mockWeather;
     }
-
-    this.setCachedData(cacheKey, response.data);
-    return response.data;
   }
 
   async getForecast(location: WeatherLocation, units: string = 'metric'): Promise<ForecastDay[]> {
@@ -144,18 +170,47 @@ class WeatherService {
     const cached = this.getCachedData<ForecastDay[]>(cacheKey);
     if (cached) return cached;
 
-    // Mock forecast data for development with unit-appropriate values
-    const isMetric = units === 'metric';
-    const mockForecast: ForecastDay[] = [
-      { date: new Date().toISOString(), icon: 'sunny', high: isMetric ? 25 : 77, low: isMetric ? 15 : 59, description: 'Sunny', humidity: 50, windSpeed: isMetric ? 10 : 6.2, precipitation: 0 },
-      { date: new Date(Date.now() + 86400000).toISOString(), icon: 'cloudy', high: isMetric ? 23 : 73, low: isMetric ? 12 : 54, description: 'Cloudy', humidity: 60, windSpeed: isMetric ? 8 : 5, precipitation: 10 },
-      { date: new Date(Date.now() + 172800000).toISOString(), icon: 'rainy', high: isMetric ? 20 : 68, low: isMetric ? 10 : 50, description: 'Light rain', humidity: 80, windSpeed: isMetric ? 12 : 7.5, precipitation: 70 },
-      { date: new Date(Date.now() + 259200000).toISOString(), icon: 'stormy', high: isMetric ? 18 : 64, low: isMetric ? 8 : 46, description: 'Thunderstorms', humidity: 85, windSpeed: isMetric ? 15 : 9.3, precipitation: 90 },
-      { date: new Date(Date.now() + 345600000).toISOString(), icon: 'partly-cloudy', high: isMetric ? 24 : 75, low: isMetric ? 14 : 57, description: 'Partly cloudy', humidity: 55, windSpeed: isMetric ? 7 : 4.3, precipitation: 20 }
-    ];
+    try {
+      // Get Google Maps API key from environment
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        throw new Error('Google Maps API key not configured');
+      }
 
-    this.setCachedData(cacheKey, mockForecast);
-    return mockForecast;
+      const latlng: LatLng = { lat: location.lat, lng: location.lng };
+      const unitsType: Units = units as Units;
+      
+      const weatherData = await fetchGMWeather(latlng, unitsType, apiKey);
+      
+      const forecast: ForecastDay[] = weatherData.daily.map(day => ({
+        date: day.date,
+        icon: day.icon,
+        high: Math.round(day.max),
+        low: Math.round(day.min),
+        description: day.desc,
+        humidity: 60, // Not provided by Google Weather
+        windSpeed: units === 'metric' ? 12 : 7.5, // Not provided by Google Weather
+        precipitation: 20 // Not provided by Google Weather
+      }));
+
+      this.setCachedData(cacheKey, forecast);
+      return forecast;
+      
+    } catch (error) {
+      console.warn('Forecast API error:', error);
+      // Mock forecast data for development with unit-appropriate values
+      const isMetric = units === 'metric';
+      const mockForecast: ForecastDay[] = [
+        { date: new Date().toISOString(), icon: 'sunny', high: isMetric ? 25 : 77, low: isMetric ? 15 : 59, description: 'Sunny', humidity: 50, windSpeed: isMetric ? 15 : 9.3, precipitation: 0 },
+        { date: new Date(Date.now() + 86400000).toISOString(), icon: 'cloudy', high: isMetric ? 23 : 73, low: isMetric ? 12 : 54, description: 'Cloudy', humidity: 60, windSpeed: isMetric ? 12 : 7.5, precipitation: 10 },
+        { date: new Date(Date.now() + 172800000).toISOString(), icon: 'rainy', high: isMetric ? 20 : 68, low: isMetric ? 10 : 50, description: 'Light rain', humidity: 80, windSpeed: isMetric ? 18 : 11.2, precipitation: 70 },
+        { date: new Date(Date.now() + 259200000).toISOString(), icon: 'stormy', high: isMetric ? 18 : 64, low: isMetric ? 8 : 46, description: 'Thunderstorms', humidity: 85, windSpeed: isMetric ? 22 : 13.7, precipitation: 90 },
+        { date: new Date(Date.now() + 345600000).toISOString(), icon: 'partly-cloudy', high: isMetric ? 24 : 75, low: isMetric ? 14 : 57, description: 'Partly cloudy', humidity: 55, windSpeed: isMetric ? 10 : 6.2, precipitation: 20 }
+      ];
+
+      this.setCachedData(cacheKey, mockForecast);
+      return mockForecast;
+    }
   }
 
   async getAirQuality(location: WeatherLocation): Promise<AirQuality> {

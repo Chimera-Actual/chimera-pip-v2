@@ -96,6 +96,14 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     }
   }, [autoLoad, settings.defaultLocation, currentLocation, loadWeatherForLocation]);
 
+  // Refresh data when units change to ensure proper conversions
+  useEffect(() => {
+    if (currentLocation && weatherState.data && !weatherState.loading) {
+      // Re-fetch data when units change to get properly converted values
+      loadWeatherData(currentLocation);
+    }
+  }, [settings.units, currentLocation, loadWeatherData, weatherState.data, weatherState.loading]);
+
   // Get cached weather data
   const getCachedWeather = useCallback((location: WeatherLocation): WeatherData | null => {
     // This would typically check the cache, but for now return null
@@ -121,13 +129,17 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     updateSettings({ defaultLocation: location });
   }, [updateSettings]);
 
-  // Convert temperature units
+  // Convert temperature units using utility functions
   const convertTemperature = useCallback((temp: number, fromUnit: string, toUnit: string): number => {
     if (fromUnit === toUnit) return temp;
     
     if (fromUnit === 'celsius' && toUnit === 'fahrenheit') {
       return (temp * 9/5) + 32;
     } else if (fromUnit === 'fahrenheit' && toUnit === 'celsius') {
+      return (temp - 32) * 5/9;
+    } else if (fromUnit === 'metric' && toUnit === 'imperial') {
+      return (temp * 9/5) + 32;
+    } else if (fromUnit === 'imperial' && toUnit === 'metric') {
       return (temp - 32) * 5/9;
     }
     

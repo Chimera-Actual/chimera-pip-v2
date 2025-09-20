@@ -1,9 +1,9 @@
-// Current Weather Display Card
 import React from 'react';
 import { MapPin, Thermometer, Droplets, Wind, Eye, Sun, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CurrentWeather } from '@/services/weatherService';
+import { formatTemperature, formatWindSpeed, formatVisibility } from '@/utils/units';
 import { cn } from '@/lib/utils';
 
 interface CurrentWeatherCardProps {
@@ -25,8 +25,7 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
   };
 
   const getTemperatureDisplay = (temp: number, units: string) => {
-    const symbol = units === 'metric' ? '°C' : '°F';
-    return `${Math.round(temp)}${symbol}`;
+    return formatTemperature(temp, units as 'metric' | 'imperial');
   };
 
   const getWindDirection = (degrees: number) => {
@@ -141,12 +140,12 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
               )}>
                 Wind
               </div>
-              <div className={cn(
-                "text-sm font-medium",
-                isPipBoyMode && "text-primary font-mono"
-              )}>
-                {weather.windSpeed.toFixed(1)} {weather.units === 'metric' ? 'm/s' : 'mph'} {getWindDirection(weather.windDirection)}
-              </div>
+               <div className={cn(
+                 "text-sm font-medium",
+                 isPipBoyMode && "text-primary font-mono"
+               )}>
+                 {formatWindSpeed(weather.windSpeed, weather.units as 'metric' | 'imperial')} {getWindDirection(weather.windDirection)}
+               </div>
             </div>
           </div>
 
@@ -166,12 +165,12 @@ export const CurrentWeatherCard: React.FC<CurrentWeatherCardProps> = ({
               )}>
                 Visibility
               </div>
-              <div className={cn(
-                "text-sm font-medium",
-                isPipBoyMode && "text-primary font-mono"
-              )}>
-                {weather.visibility} {weather.units === 'metric' ? 'km' : 'mi'}
-              </div>
+               <div className={cn(
+                 "text-sm font-medium",
+                 isPipBoyMode && "text-primary font-mono"
+               )}>
+                 {formatVisibility(weather.visibility, weather.units as 'metric' | 'imperial')}
+               </div>
             </div>
           </div>
 
