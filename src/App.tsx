@@ -10,6 +10,7 @@ const VaultRegistration = lazy(() => import("@/components/auth/VaultRegistration
 const CharacterCreation = lazy(() => import("@/components/auth/CharacterCreation").then(m => ({ default: m.CharacterCreation })));
 const EmailVerification = lazy(() => import("@/components/auth/EmailVerification").then(m => ({ default: m.EmailVerification })));
 const AuthMethodSelector = lazy(() => import("@/components/auth/AuthMethodSelector").then(m => ({ default: m.AuthMethodSelector })));
+const ResetPasswordPage = lazy(() => import("@/components/auth/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })));
 
 // Lazy load pages
 const Landing = lazy(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
@@ -74,6 +75,7 @@ const App = () => {
               <Route path="/auth/login" element={<VaultLogin />} />
               <Route path="/auth/register" element={<VaultRegistration />} />
               <Route path="/auth/verify" element={<EmailVerification />} />
+              <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route 
                 path="/auth/character" 
                 element={
