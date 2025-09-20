@@ -21,9 +21,8 @@ import { ForecastCard } from './weather/ForecastCard';
 import { AirQualityPanel } from './weather/AirQualityPanel';
 import { PollenPanel } from './weather/PollenPanel';
 import { PipBoyRadiationMeter } from './weather/PipBoyRadiationMeter';
-import { SettingsModal } from '@/components/ui/SettingsModal';
-import { SettingsToggle, SettingsSelect, SettingsSlider } from '@/components/ui/SettingsControls';
-import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
+import { WidgetSettingsSheet } from './base/WidgetSettingsSheet';
+import { WeatherSettings } from './weather/WeatherSettings';
 import { useWeatherData } from '@/hooks/useWeatherData';
 import { weatherService, WeatherLocation } from '@/services/weatherService';
 import { useToast } from '@/hooks/use-toast';
@@ -218,19 +217,13 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
       onClick: () => setShowFullScreen(true),
       icon: Maximize2,
     },
-    {
-      type: 'menu',
-      id: 'settings',
-      icon: Settings,
-      items: [
-        {
-          id: 'widget-settings',
-          label: 'Widget Settings',
-          onClick: () => setShowSettings(true),
-          icon: Settings,
-        },
-      ],
-    },
+     {
+       type: 'button',
+       id: 'settings',
+       label: 'Settings',
+       onClick: () => setShowSettings(true),
+       icon: Settings,
+     },
   ];
 
   // Main content renderer
@@ -363,91 +356,18 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         {renderContent()}
       </WidgetShell>
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
+      {/* Settings Sheet */}
+      <WidgetSettingsSheet
+        open={showSettings}
+        onOpenChange={setShowSettings}
         title="Weather Dashboard Settings"
+        description="Configure your weather dashboard preferences and location services"
       >
-        <div className="space-y-6">
-          <PrimarySettingsGroup
-            title="Display Options"
-            description="Configure what weather information to show"
-          >
-            <SettingsToggle
-              label="Current Weather"
-              description="Show current weather conditions"
-              checked={settings.showCurrentWeather}
-              onCheckedChange={(checked) => handleSettingsChange('showCurrentWeather', checked)}
-            />
-            <SettingsToggle
-              label="5-Day Forecast"
-              description="Show extended weather forecast"
-              checked={settings.showForecast}
-              onCheckedChange={(checked) => handleSettingsChange('showForecast', checked)}
-            />
-            <SettingsToggle
-              label="Air Quality"
-              description="Show air quality index and pollutants"
-              checked={settings.showAirQuality}
-              onCheckedChange={(checked) => handleSettingsChange('showAirQuality', checked)}
-            />
-            <SettingsToggle
-              label="Pollen Levels"
-              description="Show pollen count and allergen information"
-              checked={settings.showPollen}
-              onCheckedChange={(checked) => handleSettingsChange('showPollen', checked)}
-            />
-            <SettingsToggle
-              label="Show Radiation Meter"
-              description="Display environmental radiation meter"
-              checked={settings.showRadiation}
-              onCheckedChange={(checked) => handleSettingsChange('showRadiation', checked)}
-            />
-          </PrimarySettingsGroup>
-
-          <SecondarySettingsGroup
-            title="Weather Settings"
-            description="Configure weather data preferences"
-          >
-            <SettingsSelect
-              label="Temperature Units"
-              description="Choose between metric and imperial units"
-              value={settings.units}
-              onChange={(value) => handleSettingsChange('units', value)}
-              options={[
-                { value: 'metric', label: 'Metric (°C, km/h, km)' },
-                { value: 'imperial', label: 'Imperial (°F, mph, mi)' }
-              ]}
-            />
-            <SettingsToggle
-              label="Use GPS Location"
-              description="Automatically use your current location"
-              checked={settings.useGPS}
-              onCheckedChange={(checked) => handleSettingsChange('useGPS', checked)}
-            />
-            <SettingsToggle
-              label="Auto Refresh"
-              description="Automatically refresh weather data"
-              checked={settings.autoRefresh}
-              onCheckedChange={(checked) => handleSettingsChange('autoRefresh', checked)}
-            />
-            {settings.autoRefresh && (
-              <SettingsSlider
-                label="Refresh Interval"
-                description="How often to refresh weather data"
-                value={settings.refreshInterval}
-                onChange={(value) => handleSettingsChange('refreshInterval', value)}
-                min={5}
-                max={60}
-                step={5}
-                unit=" minutes"
-                showValue
-              />
-            )}
-          </SecondarySettingsGroup>
-        </div>
-      </SettingsModal>
+        <WeatherSettings
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
+        />
+      </WidgetSettingsSheet>
 
       {/* Full Screen Modal */}
       <Dialog open={showFullScreen} onOpenChange={setShowFullScreen}>
