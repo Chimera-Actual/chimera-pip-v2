@@ -70,6 +70,8 @@ export function usePresence() {
 
   // Set up real-time subscriptions
   useEffect(() => {
+    let debounceTimeout: NodeJS.Timeout;
+    
     const channel = supabase
       .channel('presence-changes')
       .on(
@@ -80,31 +82,34 @@ export function usePresence() {
           table: 'user_presence'
         },
         (payload) => {
-          // Handle presence change
-          
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const newPresence: UserPresence = {
-              userId: payload.new.user_id,
-              status: payload.new.status,
-              lastSeen: payload.new.last_seen,
-              sessionData: payload.new.session_data as Record<string, any> || {}
-            };
+          // Debounce rapid presence updates
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(() => {
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+              const newPresence: UserPresence = {
+                userId: payload.new.user_id,
+                status: payload.new.status,
+                lastSeen: payload.new.last_seen,
+                sessionData: payload.new.session_data as Record<string, any> || {}
+              };
 
-            setPresenceList(prev => {
-              const filtered = prev.filter(p => p.userId !== newPresence.userId);
-              if (newPresence.status === 'online') {
-                return [...filtered, newPresence];
-              }
-              return filtered;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            setPresenceList(prev => prev.filter(p => p.userId !== payload.old.user_id));
-          }
+              setPresenceList(prev => {
+                const filtered = prev.filter(p => p.userId !== newPresence.userId);
+                if (newPresence.status === 'online') {
+                  return [...filtered, newPresence];
+                }
+                return filtered;
+              });
+            } else if (payload.eventType === 'DELETE') {
+              setPresenceList(prev => prev.filter(p => p.userId !== payload.old.user_id));
+            }
+          }, 200); // 200ms debounce for presence updates
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimeout);
       supabase.removeChannel(channel);
     };
   }, []);

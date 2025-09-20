@@ -105,7 +105,7 @@ describe('useWidgetsQuery', () => {
     expect(mockSupabase.from).not.toHaveBeenCalled()
   })
 
-  it('should set up realtime subscription', () => {
+  it('should set up realtime subscription and cleanup on unmount', () => {
     const mockUser = { id: 'user-1' }
     vi.mocked(useAuth).mockReturnValue({ user: mockUser } as any)
 
@@ -121,7 +121,7 @@ describe('useWidgetsQuery', () => {
     mockSupabase.from.mockReturnValue(mockQuery)
 
     const wrapper = createWrapper()
-    renderHook(() => useWidgetsQuery('MAIN'), { wrapper })
+    const { unmount } = renderHook(() => useWidgetsQuery('MAIN'), { wrapper })
 
     expect(mockSupabase.channel).toHaveBeenCalledWith('widgets:MAIN:user-1')
     expect(mockChannel.on).toHaveBeenCalledWith('postgres_changes', {
@@ -131,6 +131,10 @@ describe('useWidgetsQuery', () => {
       filter: 'tab_assignment=eq.MAIN',
     }, expect.any(Function))
     expect(mockChannel.subscribe).toHaveBeenCalled()
+
+    // Test cleanup
+    unmount()
+    expect(mockSupabase.removeChannel).toHaveBeenCalledWith(mockChannel)
   })
 
   it('should handle add widget mutation', async () => {

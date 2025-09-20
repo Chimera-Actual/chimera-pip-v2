@@ -42,6 +42,8 @@ export const useWidgetsQuery = (tabAssignment: string) => {
   React.useEffect(() => {
     if (!user?.id || !tabAssignment) return;
 
+    let debounceTimeout: NodeJS.Timeout;
+    
     const channel = supabase
       .channel(`widgets:${tabAssignment}:${user.id}`)
       .on('postgres_changes', {
@@ -50,25 +52,30 @@ export const useWidgetsQuery = (tabAssignment: string) => {
         table: 'user_widgets',
         filter: `tab_assignment=eq.${tabAssignment}`,
       }, (payload) => {
-        queryClient.setQueryData<UserWidget[]>(
-          queryKeys.widgets(tabAssignment, user.id),
-          (prev = []) => {
-            switch (payload.eventType) {
-              case 'INSERT':
-                return [...prev, payload.new as UserWidget].sort((a, b) => a.display_order - b.display_order);
-              case 'UPDATE':
-                return prev.map(w => w.id === payload.new.id ? payload.new as UserWidget : w);
-              case 'DELETE':
-                return prev.filter(w => w.id !== payload.old.id);
-              default:
-                return prev;
+        // Debounce rapid updates to prevent excessive re-renders
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          queryClient.setQueryData<UserWidget[]>(
+            queryKeys.widgets(tabAssignment, user.id),
+            (prev = []) => {
+              switch (payload.eventType) {
+                case 'INSERT':
+                  return [...prev, payload.new as UserWidget].sort((a, b) => a.display_order - b.display_order);
+                case 'UPDATE':
+                  return prev.map(w => w.id === payload.new.id ? payload.new as UserWidget : w);
+                case 'DELETE':
+                  return prev.filter(w => w.id !== payload.old.id);
+                default:
+                  return prev;
+              }
             }
-          }
-        );
+          );
+        }, 100); // 100ms debounce
       })
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimeout);
       supabase.removeChannel(channel);
     };
   }, [user?.id, tabAssignment, queryClient]);

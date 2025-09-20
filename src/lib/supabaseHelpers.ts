@@ -189,8 +189,11 @@ export const subscribeToTable = <T>(
     ? Object.entries(filter).map(([key, value]) => `${key}=eq.${value}`).join('&')
     : undefined;
     
+  // Use crypto.randomUUID for better uniqueness than timestamp
+  const channelId = `realtime-${table}-${crypto.randomUUID()}`;
+    
   const channel = supabase
-    .channel(`realtime-${table}-${Date.now()}`)
+    .channel(channelId)
     .on('postgres_changes', 
       { 
         event: '*', 
@@ -203,6 +206,7 @@ export const subscribeToTable = <T>(
     .subscribe();
 
   return {
+    channel,
     unsubscribe: () => {
       supabase.removeChannel(channel);
     }

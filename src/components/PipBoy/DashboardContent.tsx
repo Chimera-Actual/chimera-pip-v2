@@ -57,32 +57,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
   // Extract memoized data
   const { currentTabData, currentTab, tabsWithData } = memoizedTabData;
 
-  // Real-time subscription for widget changes
-  useEffect(() => {
-    if (!activeTab || !currentTabData) return;
-
-    const channel = supabase
-      .channel(`widgets-${activeTab}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_widgets',
-          filter: `tab_assignment=eq.${activeTab}`
-        },
-        (payload) => {
-          console.log('Widget change detected:', payload);
-          // Reload widgets when any change occurs
-          currentTabData.loadWidgets();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [activeTab, currentTabData]);
+  // Note: Real-time subscriptions are handled in useWidgetsQuery hook
+  // No need for duplicate subscription here
 
   const handleArchiveTab = useCallback(async () => {
     if (currentTab && !currentTab.isDefault) {
