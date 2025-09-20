@@ -17,26 +17,10 @@ interface PasswordFormData {
 
 type PagePhase = 'verifying' | 'form' | 'success' | 'error';
 
-// Parse Supabase redirect parameters from URL
-const parseSupabaseRedirect = (url: string) => {
-  const urlObj = new URL(url);
-  
-  // Try hash parameters first (older format)
-  const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-  const access_token = hashParams.get('access_token');
-  const refresh_token = hashParams.get('refresh_token');
-  const type = hashParams.get('type');
-  
-  // Try query parameters (newer format)
-  const code = urlObj.searchParams.get('code');
-  const queryType = urlObj.searchParams.get('type');
-  
-  return {
-    access_token,
-    refresh_token,
-    type: type || queryType,
-    code
-  };
+// Check if we have recovery parameters in URL (for timeout fallback)
+const hasRecoveryParams = () => {
+  const url = window.location.href;
+  return url.includes('access_token') || url.includes('refresh_token') || url.includes('code');
 };
 
 export const ResetPasswordPage: React.FC = () => {
@@ -57,38 +41,43 @@ export const ResetPasswordPage: React.FC = () => {
   const newPassword = watch('newPassword');
 
   useEffect(() => {
-    const handlePasswordReset = async () => {
-      try {
-        const { access_token, refresh_token, code, type } = parseSupabaseRedirect(window.location.href);
-        
-        if (access_token && refresh_token && type === 'recovery') {
-          // Handle hash-based tokens
-          const { error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token
-          });
-          
-          if (error) throw error;
-        } else if (code && (type === 'recovery' || !type)) {
-          // Handle code-based flow
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          
-          if (error) throw error;
-        } else {
-          throw new Error('No recovery token found in URL');
-        }
+    let timeoutId: NodeJS.Timeout;
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Clear any timeout since we got the event
+        if (timeoutId) clearTimeout(timeoutId);
         
         // Clear sensitive URL parameters
         window.history.replaceState(null, '', '/auth/reset-password');
         setPhase('form');
-      } catch (err: any) {
-        reportError('Password reset token exchange failed', { error: err });
-        setError(err.message || 'Invalid or expired reset link');
-        setPhase('error');
       }
-    };
+    });
 
-    handlePasswordReset();
+    // Fallback timeout in case the event doesn't fire or user visits directly
+    timeoutId = setTimeout(() => {
+      if (hasRecoveryParams()) {
+        // If we have recovery params but no event after timeout, show error
+        setError('Password reset link processing failed. Please try requesting a new reset link.');
+      } else {
+        // User visited directly without recovery link
+        setError('No password reset link detected. Please use the link from your email.');
+      }
+      setPhase('error');
+    }, 10000); // 10 second timeout
+
+    // Check if user visited the page directly (no recovery params)
+    if (!hasRecoveryParams()) {
+      clearTimeout(timeoutId);
+      setError('Please use the password reset link from your email to access this page.');
+      setPhase('error');
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   const onSubmit = async (data: PasswordFormData) => {
@@ -141,10 +130,10 @@ export const ResetPasswordPage: React.FC = () => {
           <Loader2 className="h-12 w-12 text-primary pip-text-glow animate-spin" />
         </div>
         <h1 className="text-2xl font-display font-bold text-pip-text-bright pip-text-glow mb-2">
-          VERIFYING RECOVERY LINK
+          PROCESSING RECOVERY LINK
         </h1>
         <p className="text-pip-text-secondary font-mono text-sm">
-          Please wait while we verify your password reset request...
+          Establishing secure connection with recovery tokens...
         </p>
       </div>
     </Card>
