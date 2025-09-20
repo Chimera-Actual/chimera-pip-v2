@@ -42,6 +42,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: unknown }>;
   refreshProfile: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   // Quick Access methods
   enrollQuickAccess: (numericId: string, pin: string) => Promise<void>;
   quickUnlockWithIdPin: (numericId: string, pin: string) => Promise<void>;
@@ -435,6 +436,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user) {
+      throw new Error('Must be logged in to change password');
+    }
+
+    try {
+      // First verify the current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email!,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // If current password is correct, update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        throw new Error(`Failed to update password: ${updateError.message}`);
+      }
+
+      // Disable Quick Access on all devices since password changed
+      if (profile?.quick_access_enabled) {
+        try {
+          await disableQuickAccess(profile.numeric_id || undefined);
+        } catch (error) {
+          // Don't fail the password change if Quick Access disable fails
+          console.warn('Failed to disable Quick Access after password change:', error);
+        }
+      }
+
+      toast({
+        title: "PASSWORD UPDATED",
+        description: "Your access code has been successfully changed. Quick Access has been disabled on all devices.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to change password';
+      throw new Error(message);
+    }
+  };
+
   const disableQuickAccess = async (numericId?: string): Promise<void> => {
     try {
       if (user && profile) {
@@ -486,6 +532,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     refreshProfile,
+    changePassword,
     enrollQuickAccess,
     quickUnlockWithIdPin,
     disableQuickAccess,

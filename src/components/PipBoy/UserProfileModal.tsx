@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { validateNumericId, validatePin } from '@/lib/quickaccess/crypto';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -43,6 +44,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   const [isDirty, setIsDirty] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Change Password modal state
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   // Quick Access computed values
   const isQuickAccessEnabled = profile?.quick_access_enabled || false;
@@ -214,7 +218,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <Button variant="outline" size="sm">Enable</Button>
         </div>
         
-        <Button variant="outline" className="w-full justify-start">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start"
+          onClick={() => setShowChangePasswordModal(true)}
+        >
           <Shield className="h-4 w-4 mr-2" />
           Change Password
         </Button>
@@ -495,6 +503,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           Delete Account
         </Button>
       </DangerZoneGroup>
+
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </SettingsModal>
   );
 };
