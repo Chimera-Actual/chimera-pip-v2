@@ -11,7 +11,8 @@ import {
   RefreshCw, 
   Maximize2,
   Navigation,
-  AlertTriangle
+  AlertTriangle,
+  Activity
 } from 'lucide-react';
 import { WidgetShell } from './base/WidgetShell';
 import type { WidgetAction } from './base/WidgetActionBar';
@@ -83,7 +84,10 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     refreshWeather,
     updateSettings: updateWeatherSettings,
     canRefresh,
-    isStale
+    isStale,
+    meterType,
+    setMeterType,
+    isOffline
   } = useWeatherData({
     autoLoad: false,
     refreshInterval: settings.refreshInterval
@@ -187,6 +191,14 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     }
   }, [canRefresh, refreshWeather, toast]);
 
+  // Handle meter type toggle
+  const handleMeterToggle = useCallback(() => {
+    const types: ('combined' | 'air' | 'pollen')[] = ['combined', 'air', 'pollen'];
+    const currentIndex = types.indexOf(meterType);
+    const nextIndex = (currentIndex + 1) % types.length;
+    setMeterType(types[nextIndex]);
+  }, [meterType, setMeterType]);
+
    // Function Bar actions - all business functionality
    const actions: WidgetAction[] = [
      {
@@ -204,6 +216,13 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
       onClick: handleRefresh,
       disabled: !canRefresh,
       icon: RefreshCw,
+    },
+    {
+      type: 'button',
+      id: 'rad-mode',
+      label: `Rad Mode: ${meterType.charAt(0).toUpperCase() + meterType.slice(1)}`,
+      onClick: handleMeterToggle,
+      icon: Activity,
     },
     {
       type: 'toggle',
@@ -289,14 +308,20 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     return (
       <div className="space-y-4 p-4">
         {/* Status indicators */}
-        {isStale && (
-          <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {isOffline && (
             <Badge variant="destructive" className="text-xs">
               <AlertTriangle className="h-3 w-3 mr-1" />
-              Stale
+              OFFLINE – DATA STALE
             </Badge>
-          </div>
-        )}
+          )}
+          {!isOffline && isStale && (
+            <Badge variant="secondary" className="text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              STALE
+            </Badge>
+          )}
+        </div>
 
         {/* Weather Content */}
         {weatherData && (

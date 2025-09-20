@@ -30,7 +30,17 @@ export const ForecastCard: React.FC<ForecastCardProps> = ({
   };
 
   const getWeatherIcon = (iconType: string, size = 'h-8 w-8') => {
-    // Mock weather icons - in production, use actual weather icons
+    if (iconType && iconType !== 'partly-cloudy') {
+      return (
+        <img 
+          src={`https://openweathermap.org/img/wn/${iconType}@2x.png`}
+          alt="Weather icon"
+          className={cn(size, "object-contain")}
+        />
+      );
+    }
+    
+    // Fallback icons for cases where Google icon mapping doesn't work
     const iconClass = cn(size, isPipBoyMode && "text-primary");
     
     switch (iconType) {

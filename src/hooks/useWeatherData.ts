@@ -33,6 +33,7 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
 
   const [currentLocation, setCurrentLocation] = useState<WeatherLocation | null>(null);
   const [radiationLevel, setRadiationLevel] = useState<RadiationLevel | null>(null);
+  const [meterType, setMeterType] = useState<'combined' | 'air' | 'pollen'>('combined');
 
   // Retry mechanism for failed requests
   const { executeWithRetry, retryState } = useRetryWithBackoff({
@@ -160,12 +161,44 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     return temp;
   }, []);
 
+  // Calculate radiation level based on meter type
+  const getDisplayRadiationLevel = useCallback((): RadiationLevel | null => {
+    if (!weatherState.data) return null;
+
+    switch (meterType) {
+      case 'air':
+        const aqi = weatherState.data.airQuality.aqi;
+        return {
+          level: Math.min(100, (aqi / 150) * 100),
+          category: aqi <= 50 ? 'safe' : aqi <= 100 ? 'caution' : 'danger',
+          color: aqi <= 50 ? '#22c55e' : aqi <= 100 ? '#eab308' : '#ef4444',
+          message: `AQI: ${aqi} - ${weatherState.data.airQuality.category}`,
+          rads: aqi
+        } as RadiationLevel;
+      
+      case 'pollen':
+        const pollen = weatherState.data.pollen.overall;
+        return {
+          level: (pollen / 5) * 100,
+          category: pollen <= 2 ? 'safe' : pollen <= 4 ? 'caution' : 'danger',
+          color: pollen <= 2 ? '#22c55e' : pollen <= 4 ? '#eab308' : '#ef4444',
+          message: `Pollen: ${weatherState.data.pollen.category}`,
+          rads: pollen * 20
+        } as RadiationLevel;
+      
+      case 'combined':
+      default:
+        return radiationLevel;
+    }
+  }, [meterType, weatherState.data, radiationLevel]);
+
   return {
     // Data
     weatherData: weatherState.data,
     currentLocation,
-    radiationLevel,
+    radiationLevel: getDisplayRadiationLevel(),
     settings,
+    meterType,
     
     // State
     loading: weatherState.loading,
@@ -181,6 +214,7 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     updateSettings,
     setDefaultLocation,
     clearCache,
+    setMeterType,
     
     // Utilities
     getCachedWeather,
@@ -191,6 +225,7 @@ export const useWeatherData = (options: UseWeatherDataOptions = {}) => {
     isStale: weatherState.lastUpdated ? 
       Date.now() - weatherState.lastUpdated.getTime() > (settings.refreshInterval * 60 * 1000) : 
       false,
-    canRefresh: !weatherState.loading && !retryState.isRetrying && currentLocation !== null
+    canRefresh: !weatherState.loading && !retryState.isRetrying && currentLocation !== null,
+    isOffline: !navigator.onLine
   };
 };

@@ -1,5 +1,6 @@
 // Weather Service for Google APIs Integration
 import { fetchGMWeather, type Units, type LatLng } from './weather/googleWeather';
+import { getGoogleMapsKey } from '@/lib/getGoogleMapsKey';
 import { reverseGeocode, type ReverseGeocodeResult } from './location/reverseGeocode';
 import { getBrowserPosition, getLocationWithFallback, GeolocationError } from './location/geolocation';
 import { convertWeatherValues, type WeatherValues } from '@/utils/units';
@@ -90,8 +91,8 @@ class WeatherService {
     if (cached) return cached;
 
     try {
-      // Get Google Maps API key from environment
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      // Get Google Maps API key from Supabase
+      const apiKey = await getGoogleMapsKey();
       if (!apiKey) {
         throw new Error('Google Maps API key not configured');
       }
@@ -152,8 +153,8 @@ class WeatherService {
     if (cached) return cached;
 
     try {
-      // Get Google Maps API key from environment
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      // Get Google Maps API key from Supabase
+      const apiKey = await getGoogleMapsKey();
       if (!apiKey) {
         throw new Error('Google Maps API key not configured');
       }
@@ -199,23 +200,75 @@ class WeatherService {
     const cached = weatherCache.get<AirQuality>(location, 'none', 'airquality');
     if (cached) return cached;
 
-    // Mock air quality data
-    const aqi = Math.floor(Math.random() * 150) + 20;
-    const mockAirQuality: AirQuality = {
-      aqi,
-      category: aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : aqi <= 150 ? 'Unhealthy for Sensitive Groups' : 'Unhealthy',
-      color: aqi <= 50 ? 'green' : aqi <= 100 ? 'yellow' : aqi <= 150 ? 'orange' : 'red',
-      description: aqi <= 50 ? 'Air quality is good' : aqi <= 100 ? 'Air quality is acceptable' : 'Air quality may be unhealthy',
-      pm25: Math.floor(Math.random() * 50) + 10,
-      pm10: Math.floor(Math.random() * 80) + 20,
-      ozone: Math.floor(Math.random() * 100) + 30,
-      no2: Math.floor(Math.random() * 60) + 10,
-      so2: Math.floor(Math.random() * 40) + 5,
-      co: Math.floor(Math.random() * 200) + 50
-    };
+    try {
+      // Get API key from Supabase
+      const apiKey = await getGoogleMapsKey();
+      
+      // Call Google Maps Air Quality API
+      const response = await fetch(`https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: {
+            latitude: location.lat,
+            longitude: location.lng
+          }
+        })
+      });
 
-    weatherCache.set(location, 'none', mockAirQuality, 'airquality');
-    return mockAirQuality;
+      if (!response.ok) {
+        throw new Error(`Air Quality API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Parse Google Air Quality response
+      const universalAqi = data.indexes?.find((index: any) => index.code === 'uaqi');
+      const aqi = universalAqi?.aqi || 50;
+      
+      // Extract pollutants
+      const pollutants = data.pollutants || [];
+      const getPollutant = (code: string) => {
+        const pollutant = pollutants.find((p: any) => p.code === code);
+        return pollutant?.concentration?.value || 0;
+      };
+
+      const airQuality: AirQuality = {
+        aqi,
+        category: universalAqi?.category || (aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : 'Unhealthy'),
+        color: universalAqi?.color ? `#${universalAqi.color}` : (aqi <= 50 ? '#22c55e' : aqi <= 100 ? '#eab308' : '#ef4444'),
+        description: universalAqi?.displayName || 'Air quality data',
+        pm25: getPollutant('pm25'),
+        pm10: getPollutant('pm10'),
+        ozone: getPollutant('o3'),
+        no2: getPollutant('no2'),
+        so2: getPollutant('so2'),
+        co: getPollutant('co')
+      };
+
+      weatherCache.set(location, 'none', airQuality, 'airquality');
+      return airQuality;
+      
+    } catch (error) {
+      console.warn('Air Quality API error:', error);
+      // Return mock data on error
+      const aqi = Math.floor(Math.random() * 150) + 20;
+      const mockAirQuality: AirQuality = {
+        aqi,
+        category: aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : aqi <= 150 ? 'Unhealthy for Sensitive Groups' : 'Unhealthy',
+        color: aqi <= 50 ? '#22c55e' : aqi <= 100 ? '#eab308' : aqi <= 150 ? '#f97316' : '#ef4444',
+        description: aqi <= 50 ? 'Air quality is good' : aqi <= 100 ? 'Air quality is acceptable' : 'Air quality may be unhealthy',
+        pm25: Math.floor(Math.random() * 50) + 10,
+        pm10: Math.floor(Math.random() * 80) + 20,
+        ozone: Math.floor(Math.random() * 100) + 30,
+        no2: Math.floor(Math.random() * 60) + 10,
+        so2: Math.floor(Math.random() * 40) + 5,
+        co: Math.floor(Math.random() * 200) + 50
+      };
+
+      weatherCache.set(location, 'none', mockAirQuality, 'airquality');
+      return mockAirQuality;
+    }
   }
 
   async getPollenData(location: WeatherLocation): Promise<PollenData> {
@@ -223,20 +276,90 @@ class WeatherService {
     const cached = weatherCache.get<PollenData>(location, 'none', 'pollen');
     if (cached) return cached;
 
-    // Mock pollen data
-    const overall = Math.floor(Math.random() * 5) + 1;
-    const mockPollen: PollenData = {
-      overall,
-      tree: Math.floor(Math.random() * 5) + 1,
-      grass: Math.floor(Math.random() * 5) + 1,
-      weed: Math.floor(Math.random() * 5) + 1,
-      category: overall <= 2 ? 'Low' : overall <= 3 ? 'Moderate' : overall <= 4 ? 'High' : 'Very High',
-      color: overall <= 2 ? 'green' : overall <= 3 ? 'yellow' : overall <= 4 ? 'orange' : 'red',
-      description: overall <= 2 ? 'Low pollen levels' : overall <= 3 ? 'Moderate pollen levels' : 'High pollen levels'
-    };
+    try {
+      // Get API key from Supabase
+      const apiKey = await getGoogleMapsKey();
+      
+      // Call Google Maps Pollen API
+      const response = await fetch(`https://pollen.googleapis.com/v1/forecast:lookup?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: {
+            latitude: location.lat,
+            longitude: location.lng
+          },
+          days: 1
+        })
+      });
 
-    weatherCache.set(location, 'none', mockPollen, 'pollen');
-    return mockPollen;
+      if (!response.ok) {
+        throw new Error(`Pollen API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Parse today's pollen forecast
+      const todayForecast = data.dailyInfo?.[0];
+      if (!todayForecast) {
+        throw new Error('No pollen data available');
+      }
+
+      // Extract pollen indices
+      const getPollenIndex = (type: string) => {
+        const plantInfo = todayForecast.plantInfo?.find((p: any) => p.code === type);
+        return plantInfo?.indexInfo?.value || 1;
+      };
+
+      const tree = getPollenIndex('TREE');
+      const grass = getPollenIndex('GRASS'); 
+      const weed = getPollenIndex('WEED');
+      const overall = Math.max(tree, grass, weed);
+
+      const mapCategory = (level: number) => {
+        if (level <= 1) return 'Low';
+        if (level <= 2) return 'Moderate'; 
+        if (level <= 4) return 'High';
+        return 'Very High';
+      };
+
+      const mapColor = (level: number) => {
+        if (level <= 1) return '#22c55e';
+        if (level <= 2) return '#eab308';
+        if (level <= 4) return '#f97316';
+        return '#ef4444';
+      };
+
+      const pollen: PollenData = {
+        overall,
+        tree,
+        grass,
+        weed,
+        category: mapCategory(overall),
+        color: mapColor(overall),
+        description: `${mapCategory(overall)} pollen levels`
+      };
+
+      weatherCache.set(location, 'none', pollen, 'pollen');
+      return pollen;
+      
+    } catch (error) {
+      console.warn('Pollen API error:', error);
+      // Return mock data on error
+      const overall = Math.floor(Math.random() * 5) + 1;
+      const mockPollen: PollenData = {
+        overall,
+        tree: Math.floor(Math.random() * 5) + 1,
+        grass: Math.floor(Math.random() * 5) + 1,
+        weed: Math.floor(Math.random() * 5) + 1,
+        category: overall <= 2 ? 'Low' : overall <= 3 ? 'Moderate' : overall <= 4 ? 'High' : 'Very High',
+        color: overall <= 2 ? '#22c55e' : overall <= 3 ? '#eab308' : overall <= 4 ? '#f97316' : '#ef4444',
+        description: overall <= 2 ? 'Low pollen levels' : overall <= 3 ? 'Moderate pollen levels' : 'High pollen levels'
+      };
+
+      weatherCache.set(location, 'none', mockPollen, 'pollen');
+      return mockPollen;
+    }
   }
 
   // Get cached locations for quick switching
@@ -366,17 +489,8 @@ class WeatherService {
   // Get current GPS location with reverse geocoding
   async getCurrentLocation(): Promise<WeatherLocation> {
     try {
-      // Get API key first
-      const response = await fetch('/supabase/functions/get-maps-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Could not get API key');
-      }
-      
-      const { apiKey } = await response.json();
+      // Get API key from Supabase
+      const apiKey = await getGoogleMapsKey();
       
       // Get browser position
       const position = await getBrowserPosition({

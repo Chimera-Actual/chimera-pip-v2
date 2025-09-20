@@ -77,16 +77,24 @@ const CurrentWeatherCardComponent: React.FC<CurrentWeatherCardProps> = ({
             </div>
           </div>
           
-          {/* Weather Icon Placeholder */}
+          {/* Weather Icon */}
           <div className={cn(
-            "w-16 h-16 rounded-full flex items-center justify-center",
+            "w-16 h-16 rounded-full flex items-center justify-center overflow-hidden",
             "bg-primary/10 border border-primary/20",
             isPipBoyMode && "bg-primary/20 border-primary/40"
           )}>
-            <Sun className={cn(
-              "h-8 w-8",
-              isPipBoyMode && "text-primary"
-            )} />
+            {weather.icon ? (
+              <img 
+                src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+                alt={weather.description}
+                className="w-12 h-12 object-contain"
+              />
+            ) : (
+              <Sun className={cn(
+                "h-8 w-8",
+                isPipBoyMode && "text-primary"
+              )} />
+            )}
           </div>
         </div>
 
