@@ -43,13 +43,21 @@ export const VaultLogin: React.FC = () => {
   const onStandardSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     
-    const { error } = await signIn(data.email, data.password);
-    
-    if (!error) {
-      navigate('/');
+    try {
+      const { error } = await signIn(data.email, data.password);
+      
+      if (!error) {
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: "TRANSMISSION FAILURE",
+        description: "Connection lost. Please retry access.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const onQuickAccessSubmit = async (numericId: string, pin: string) => {

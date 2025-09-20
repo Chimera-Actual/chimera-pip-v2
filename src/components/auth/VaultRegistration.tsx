@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, Shield, Check, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface RegistrationFormData {
   email: string;
@@ -19,6 +20,7 @@ export const VaultRegistration: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const {
     register,
@@ -59,13 +61,21 @@ export const VaultRegistration: React.FC = () => {
   const onSubmit = async (data: RegistrationFormData) => {
     setIsLoading(true);
     
-    const { error } = await signUp(data.email, data.password);
-    
-    if (!error) {
-      navigate('/auth/verify');
+    try {
+      const { error } = await signUp(data.email, data.password);
+      
+      if (!error) {
+        navigate('/auth/verify');
+      }
+    } catch (error) {
+      toast({
+        title: "TRANSMISSION FAILURE",
+        description: "Connection lost. Please retry registration.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (

@@ -41,14 +41,14 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ children
       if (error) {
         reportError('Reset password error', { component: 'PasswordResetModal', error });
         toast({
-          title: 'Error',
-          description: 'Failed to send reset email. Please try again.',
+          title: 'TRANSMISSION FAILURE',
+          description: 'Unable to send reset codes. Check connection and retry.',
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Reset Email Sent',
-          description: 'Check your email for password reset instructions. The link will expire in 1 hour.',
+          title: 'ACCESS CODES DISPATCHED',
+          description: 'Check your email for new access codes. Instructions expire in 1 hour.',
         });
         setOpen(false);
         reset();
@@ -56,8 +56,8 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ children
     } catch (error) {
       reportError('Reset password error', { component: 'PasswordResetModal', error });
       toast({
-        title: 'Error',
-        description: 'Failed to send reset email. Please try again.',
+        title: 'TRANSMISSION FAILURE',
+        description: 'Unable to send reset codes. Check connection and retry.',
         variant: 'destructive',
       });
     } finally {

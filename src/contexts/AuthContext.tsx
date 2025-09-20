@@ -178,6 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error: unknown) {
+      toast({
+        title: "TRANSMISSION FAILURE",
+        description: "Connection lost. Please check your network and retry.",
+        variant: "destructive",
+      });
       return { error };
     }
   };
@@ -237,6 +242,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error: unknown) {
+      toast({
+        title: "TRANSMISSION FAILURE",
+        description: "Connection lost. Please check your network and retry.",
+        variant: "destructive",
+      });
       return { error };
     }
   };
