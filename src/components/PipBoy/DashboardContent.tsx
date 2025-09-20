@@ -1,4 +1,5 @@
 import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
+import { useMemoizedSelector } from '@/features/state-management/hooks/useMemoizedSelector';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
@@ -30,17 +31,31 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const { toast } = useToast();
   const { layoutMode } = useTheme();
   
-  // Callback to receive widget data from TabWidgetManager components
+  // Memoized callback to receive widget data from TabWidgetManager components
   const handleTabDataReady = useCallback((tabName: string, data: ReturnType<typeof useTabWidgets>) => {
     setTabWidgetData(prev => ({
       ...prev,
       [tabName]: data
     }));
   }, []);
+
+  // Memoize expensive tab data operations
+  const memoizedTabData = useMemoizedSelector(
+    { tabWidgetData, activeTab, tabs },
+    ({ tabWidgetData, activeTab, tabs }) => ({
+      currentTabData: tabWidgetData[activeTab],
+      currentTab: tabs.find(tab => tab.name === activeTab),
+      tabsWithData: tabs.map(tab => ({
+        ...tab,
+        data: tabWidgetData[tab.name],
+        isActive: activeTab === tab.name
+      }))
+    }),
+    [tabWidgetData, activeTab, tabs]
+  );
   
-  // Get current tab data
-  const currentTabData = tabWidgetData[activeTab];
-  const currentTab = tabs.find(tab => tab.name === activeTab);
+  // Extract memoized data
+  const { currentTabData, currentTab, tabsWithData } = memoizedTabData;
 
   // Real-time subscription for widget changes
   useEffect(() => {
@@ -148,32 +163,28 @@ export const DashboardContent = memo<DashboardContentProps>(({
           />
         )}
 
-        {/* Canvas Content Container - All tabs rendered but only active visible */}
+        {/* Canvas Content Container - Optimized tab rendering */}
         <div className="widget-content flex-1 min-h-0 relative">
-          {tabs.map((tab) => {
-            const tabData = tabWidgetData[tab.name];
-            const isActive = activeTab === tab.name;
-            
-            return (
-              <div
-                key={tab.name}
-                className={cn(
-                  "absolute inset-0 overflow-auto transition-opacity duration-200",
-                  isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                )}
-              >
-                <CanvasIntegration 
-                  tab={tab.name}
-                  widgets={tabData?.widgets || []}
-                  isLoading={tabData?.isLoading || false}
-                  onDoubleClick={handleShowWidgetSelector}
-                  onDeleteWidget={tabData?.deleteWidget}
-                  onUpdateWidget={tabData?.updateWidget}
-                  onToggleCollapsed={tabData?.toggleCollapsed}
-                />
-              </div>
-            );
-          })}
+          {tabsWithData.map((tab) => (
+            <div
+              key={tab.name}
+              className={cn(
+                "absolute inset-0 overflow-auto transition-opacity duration-200",
+                tab.isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              )}
+            >
+              <CanvasIntegration 
+                tab={tab.name}
+                widgets={tab.data?.widgets || []}
+                isLoading={tab.data?.isLoading || false}
+                isActive={tab.isActive}
+                onDoubleClick={handleShowWidgetSelector}
+                onDeleteWidget={tab.data?.deleteWidget}
+                onUpdateWidget={tab.data?.updateWidget}
+                onToggleCollapsed={tab.data?.toggleCollapsed}
+              />
+            </div>
+          ))}
         </div>
 
         <WidgetSelectorModal

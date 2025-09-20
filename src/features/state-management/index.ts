@@ -16,3 +16,4 @@ export {
 
 // Performance Utilities
 export * from './utils/performanceOptimizer';
+export * from './utils/renderPerformanceMonitor';
