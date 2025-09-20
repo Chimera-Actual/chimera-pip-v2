@@ -1,10 +1,11 @@
-import React, { useState, memo, useCallback, useEffect } from 'react';
+import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useTabWidgets } from '@/hooks/useTabWidgets';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
+import { TabWidgetManager } from './TabWidgetManager';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
@@ -23,38 +24,19 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
+  const [tabWidgetData, setTabWidgetData] = useState<Record<string, ReturnType<typeof useTabWidgets>>>({});
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
   const { toast } = useToast();
   const { layoutMode } = useTheme();
   
-  // Get widget data for all tabs to preserve state
-  const tabWidgetData = tabs.reduce((acc, tab) => {
-    const { 
-      widgets, 
-      isLoading: widgetsLoading, 
-      error: widgetsError,
-      addWidget,
-      deleteWidget,
-      updateWidget,
-      toggleCollapsed,
-      toggleVisibility,
-      loadWidgets
-    } = useTabWidgets(tab.name);
-    
-    acc[tab.name] = {
-      widgets,
-      isLoading: widgetsLoading,
-      error: widgetsError,
-      addWidget,
-      deleteWidget,
-      updateWidget,
-      toggleCollapsed,
-      toggleVisibility,
-      loadWidgets
-    };
-    return acc;
-  }, {} as Record<string, any>);
+  // Callback to receive widget data from TabWidgetManager components
+  const handleTabDataReady = useCallback((tabName: string, data: ReturnType<typeof useTabWidgets>) => {
+    setTabWidgetData(prev => ({
+      ...prev,
+      [tabName]: data
+    }));
+  }, []);
   
   // Get current tab data
   const currentTabData = tabWidgetData[activeTab];
@@ -108,7 +90,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    const result = await currentTabData?.addWidget(widgetType, settings);
+    const result = await currentTabData?.addWidget?.(widgetType, settings);
     if (result) {
       toast({
         title: "Widget Added",
@@ -124,6 +106,15 @@ export const DashboardContent = memo<DashboardContentProps>(({
 
   return (
     <div className="h-full flex relative">
+      {/* Render TabWidgetManager components for each tab - this properly uses hooks at top level */}
+      {tabs.map((tab) => (
+        <TabWidgetManager
+          key={tab.id}
+          tab={tab}
+          onDataReady={handleTabDataReady}
+        />
+      ))}
+      
       {/* Only show sidebar in tabbed mode */}
       {layoutMode === 'tabbed' && (
         <div className="relative h-full">
