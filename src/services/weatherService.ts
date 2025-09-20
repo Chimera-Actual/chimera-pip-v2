@@ -1,5 +1,7 @@
 // Weather Service for Google APIs Integration
 import { fetchGMWeather, type Units, type LatLng } from './weather/googleWeather';
+import { reverseGeocode, type ReverseGeocodeResult } from './location/reverseGeocode';
+import { getBrowserPosition, getLocationWithFallback, GeolocationError } from './location/geolocation';
 import { convertWeatherValues, type WeatherValues } from '@/utils/units';
 import { localStorageService } from '@/services/storage';
 
@@ -335,20 +337,96 @@ class WeatherService {
     };
   }
 
-  // Location search methods (will use Google Places API in future)
+  // Location search using Google Places API - no more mock data
   async searchLocations(query: string): Promise<WeatherLocation[]> {
-    // Mock location search results
-    const mockResults: WeatherLocation[] = [
-      { lat: 40.7128, lng: -74.0060, city: 'New York', country: 'US', displayName: 'New York, NY, USA' },
-      { lat: 34.0522, lng: -118.2437, city: 'Los Angeles', country: 'US', displayName: 'Los Angeles, CA, USA' },
-      { lat: 51.5074, lng: -0.1278, city: 'London', country: 'GB', displayName: 'London, UK' },
-      { lat: 35.6762, lng: 139.6503, city: 'Tokyo', country: 'JP', displayName: 'Tokyo, Japan' },
-      { lat: 48.8566, lng: 2.3522, city: 'Paris', country: 'FR', displayName: 'Paris, France' }
-    ];
+    try {
+      // Get API key from edge function
+      const response = await fetch('/supabase/functions/get-maps-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Could not get API key');
+      }
+      
+      const { apiKey } = await response.json();
+      
+      // Use Google Places API for real location search
+      const { searchPlaces } = await import('@/services/location/placesSearch');
+      const results = await searchPlaces(query, apiKey, {
+        types: 'locality|administrative_area_level_1|country'
+      });
 
-    return mockResults.filter(location => 
-      location.displayName.toLowerCase().includes(query.toLowerCase())
-    );
+      // Convert search results to WeatherLocation format
+      return results.map(result => ({
+        lat: result.latlng?.lat || 0,
+        lng: result.latlng?.lng || 0,
+        city: result.description.split(',')[0] || 'Unknown',
+        country: result.description.split(',').pop()?.trim() || 'Unknown',
+        displayName: result.description
+      }));
+      
+    } catch (error) {
+      console.error('Location search error:', error);
+      // Return empty array instead of mock data
+      return [];
+    }
+  }
+
+  // Get current GPS location with reverse geocoding
+  async getCurrentLocation(): Promise<WeatherLocation> {
+    try {
+      // Get API key first
+      const response = await fetch('/supabase/functions/get-maps-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Could not get API key');
+      }
+      
+      const { apiKey } = await response.json();
+      
+      // Get browser position
+      const position = await getBrowserPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      });
+
+      // Reverse geocode to get place name
+      const geocodeResult = await reverseGeocode(position, apiKey);
+      
+      return {
+        lat: position.lat,
+        lng: position.lng,
+        city: geocodeResult.city,
+        country: geocodeResult.country || 'Unknown',
+        displayName: geocodeResult.displayName || `${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`
+      };
+      
+    } catch (error) {
+      if (error instanceof GeolocationError) {
+        // Re-throw geolocation errors so UI can handle them appropriately
+        throw error;
+      }
+      
+      // For other errors, try fallback location
+      try {
+        const { position, source } = await getLocationWithFallback();
+        return {
+          lat: position.lat,
+          lng: position.lng,
+          city: source === 'default' ? 'New York' : 'Unknown City',
+          country: source === 'default' ? 'US' : 'Unknown',
+          displayName: source === 'default' ? 'New York, NY, USA' : `${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`
+        };
+      } catch (fallbackError) {
+        throw new Error('Unable to determine location. Please search for a city manually.');
+      }
+    }
   }
 
   // Saved locations management

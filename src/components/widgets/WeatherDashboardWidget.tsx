@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { WidgetShell } from './base/WidgetShell';
 import type { WidgetAction } from './base/WidgetActionBar';
-import { LocationSearchInput } from './weather/LocationSearchInput';
+import { PlaceSearch } from './weather/PlaceSearch';
 import { CurrentWeatherCard } from './weather/CurrentWeatherCard';
 import { ForecastCard } from './weather/ForecastCard';
 import { AirQualityPanel } from './weather/AirQualityPanel';
@@ -25,8 +25,7 @@ import { SettingsModal } from '@/components/ui/SettingsModal';
 import { SettingsToggle, SettingsSelect, SettingsSlider } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { useWeatherData } from '@/hooks/useWeatherData';
-import { useGeolocation } from '@/hooks/useGeolocation';
-import { WeatherLocation } from '@/services/weatherService';
+import { weatherService, WeatherLocation } from '@/services/weatherService';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -69,6 +68,7 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
 }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showFullScreen, setShowFullScreen] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const { toast } = useToast();
 
   // Weather data management
@@ -86,17 +86,6 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
   } = useWeatherData({
     autoLoad: false,
     refreshInterval: settings.refreshInterval
-  });
-
-  // Geolocation management
-  const {
-    location: gpsLocation,
-    loading: gpsLoading,
-    error: gpsError,
-    requestLocation,
-    clearLocation
-  } = useGeolocation({
-    fallbackToIP: true
   });
 
   // Update weather service settings when widget settings change
@@ -123,27 +112,41 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     }
   }, [settings.useGPS]);
 
-  // Handle GPS location request
+  // Handle GPS location request using Google APIs
   const handleGetCurrentLocation = useCallback(async () => {
+    if (isGettingLocation) return;
+    
+    setIsGettingLocation(true);
     try {
-      const location = await requestLocation();
+      const location = await weatherService.getCurrentLocation();
       await loadWeatherForLocation(location);
       toast({
         title: "Location Found",
         description: `Weather loaded for ${location.displayName}`,
       });
     } catch (error) {
+      console.error('Location error:', error);
       toast({
         title: "Location Error",
         description: error instanceof Error ? error.message : "Unable to get your location",
         variant: "destructive"
       });
+    } finally {
+      setIsGettingLocation(false);
     }
-  }, [requestLocation, loadWeatherForLocation, toast]);
+  }, [isGettingLocation, loadWeatherForLocation, toast]);
 
-  // Handle location selection from search
-  const handleLocationSelect = useCallback(async (location: WeatherLocation) => {
+  // Handle location selection from Places search
+  const handleLocationSelect = useCallback(async (place: any) => {
     try {
+      const location: WeatherLocation = {
+        lat: place.latlng.lat,
+        lng: place.latlng.lng,
+        city: place.name || place.description.split(',')[0] || 'Unknown',
+        country: place.formattedAddress?.split(',').pop()?.trim() || 'Unknown',
+        displayName: place.description || place.formattedAddress || 'Unknown Location'
+      };
+      
       await loadWeatherForLocation(location);
       toast({
         title: "Location Updated", 
@@ -183,24 +186,16 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
     }
   }, [canRefresh, refreshWeather, toast]);
 
-  // Function Bar actions - all business functionality
-  const actions: WidgetAction[] = [
-    {
-      type: 'input',
-      id: 'search',
-      placeholder: 'Search for a city or ZIP code...',
-      value: '', // This will be handled by LocationSearchInput component
-      onChange: () => {}, // Handled internally by LocationSearchInput
-      icon: MapPin,
-    },
-    {
-      type: 'button',
-      id: 'gps',
-      label: 'Use current location',
-      onClick: handleGetCurrentLocation,
-      disabled: gpsLoading,
-      icon: Navigation,
-    },
+   // Function Bar actions - all business functionality
+   const actions: WidgetAction[] = [
+     {
+       type: 'button',
+       id: 'gps',
+       label: 'Use current location',
+       onClick: handleGetCurrentLocation,
+       disabled: isGettingLocation,
+       icon: Navigation,
+     },
     {
       type: 'button',
       id: 'refresh',
@@ -270,18 +265,19 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
             </p>
           </div>
           
-          <LocationSearchInput
-            onLocationSelect={handleLocationSelect}
+          <PlaceSearch
+            onPlaceSelect={handleLocationSelect}
             placeholder="Search for a city or ZIP code..."
+            userLocation={currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : undefined}
           />
           
           <div className="text-center">
             <Button
               onClick={handleGetCurrentLocation}
-              disabled={gpsLoading}
+              disabled={isGettingLocation}
             >
               <Navigation className="h-4 w-4 mr-2" />
-              {gpsLoading ? 'Getting location...' : 'Use Current Location'}
+              {isGettingLocation ? 'Getting location...' : 'Use Current Location'}
             </Button>
           </div>
         </div>
