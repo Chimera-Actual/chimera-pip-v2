@@ -16,6 +16,7 @@ The header contains **chrome controls only** - no business logic controls belong
 **Right side:**
 - Collapse/Expand button
 - Full-width toggle (overflow menu if needed)
+- Settings (opens right-side sheet)
 - Close/Remove button
 
 ```tsx
@@ -30,14 +31,14 @@ The header contains **chrome controls only** - no business logic controls belong
 ```
 
 ### 2. Function Bar (WidgetActionBar)
-The function bar sits **immediately under the header** and contains all widget-specific business controls.
+The function bar sits **immediately under the header** and contains all widget-specific business controls. All buttons should be right aligned
 
 **Typical actions (left → right):**
 - Mode selection (tabs, dropdown)
 - Primary actions (new, refresh, sync)
 - Conditional actions (stop, pause - only when relevant)
 - Secondary actions (export, import)
-- Settings (opens right-side sheet)
+
 
 ```tsx
 const actions: WidgetAction[] = [
