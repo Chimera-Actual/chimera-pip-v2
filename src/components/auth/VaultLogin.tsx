@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Terminal, Shield, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { QuickAccessLogin } from './QuickAccessLogin';
+import { PasswordResetModal } from './PasswordResetModal';
 import { useToast } from '@/hooks/use-toast';
 
 interface LoginFormData {
@@ -208,12 +209,11 @@ export const VaultLogin: React.FC = () => {
               </Link>
             </p>
             <p className="text-pip-text-muted font-mono text-sm">
-              <Link
-                to="/auth/reset"
-                className="text-pip-text-secondary hover:text-primary underline"
-              >
-                Request New Access Codes
-              </Link>
+              <PasswordResetModal>
+                <button className="text-pip-text-secondary hover:text-primary underline font-mono text-sm">
+                  Request New Access Codes
+                </button>
+              </PasswordResetModal>
             </p>
           </div>
         </Card>
