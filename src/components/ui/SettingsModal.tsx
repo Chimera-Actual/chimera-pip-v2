@@ -38,13 +38,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl h-[85vh] grid grid-rows-[auto,1fr,auto] overflow-hidden">
+      <DialogContent 
+        className="max-w-2xl h-[85vh] grid grid-rows-[auto,1fr,auto] overflow-hidden"
+        aria-describedby={description ? "settings-description" : undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-pip-text-bright font-pip-display">
             {title}
           </DialogTitle>
           {description && (
-            <DialogDescription className="text-pip-text-muted font-pip-mono">
+            <DialogDescription 
+              id="settings-description"
+              className="text-pip-text-muted font-pip-mono"
+            >
               {description}
             </DialogDescription>
           )}

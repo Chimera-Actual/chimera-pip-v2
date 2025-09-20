@@ -94,6 +94,9 @@ const SortableTab = ({ tab, isActive, onTabChange, onContextMenu, isMobile }: {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ color: tab.color || undefined }}
+        aria-selected={isActive}
+        aria-label={`${tab.name} tab${tab.description ? `: ${tab.description}` : ''}`}
+        role="tab"
       >
         <div className="flex items-center space-x-2 min-w-0 w-full">
           <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} flex-shrink-0`} />
@@ -256,7 +259,11 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className={`flex border-b border-pip-border h-10 ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
+        <div 
+          className={`flex border-b border-pip-border h-10 ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}
+          role="tablist"
+          aria-label="Navigation tabs"
+        >
           <SortableContext items={tabs.map(tab => tab.id)} strategy={horizontalListSortingStrategy}>
             {tabs.map((tab) => {
               const isActive = currentTab === tab.name;

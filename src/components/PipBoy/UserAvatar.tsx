@@ -45,6 +45,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
             "relative h-10 w-10 rounded-full border border-pip-border hover:border-primary transition-all duration-300 pip-glow",
             className
           )}
+          aria-label="Open user menu"
+          aria-haspopup="menu"
         >
           <Avatar className="h-9 w-9">
             {profile?.avatar_url && (
@@ -87,6 +89,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           <DropdownMenuItem 
             onClick={() => setShowProfileModal(true)}
             className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+            aria-label="View user profile settings"
           >
             <UserCircle className="w-4 h-4 mr-2" />
             <span className="text-xs">VIEW PROFILE</span>
@@ -95,6 +98,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           <DropdownMenuItem 
             onClick={() => setShowApiKeysModal(true)}
             className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+            aria-label="Manage API keys"
           >
             <Key className="w-4 h-4 mr-2" />
             <span className="text-xs">API KEYS</span>
@@ -103,6 +107,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           <DropdownMenuItem 
             onClick={() => setShowSettingsModal(true)}
             className="font-pip-mono text-pip-text-primary hover:bg-pip-bg-secondary/50 hover:text-primary cursor-pointer"
+            aria-label="Open application settings"
           >
             <Settings className="w-4 h-4 mr-2" />
             <span className="text-xs">PREFERENCES</span>
@@ -113,6 +118,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ className }) => {
           <DropdownMenuItem 
             onClick={signOut}
             className="font-pip-mono text-pip-text-primary hover:bg-destructive/20 hover:text-destructive cursor-pointer"
+            aria-label="Sign out of application"
           >
             <LogOut className="w-4 h-4 mr-2" />
             <span className="text-xs">EXIT VAULT</span>

@@ -28,7 +28,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
   const [newTag, setNewTag] = useState({
     name: '',
     description: '',
-    color: '#00ff00',
+    color: 'hsl(var(--pip-green-primary))',
     icon: ''
   });
 
@@ -37,7 +37,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
 
     const created = await createTag(newTag);
     if (created) {
-      setNewTag({ name: '', description: '', color: '#00ff00', icon: '' });
+      setNewTag({ name: '', description: '', color: 'hsl(var(--pip-green-primary))', icon: '' });
       setShowCreateForm(false);
       // Auto-select the newly created tag
       onTagSelectionChange([...selectedTagIds, created.id]);
@@ -56,7 +56,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
 
     if (success) {
       setEditingTag(null);
-      setNewTag({ name: '', description: '', color: '#00ff00', icon: '' });
+      setNewTag({ name: '', description: '', color: 'hsl(var(--pip-green-primary))', icon: '' });
     }
   };
 
@@ -88,7 +88,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
   const cancelEditing = () => {
     setEditingTag(null);
     setShowCreateForm(false);
-    setNewTag({ name: '', description: '', color: '#00ff00', icon: '' });
+    setNewTag({ name: '', description: '', color: 'hsl(var(--pip-green-primary))', icon: '' });
   };
 
   return (
@@ -226,7 +226,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
                     value={newTag.color}
                     onChange={(e) => setNewTag(prev => ({ ...prev, color: e.target.value }))}
                     className="bg-pip-bg-tertiary border-pip-border text-pip-text-primary text-xs"
-                    placeholder="#00ff00"
+                    placeholder="hsl(var(--pip-green-primary))"
                   />
                 </div>
               </div>

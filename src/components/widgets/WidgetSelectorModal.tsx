@@ -116,11 +116,24 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] bg-pip-bg-primary border-pip-border">
+      <DialogContent 
+        className="max-w-4xl max-h-[80vh] bg-pip-bg-primary border-pip-border"
+        aria-labelledby="widget-selector-title"
+        aria-describedby="widget-selector-description"
+      >
         <DialogHeader className="border-b border-pip-border pb-4">
-          <DialogTitle className="text-pip-text-bright font-pip-display text-xl pip-text-glow">
+          <DialogTitle 
+            id="widget-selector-title"
+            className="text-pip-text-bright font-pip-display text-xl pip-text-glow"
+          >
             Add Widget to {activeTab}
           </DialogTitle>
+          <p 
+            id="widget-selector-description"
+            className="text-pip-text-muted font-pip-mono text-sm sr-only"
+          >
+            Select from the available widgets below to add to your current tab
+          </p>
         </DialogHeader>
 
         <ScrollArea className="flex-1 p-6">
@@ -138,6 +151,15 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
                     key={widget.id}
                     className="bg-pip-bg-secondary border-pip-border hover:border-primary transition-all duration-200 cursor-pointer group relative"
                     onClick={() => handleAddWidget(widget)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Add ${widget.name} widget: ${widget.description}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleAddWidget(widget);
+                      }
+                    }}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
@@ -160,16 +182,17 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
                             {/* Tags */}
                             <div className="flex flex-wrap gap-1">
                               {tags.slice(0, 2).map((tag: any) => (
-                                <Badge
-                                  key={tag.id}
-                                  variant="outline"
-                                  className="text-xs"
-                                  style={{ 
-                                    borderColor: tag.color,
-                                    color: tag.color,
-                                    backgroundColor: `${tag.color}20`
-                                  }}
-                                >
+                              <Badge
+                                key={tag.id}
+                                variant="outline"
+                                className="text-xs"
+                                style={{ 
+                                  borderColor: tag.color,
+                                  color: tag.color,
+                                  backgroundColor: `${tag.color}20`
+                                }}
+                                aria-label={`Tag: ${tag.name}`}
+                              >
                                   <Tag className="w-2 h-2 mr-1" />
                                   {tag.name}
                                 </Badge>
@@ -195,6 +218,7 @@ export const WidgetSelectorModal: React.FC<WidgetSelectorModalProps> = ({
                           onClick={(e) => handleShowSettings(e, widget)}
                           className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-pip-text-secondary hover:text-pip-text-bright shrink-0"
                           title="Widget Settings"
+                          aria-label={`Configure ${widget.name} widget settings`}
                         >
                           <SettingsIcon className="h-3 w-3" />
                         </Button>

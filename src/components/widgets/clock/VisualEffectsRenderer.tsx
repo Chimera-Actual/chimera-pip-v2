@@ -75,7 +75,7 @@ export const VisualEffectsRenderer = forwardRef<HTMLCanvasElement, VisualEffects
       // Hard-coded Vault-Tec theme configuration for optimal performance
       const config = {
         particleCount: 12, // Reduced for better performance
-        colors: ['#00ff00', '#00cc00', '#00aa00'],
+        colors: ['hsl(var(--pip-green-primary))', 'hsl(var(--pip-green-secondary))', 'hsl(var(--pip-green-muted))'],
         types: ['radiation', 'static'] as const,
         speed: 0.5
       };

@@ -60,7 +60,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
   const [sliderValue, setSliderValue] = useState(settings.sliderValue || [50]);
   const [switchValue, setSwitchValue] = useState(settings.switchValue || false);
   const [date, setDate] = useState<Date | undefined>(settings.date ? new Date(settings.date) : undefined);
-  const [colorValue, setColorValue] = useState(settings.colorValue || '#00ff00');
+  const [colorValue, setColorValue] = useState(settings.colorValue || 'hsl(var(--pip-green-primary))');
   const [numberInput, setNumberInput] = useState(settings.numberInput || 0);
   const [passwordInput, setPasswordInput] = useState(settings.passwordInput || '');
   const [emailInput, setEmailInput] = useState(settings.emailInput || '');
@@ -290,7 +290,7 @@ export const TestWidget: React.FC<TestWidgetProps> = ({
                   updateSetting('colorValue', e.target.value);
                 }}
                 className="bg-pip-bg-tertiary border-pip-border text-pip-text-primary"
-                placeholder="#000000"
+                placeholder="hsl(var(--background))"
               />
             </div>
           </div>

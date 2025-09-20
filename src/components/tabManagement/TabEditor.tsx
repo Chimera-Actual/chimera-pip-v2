@@ -226,7 +226,7 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
                     }`}
                     style={{ 
                       backgroundColor: colorOption.color || 'transparent',
-                      backgroundImage: colorOption.color === '' ? 'linear-gradient(45deg, transparent 40%, rgba(255, 0, 0, 0.8) 50%, transparent 60%)' : undefined
+                      backgroundImage: colorOption.color === '' ? 'linear-gradient(45deg, transparent 40%, hsl(var(--destructive) / 0.8) 50%, transparent 60%)' : undefined
                     }}
                     onClick={() => setFormData(prev => ({ ...prev, color: colorOption.value }))}
                     title={colorOption.label}

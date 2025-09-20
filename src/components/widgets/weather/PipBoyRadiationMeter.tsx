@@ -86,7 +86,7 @@ export const PipBoyRadiationMeter: React.FC<PipBoyRadiationMeterProps> = ({
           )}
           style={{
             opacity: isActive ? intensity : 0.3,
-            boxShadow: isActive ? `0 0 8px ${radiationLevel.category === 'danger' ? '#ef4444' : radiationLevel.category === 'caution' ? '#facc15' : '#22c55e'}40` : 'none'
+            boxShadow: isActive ? `0 0 8px hsl(var(--${radiationLevel.category === 'danger' ? 'destructive' : radiationLevel.category === 'caution' ? 'ring' : 'primary'}) / 0.4)` : 'none'
           }}
         />
       );
