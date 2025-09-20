@@ -154,17 +154,16 @@ export const TabWidgetDrawer = memo<TabWidgetDrawerProps>(({
                       
                       {/* Widget Status */}
                       <div className="flex items-center gap-2 text-xs mt-2">
-                        <Badge 
-                          variant={widget.is_collapsed ? "secondary" : "default"}
-                          className="text-xs"
-                        >
-                          {widget.is_collapsed ? 'Collapsed' : 'Expanded'}
-                        </Badge>
-                        {widget.widget_width === 'full' && (
-                          <Badge variant="outline" className="text-xs">
-                            Full Width
-                          </Badge>
-                        )}
+                         <Badge 
+                           variant={widget.is_collapsed ? "secondary" : "default"}
+                         >
+                           {widget.is_collapsed ? 'Collapsed' : 'Expanded'}
+                         </Badge>
+                         {widget.widget_width === 'full' && (
+                           <Badge variant="outline">
+                             Full Width
+                           </Badge>
+                         )}
                       </div>
                     </div>
                   </Card>
