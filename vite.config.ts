@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { CSP_HEADER } from "./config/csp";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -14,6 +15,24 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
+    {
+      name: 'csp-headers-dev-preview',
+      configureServer(server: any) {
+        server.middlewares.use((req: any, res: any, next: any) => {
+          // Apply ONLY to HTML navigations; harmless for assets.
+          res.setHeader('Content-Security-Policy', CSP_HEADER);
+          res.setHeader('X-Frame-Options', 'DENY'); // legacy clickjacking guard
+          next();
+        });
+      },
+      configurePreviewServer(server: any) {
+        server.middlewares.use((req: any, res: any, next: any) => {
+          res.setHeader('Content-Security-Policy', CSP_HEADER);
+          res.setHeader('X-Frame-Options', 'DENY');
+          next();
+        });
+      },
+    },
   ].filter(Boolean),
   resolve: {
     alias: {
