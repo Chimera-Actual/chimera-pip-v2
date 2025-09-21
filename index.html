@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Security Headers (fallback for edge functions) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' https://*.supabase.co https://*.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleapis.com; connect-src 'self' https://*.supabase.co https://*.googleapis.com; font-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self';" />
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
     <title>Chimera-PIP 4000 mk2</title>
     <meta name="description" content="The ultimate retro-futuristic personal dashboard inspired by Fallout's Pip-Boy. Manage your digital life with authentic Vault-Tec aesthetics and cutting-edge functionality.">
     <meta name="author" content="Vault-Tec Corporation" />

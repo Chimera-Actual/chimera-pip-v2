@@ -1,9 +1,12 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Improved multi-tab detection without global fetch override
 export function useSecurity() {
   const { user } = useAuth();
+  const [tabCount, setTabCount] = useState(1);
+  const tabId = useRef(crypto.randomUUID());
 
   // Log security events
   const logSecurityEvent = useCallback(async (
@@ -25,75 +28,67 @@ export function useSecurity() {
         }
       });
     } catch (error) {
-      // Handle security event logging error in production
+      console.error('Failed to log security event:', error);
     }
   }, [user?.id]);
 
-  // Monitor suspicious activities
+  // Robust multi-tab detection using BroadcastChannel
   useEffect(() => {
     if (!user?.id) return;
 
-    // Track failed authentication attempts
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      
-      // Monitor authentication related requests
-      if (args[0]?.toString().includes('auth') && !response.ok) {
-        logSecurityEvent('auth_failure', {
-          url: args[0]?.toString(),
-          status: response.status,
-          timestamp: new Date().toISOString()
-        });
+    const bc = new BroadcastChannel('chimera_presence');
+    const peers = new Set<string>();
+    let debounceTimer: NodeJS.Timeout;
+
+    const announcePresence = () => {
+      bc.postMessage({ type: 'hello', id: tabId.current });
+    };
+
+    const announceLeaving = () => {
+      bc.postMessage({ type: 'bye', id: tabId.current });
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'hello') {
+        peers.add(event.data.id);
+        bc.postMessage({ type: 'ack', id: tabId.current });
+      } else if (event.data.type === 'ack') {
+        peers.add(event.data.id);
+      } else if (event.data.type === 'bye') {
+        peers.delete(event.data.id);
       }
-      
-      return response;
-    };
 
-    // Monitor multiple tabs/windows
-    let tabCount = 1;
-    const handleFocus = () => {
-      tabCount++;
-      if (tabCount > 3) {
-        logSecurityEvent('multiple_tabs_detected', {
-          tabCount,
-          timestamp: new Date().toISOString()
-        });
-      }
-    };
-
-    const handleBlur = () => {
-      tabCount = Math.max(1, tabCount - 1);
-    };
-
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-
-    // Monitor for potential token access in localStorage/sessionStorage
-    const checkForTokenAccess = () => {
-      try {
-        const storage = { ...localStorage, ...sessionStorage };
-        const hasTokenData = Object.keys(storage).some(key => 
-          key.includes('token') || key.includes('auth')
-        );
-        if (hasTokenData) {
-          logSecurityEvent('storage_token_access', {
+      // Debounced tab count update to avoid false positives
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const totalTabs = peers.size + 1; // +1 for current tab
+        setTabCount(totalTabs);
+        
+        if (totalTabs > 3) {
+          logSecurityEvent('multiple_tabs_detected', {
+            tabCount: totalTabs,
             timestamp: new Date().toISOString()
           });
         }
-      } catch (error) {
-        // Storage access blocked, this is actually good for security
-      }
+      }, 1000); // 1 second debounce
     };
 
-    // Check for token access periodically
-    const tokenCheckInterval = setInterval(checkForTokenAccess, 30000); // Check every 30 seconds
+    bc.addEventListener('message', handleMessage);
+    announcePresence();
+    
+    window.addEventListener('beforeunload', announceLeaving);
+    window.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        announcePresence();
+      }
+    });
 
     return () => {
-      window.fetch = originalFetch;
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('blur', handleBlur);
-      clearInterval(tokenCheckInterval);
+      announceLeaving();
+      bc.removeEventListener('message', handleMessage);
+      bc.close();
+      window.removeEventListener('beforeunload', announceLeaving);
+      clearTimeout(debounceTimer);
     };
   }, [user?.id, logSecurityEvent]);
 
@@ -104,7 +99,7 @@ export function useSecurity() {
         .rpc('validate_password_strength', { password });
 
       if (error) {
-        // Handle password validation error in production
+        console.error('Password validation error:', error);
         return false;
       }
 
@@ -116,7 +111,7 @@ export function useSecurity() {
 
       return data;
     } catch (error) {
-      // Handle validation error in production
+      console.error('Password validation failed:', error);
       return false;
     }
   }, [logSecurityEvent]);
@@ -144,13 +139,14 @@ export function useSecurity() {
         });
       }
     } catch (error) {
-      // Handle login pattern check error in production
+      console.error('Login pattern check failed:', error);
     }
   }, [user?.id, logSecurityEvent]);
 
   return {
     logSecurityEvent,
     validatePassword,
-    checkLoginPattern
+    checkLoginPattern,
+    tabCount
   };
 }
