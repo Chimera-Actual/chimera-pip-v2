@@ -27,6 +27,11 @@ export interface UserProfile {
   theme_config: {
     colorScheme: 'green' | 'amber' | 'blue' | 'red' | 'white';
     soundEnabled: boolean;
+    glowIntensity: number;
+    scanLineIntensity: number;
+    backgroundScanLines: number;
+    scrollingScanLines: 'off' | 'normal' | 'random';
+    layoutMode: 'tabbed' | 'drawer';
   };
   created_at: string;
   updated_at: string;
@@ -293,8 +298,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user || !profile) {
+      console.log('🔄 AuthContext: updateProfile failed - no user or profile');
       return { error: { message: 'Not authenticated' } as unknown };
     }
+
+    console.log('🔄 AuthContext: updateProfile called with updates:', updates);
 
     try {
       const { error } = await supabase
@@ -303,13 +311,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', user.id);
 
       if (error) {
+        console.error('❌ AuthContext: Database update failed:', error);
         toast({
           title: "UPDATE FAILED",
           description: error.message,
           variant: "destructive",
         });
       } else {
-        setProfile({ ...profile, ...updates });
+        console.log('✅ AuthContext: Database update successful, updating local profile');
+        setProfile(prev => prev ? { ...prev, ...updates } : prev);
         toast({
           title: "PROFILE UPDATED",
           description: "Your vault profile has been updated.",
@@ -318,6 +328,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error: unknown) {
+      console.error('❌ AuthContext: updateProfile exception:', error);
       return { error };
     }
   };

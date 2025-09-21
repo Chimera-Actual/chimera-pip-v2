@@ -82,21 +82,32 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   useEffect(() => {
     const loadTheme = () => {
       if (user && profile?.theme_config) {
-        // Load from user profile
-        const userTheme = {
+        console.log('🎨 ThemeProvider: Loading theme from user profile:', profile.theme_config);
+        // Load from user profile with proper defaults
+        const userTheme: ThemeConfig = {
           ...DEFAULT_THEME,
           ...profile.theme_config,
         };
+        console.log('🎨 ThemeProvider: Applied user theme:', userTheme);
         setTheme(userTheme);
+      } else if (user && !profile?.theme_config) {
+        console.log('🎨 ThemeProvider: User authenticated but no theme_config, using defaults');
+        setTheme(DEFAULT_THEME);
       } else {
+        console.log('🎨 ThemeProvider: Loading theme from localStorage (guest mode)');
         // Load from localStorage for guests
         try {
           const stored = localStorageService.get<ThemeConfig>(STORAGE_KEY);
           if (stored) {
+            console.log('🎨 ThemeProvider: Loaded theme from localStorage:', stored);
             setTheme({ ...DEFAULT_THEME, ...stored });
+          } else {
+            console.log('🎨 ThemeProvider: No stored theme, using defaults');
+            setTheme(DEFAULT_THEME);
           }
         } catch (error) {
           console.warn('Failed to load theme from localStorage:', error);
+          setTheme(DEFAULT_THEME);
         }
       }
     };
@@ -244,7 +255,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Persist theme changes
   const persistTheme = useCallback(async (newTheme: ThemeConfig) => {
+    console.log('🔄 ThemeProvider: persistTheme called with:', newTheme);
+    
     if (user && updateProfile) {
+      console.log('🔄 ThemeProvider: Saving to user profile (authenticated user)');
       // Persist to user profile
       setIsLoading(true);
       try {
@@ -253,29 +267,48 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         });
 
         if (result.error) {
+          console.error('❌ ThemeProvider: Failed to save to profile:', result.error);
           throw new Error('Failed to save theme preferences');
         }
 
+        console.log('✅ ThemeProvider: Theme saved to user profile successfully');
         toast({
           title: 'Theme Updated',
           description: 'Your theme preferences have been saved.',
         });
       } catch (error) {
+        console.error('❌ ThemeProvider: Persistence error:', error);
         const normalizedError = normalizeError(error, 'ThemeProvider');
         toast({
           title: 'Error',
           description: normalizedError.userMessage,
           variant: 'destructive',
         });
+        
+        // Fallback to localStorage on database error
+        console.log('🔄 ThemeProvider: Falling back to localStorage due to database error');
+        try {
+          localStorageService.set(STORAGE_KEY, newTheme);
+          console.log('✅ ThemeProvider: Fallback to localStorage successful');
+        } catch (fallbackError) {
+          console.error('❌ ThemeProvider: localStorage fallback also failed:', fallbackError);
+        }
       } finally {
         setIsLoading(false);
       }
     } else {
+      console.log('🔄 ThemeProvider: Saving to localStorage (guest mode or auth unavailable)');
       // Persist to localStorage for guests or when auth is not available
       try {
         localStorageService.set(STORAGE_KEY, newTheme);
+        console.log('✅ ThemeProvider: Theme saved to localStorage successfully');
       } catch (error) {
-        console.warn('Failed to save theme to localStorage:', error);
+        console.error('❌ ThemeProvider: Failed to save theme to localStorage:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to save theme preferences locally.',
+          variant: 'destructive',
+        });
       }
     }
   }, [user, updateProfile]);
