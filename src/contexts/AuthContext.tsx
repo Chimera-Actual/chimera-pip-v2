@@ -123,29 +123,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    console.log('🔧 AuthProvider: Starting initialization...');
+    
     // Check if Supabase is available
     if (!supabase) {
-      console.error('Supabase client not initialized');
+      console.error('❌ AuthProvider: Supabase client not initialized');
       setLoading(false);
       return;
     }
     
+    console.log('✅ AuthProvider: Supabase client available, setting up auth listener...');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔄 AuthProvider: Auth state changed:', { event, hasSession: !!session, userId: session?.user?.id });
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('👤 AuthProvider: User found, fetching profile...');
           // Defer profile fetch to avoid deadlock
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
         } else {
+          console.log('🚫 AuthProvider: No user, clearing profile...');
           setProfile(null);
         }
         
         setLoading(false);
+        console.log('✅ AuthProvider: Loading complete');
       }
     );
 

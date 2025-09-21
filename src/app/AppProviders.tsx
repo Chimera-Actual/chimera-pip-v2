@@ -13,6 +13,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   console.log("🔧 AppProviders: Initializing providers");
   
   try {
+    console.log("🔧 AppProviders: Creating provider tree...");
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
