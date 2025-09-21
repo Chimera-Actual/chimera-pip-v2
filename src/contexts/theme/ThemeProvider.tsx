@@ -28,6 +28,7 @@ interface ThemeContextValue extends ThemeConfig {
   setBackgroundScanLines: (intensity: number) => void;
   setScrollingScanLines: (mode: ScrollingScanLineMode) => void;
   setLayoutMode: (mode: LayoutMode) => void;
+  updateThemeSettings: (updates: Partial<ThemeConfig>) => void;
   isLoading: boolean;
 }
 
@@ -351,6 +352,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     updateTheme({ layoutMode });
   }, [updateTheme]);
 
+  // Batch update function for settings modal
+  const updateThemeSettings = useCallback((updates: Partial<ThemeConfig>) => {
+    console.log('🎨 ThemeProvider: updateThemeSettings called with:', updates);
+    const newTheme = { ...theme, ...updates };
+    setTheme(newTheme);
+    persistTheme(newTheme);
+  }, [theme, persistTheme]);
+
   const contextValue: ThemeContextValue = {
     ...theme,
     setColorScheme,
@@ -361,6 +370,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     setBackgroundScanLines,
     setScrollingScanLines,
     setLayoutMode,
+    updateThemeSettings,
     isLoading,
   };
 

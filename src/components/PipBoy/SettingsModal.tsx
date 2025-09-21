@@ -25,7 +25,8 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     scrollingScanLines, 
     setScrollingScanLines,
     layoutMode,
-    setLayoutMode
+    setLayoutMode,
+    updateThemeSettings
   } = useTheme();
 
   const [tempSettings, setTempSettings] = useState({
@@ -66,12 +67,18 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   }, [tempSettings, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines, layoutMode]);
 
   const handleSave = () => {
-    setColorScheme(tempSettings.theme);
-    setSoundEnabled(tempSettings.sound);
-    setGlowIntensity(tempSettings.glow);
-    setBackgroundScanLines(tempSettings.backgroundLines);
-    setScrollingScanLines(tempSettings.scrollingLines);
-    setLayoutMode(tempSettings.layout);
+    console.log('💾 SettingsModal: handleSave called with tempSettings:', tempSettings);
+    
+    // Use batch update to save all settings at once
+    updateThemeSettings({
+      colorScheme: tempSettings.theme,
+      soundEnabled: tempSettings.sound,
+      glowIntensity: tempSettings.glow,
+      backgroundScanLines: tempSettings.backgroundLines,
+      scrollingScanLines: tempSettings.scrollingLines,
+      layoutMode: tempSettings.layout,
+    });
+    
     onClose();
   };
 
