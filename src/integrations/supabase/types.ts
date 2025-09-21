@@ -333,6 +333,7 @@ export type Database = {
           key_metadata: Json | null
           key_name: string
           last_used_at: string | null
+          provider: string
           service_name: string
           updated_at: string | null
           user_id: string
@@ -346,6 +347,7 @@ export type Database = {
           key_metadata?: Json | null
           key_name: string
           last_used_at?: string | null
+          provider: string
           service_name: string
           updated_at?: string | null
           user_id: string
@@ -359,7 +361,35 @@ export type Database = {
           key_metadata?: Json | null
           key_name?: string
           last_used_at?: string | null
+          provider?: string
           service_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          preference_key: string
+          preference_value: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          preference_key: string
+          preference_value?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          preference_key?: string
+          preference_value?: Json
           updated_at?: string | null
           user_id?: string
         }
@@ -776,6 +806,30 @@ export type Database = {
           f_table_schema?: unknown | null
           srid?: number | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      v_spatial_ref_sys: {
+        Row: {
+          auth_name: string | null
+          auth_srid: number | null
+          proj4text: string | null
+          srid: number | null
+          srtext: string | null
+        }
+        Insert: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid?: number | null
+          srtext?: string | null
+        }
+        Update: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid?: number | null
+          srtext?: string | null
         }
         Relationships: []
       }
