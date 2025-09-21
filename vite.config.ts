@@ -21,14 +21,14 @@ export default defineConfig(({ mode }) => ({
         server.middlewares.use((req: any, res: any, next: any) => {
           // Apply ONLY to HTML navigations; harmless for assets.
           res.setHeader('Content-Security-Policy', CSP_HEADER);
-          res.setHeader('X-Frame-Options', 'DENY'); // legacy clickjacking guard
+          
           next();
         });
       },
       configurePreviewServer(server: any) {
         server.middlewares.use((req: any, res: any, next: any) => {
           res.setHeader('Content-Security-Policy', CSP_HEADER);
-          res.setHeader('X-Frame-Options', 'DENY');
+          
           next();
         });
       },

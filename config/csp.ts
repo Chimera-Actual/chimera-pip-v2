@@ -17,5 +17,5 @@ export const CSP_HEADER = [
   // XHR/WebSocket targets (Supabase + your APIs)
   "connect-src 'self' https://*.supabase.co https://*.supabase.in",
   // absolutely forbid framing
-  "frame-ancestors 'none'",
+  "frame-ancestors 'self' https://*.lovable.dev https://*.lovableproject.com",
 ].join('; ');
