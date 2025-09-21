@@ -5,6 +5,7 @@ import App from './App.tsx'
 import './index.css'
 import { AppProviders } from '@/app/AppProviders'
 import { setupSessionListener } from '@/lib/auth/session'
+import { BootErrorBoundary } from '@/components/system/BootErrorBoundary'
 
 // Load performance monitoring in development
 if (import.meta.env.DEV) {
@@ -31,10 +32,12 @@ console.log("📡 Session listener setup complete");
 console.log("🎨 Rendering app with providers");
 createRoot(rootElement).render(
   <StrictMode>
-    <AppProviders>
-      <App />
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </AppProviders>
+    <BootErrorBoundary>
+      <AppProviders>
+        <App />
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </AppProviders>
+    </BootErrorBoundary>
   </StrictMode>
 );
 

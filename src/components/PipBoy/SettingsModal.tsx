@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsSelect, SettingsSlider, SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { useTheme, type ColorScheme, type ScrollingScanLineMode, type LayoutMode } from '@/contexts/theme';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { useToast } from '@/hooks/use-toast';
 
 interface PipBoySettingsModalProps {
   isOpen: boolean;
@@ -13,21 +15,18 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { toast } = useToast();
   const { 
     colorScheme, 
-    setColorScheme,
     soundEnabled, 
-    setSoundEnabled,
     glowIntensity, 
-    setGlowIntensity,
     backgroundScanLines, 
-    setBackgroundScanLines,
     scrollingScanLines, 
-    setScrollingScanLines,
     layoutMode,
-    setLayoutMode,
     updateThemeSettings
   } = useTheme();
+  
+  const { save: saveUserSettings, isSaving } = useUserSettings();
 
   const [tempSettings, setTempSettings] = useState({
     theme: colorScheme,
@@ -66,20 +65,39 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
     setIsDirty(hasChanges);
   }, [tempSettings, colorScheme, soundEnabled, glowIntensity, backgroundScanLines, scrollingScanLines, layoutMode]);
 
-  const handleSave = () => {
-    console.log('💾 SettingsModal: handleSave called with tempSettings:', tempSettings);
-    
-    // Use batch update to save all settings at once
-    updateThemeSettings({
-      colorScheme: tempSettings.theme,
-      soundEnabled: tempSettings.sound,
-      glowIntensity: tempSettings.glow,
-      backgroundScanLines: tempSettings.backgroundLines,
-      scrollingScanLines: tempSettings.scrollingLines,
-      layoutMode: tempSettings.layout,
-    });
-    
-    onClose();
+  const handleSave = async () => {
+    try {
+      console.log('💾 SettingsModal: handleSave called with tempSettings:', tempSettings);
+      
+      // Use batch update to save all settings at once
+      const themeSettings = {
+        colorScheme: tempSettings.theme,
+        soundEnabled: tempSettings.sound,
+        glowIntensity: tempSettings.glow,
+        backgroundScanLines: tempSettings.backgroundLines,
+        scrollingScanLines: tempSettings.scrollingLines,
+        layoutMode: tempSettings.layout,
+      };
+      
+      updateThemeSettings(themeSettings);
+      
+      // Also save to user settings store
+      await saveUserSettings({ theme: themeSettings });
+      
+      toast({
+        title: "Settings Saved",
+        description: "Your Pip-Boy settings have been updated successfully.",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleReset = () => {
@@ -113,14 +131,13 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
   ];
 
   return (
-    <SettingsModal
-      isOpen={isOpen}
-      onClose={onClose}
+    <SettingsSheet
+      open={isOpen}
+      onOpenChange={onClose}
       title="Pip-Boy Settings"
       description="Customize your Pip-Boy interface and experience"
       onSave={handleSave}
-      onReset={handleReset}
-      isDirty={isDirty}
+      isSaving={isSaving}
     >
       <PrimarySettingsGroup 
         title="Appearance & Theme" 
@@ -192,6 +209,6 @@ export const PipBoySettingsModal: React.FC<PipBoySettingsModalProps> = ({
           options={scrollingOptions}
         />
       </SecondarySettingsGroup>
-    </SettingsModal>
+    </SettingsSheet>
   );
 };

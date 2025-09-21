@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsGroup, SettingsInput } from '@/components/ui/SettingsControls';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,13 +53,11 @@ export const ApiKeysModal: React.FC<ApiKeysModalProps> = ({
   };
 
   return (
-    <SettingsModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="API Key Management"
-      description="Manage your API keys for external services and integrations"
-      showSaveButton={false}
-      showResetButton={false}
+    <SettingsSheet
+      open={isOpen}
+      onOpenChange={onClose}
+      title="API Keys"
+      description="Manage your service integration keys and tokens"
     >
       <SettingsGroup title="Create New API Key" description="Generate a new API key for service integration">
         <div className="flex gap-2">
@@ -126,6 +124,6 @@ export const ApiKeysModal: React.FC<ApiKeysModalProps> = ({
           </div>
         )}
       </SettingsGroup>
-    </SettingsModal>
+    </SettingsSheet>
   );
 };

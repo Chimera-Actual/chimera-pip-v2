@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup, DangerZoneGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Upload, User, Shield, Bell, AlertTriangle, ShieldCheck, ShieldX, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { validateNumericId, validatePin } from '@/lib/quickaccess/crypto';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 }) => {
   const { user, profile, updateProfile, enrollQuickAccess, disableQuickAccess } = useAuth();
   const { toast } = useToast();
+  const { save: saveUserSettings, isSaving } = useUserSettings();
   
   const [tempSettings, setTempSettings] = useState({
     characterName: '',
@@ -128,12 +130,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
-    // TODO: Implement save logic
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      setIsLoading(true);
+      
+      // Save user profile settings
+      await saveUserSettings({
+        characterName: tempSettings.characterName,
+        vaultNumber: tempSettings.vaultNumber,
+      });
+      
+      // Update local profile via updateProfile
+      await updateProfile({
+        character_name: tempSettings.characterName,
+        vault_number: parseInt(tempSettings.vaultNumber) || null,
+      });
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been saved successfully.",
+      });
+      
       onClose();
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      toast({
+        title: "Save Failed", 
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleReset = () => {
@@ -220,15 +247,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <SettingsModal
-      isOpen={isOpen}
-      onClose={onClose}
+    <SettingsSheet
+      open={isOpen}
+      onOpenChange={onClose}
       title="User Profile"
       description="Manage your character profile and account settings"
       onSave={handleSave}
-      onReset={handleReset}
-      isDirty={isDirty}
-      isLoading={isLoading}
+      isSaving={isLoading || isSaving}
     >
       <PrimarySettingsGroup 
         title="Character Profile" 
@@ -593,6 +618,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         isOpen={showChangePasswordModal}
         onClose={() => setShowChangePasswordModal(false)}
       />
-    </SettingsModal>
+    </SettingsSheet>
   );
 };
