@@ -1,7 +1,7 @@
 import React from 'react';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, X, Minimize2, Maximize2, GripVertical } from 'lucide-react';
+import { MoreHorizontal, X, Minimize2, Maximize2, GripVertical, Settings } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,7 @@ export interface WidgetHeaderProps {
   onCollapse?: () => void;
   onClose?: () => void;
   onToggleFullWidth?: () => void;
+  onSettings?: () => void;
   dragHandle?: boolean;
   isCollapsed?: boolean;
   isFullWidth?: boolean;
@@ -24,6 +25,7 @@ export const WidgetHeader: React.FC<WidgetHeaderProps> = ({
   onCollapse,
   onClose,
   onToggleFullWidth,
+  onSettings,
   dragHandle = false,
   isCollapsed = false,
   isFullWidth = false,
@@ -65,6 +67,19 @@ export const WidgetHeader: React.FC<WidgetHeaderProps> = ({
               title={isCollapsed ? "Expand widget" : "Collapse widget"}
             >
               <Minimize2 className="h-3 w-3" />
+            </Button>
+          )}
+          
+          {/* Settings */}
+          {onSettings && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 p-0 text-pip-text-muted hover:text-pip-text-primary hover:bg-pip-bg-tertiary"
+              onClick={onSettings}
+              title="Widget Settings"
+            >
+              <Settings className="h-3 w-3" />
             </Button>
           )}
           
