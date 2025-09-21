@@ -8,28 +8,46 @@ export type UserSettings = {
   // add more settings fields here
 };
 
-// Reads from `users` table (theme_config, character_name, vault_number)
 export async function fetchUserSettings(userId: string): Promise<UserSettings> {
-  const { data: profile, error: pErr } = await supabase
-    .from('users')
-    .select('theme_config, character_name, vault_number')
-    .eq('id', userId)
-    .single();
-  if (pErr) throw pErr;
-  return {
-    characterName: profile?.character_name ?? undefined,
-    vaultNumber: profile?.vault_number?.toString() ?? undefined,
-    theme: profile?.theme_config as any ?? undefined,
-  };
+  try {
+    // Try to get basic user data - adapt based on actual schema
+    const { data: user, error: pErr } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (pErr) {
+      console.warn('Error fetching user settings:', pErr);
+      return {};
+    }
+    
+    return {
+      characterName: user?.character_name ?? undefined,
+      vaultNumber: user?.vault_number?.toString() ?? undefined,
+      theme: user?.theme_config ?? undefined,
+    };
+  } catch (error) {
+    console.warn('Settings fetch failed:', error);
+    return {};
+  }
 }
 
 export async function updateUserSettings(userId: string, patch: Partial<UserSettings>): Promise<void> {
-  // Update users table; merge theme JSON if provided
-  const update: any = {};
-  if (patch.characterName !== undefined) update.character_name = patch.characterName;
-  if (patch.vaultNumber !== undefined) update.vault_number = parseInt(patch.vaultNumber) || null;
-  if (patch.theme !== undefined) update.theme_config = patch.theme;
+  try {
+    // Prepare update object with available fields
+    const update: any = {};
+    if (patch.characterName !== undefined) update.character_name = patch.characterName;
+    if (patch.vaultNumber !== undefined) update.vault_number = parseInt(patch.vaultNumber) || null;
+    if (patch.theme !== undefined) update.theme_config = patch.theme;
 
-  const { error } = await supabase.from('users').update(update).eq('id', userId);
-  if (error) throw error;
+    const { error } = await supabase.from('users').update(update).eq('id', userId);
+    if (error) {
+      console.warn('Settings update failed:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.warn('Settings save failed:', error);
+    throw error;
+  }
 }
