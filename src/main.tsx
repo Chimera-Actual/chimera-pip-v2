@@ -35,10 +35,9 @@ if (import.meta.env.PROD) {
   // Dynamically load production-only modules
   Promise.all([
     import('react-helmet-async').catch(() => null),
-    import('./lib/serviceWorker').catch(() => null),
     import('./lib/sentry').catch(() => null),
     import('./lib/analytics').catch(() => null)
-  ]).then(([helmetModule, swModule, sentryModule, analyticsModule]) => {
+  ]).then(([helmetModule, sentryModule, analyticsModule]) => {
     // Initialize Sentry if available
     if (sentryModule?.default) {
       try {
@@ -68,37 +67,12 @@ if (import.meta.env.PROD) {
         console.warn('Analytics initialization failed:', e);
       }
     }
-
-    // Register Service Worker if available
-    if (swModule?.default) {
-      try {
-        swModule.default.register({
-          enabled: true,
-          onUpdate: () => {
-            // Use browser notification for service worker updates
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('Chimera PIP-Boy Update Available', {
-                body: 'Click to update to the latest version',
-                icon: '/chimera-tec-logo.png',
-                tag: 'app-update'
-              }).onclick = () => {
-                swModule.default.skipWaiting();
-              };
-            } else {
-              // Fallback to console log if notifications aren't available
-              console.info('New app version available! Refresh to update.');
-            }
-          },
-          onSuccess: () => {
-            console.info('Service Worker registered successfully');
-          },
-          onError: (error: Error) => {
-            console.error('Service Worker registration failed:', error);
-          }
-        });
-      } catch (e) {
-        console.warn('Service Worker registration failed:', e);
-      }
-    }
   }).catch(console.warn);
+}
+
+// Register Service Worker with preview domain guards
+if (import.meta.env.PROD) {
+  import('./registerSW').then(({ registerAppSW }) => {
+    registerAppSW().catch(console.warn);
+  });
 }

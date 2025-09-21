@@ -1,5 +1,6 @@
 // Chimera-PIP Service Worker for PWA functionality
-const CACHE_NAME = 'chimera-pip-v1';
+const CACHE_VERSION = `chimera-pip-${self.location.href.includes('build') ? Date.now() : 'v1'}`;
+const CACHE_NAME = CACHE_VERSION;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -55,6 +56,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Use network-first for HTML to avoid stale index referencing missing chunks
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => response)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // For other resources, use cache-first strategy
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
