@@ -59,10 +59,13 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
+  console.log("🎯 App component: Initializing");
+  
   try {
+    console.log("🎯 App component: Rendering routes");
     return (
       <ErrorBoundary onError={(error, errorInfo) => {
-        console.error('App Error Boundary:', error, errorInfo);
+        console.error('❌ App Error Boundary triggered:', error, errorInfo);
       }}>
         <div className="min-h-screen bg-background font-mono antialiased">
           <LoadingSuspense fallback={<LoadingFallback />} useBootSequence>
@@ -105,7 +108,7 @@ const App = () => {
       </ErrorBoundary>
     );
   } catch (error) {
-    console.error('App initialization error:', error);
+    console.error('❌ App initialization error:', error);
     return <AppErrorFallback error={error as Error} />;
   }
 };

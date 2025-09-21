@@ -10,24 +10,31 @@ import { PerformanceProvider } from '@/features/state-management';
 import { queryClient } from '@/lib/queryClient';
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {/* Provider order: Theme → Performance → Auth → TabManager */}
-        <ThemeProvider>
-          <PerformanceProvider enableByDefault={import.meta.env.DEV}>
-            <AuthProvider>
-              <TabManagerProvider>
-                <BrowserRouter>
-                  {children}
-                  {/* Unified toast system using shadcn-ui toasts */}
-                  <Toaster />
-                </BrowserRouter>
-              </TabManagerProvider>
-            </AuthProvider>
-          </PerformanceProvider>
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+  console.log("🔧 AppProviders: Initializing providers");
+  
+  try {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          {/* Provider order: Theme → Performance → Auth → TabManager */}
+          <ThemeProvider>
+            <PerformanceProvider enableByDefault={import.meta.env.DEV}>
+              <AuthProvider>
+                <TabManagerProvider>
+                  <BrowserRouter>
+                    {children}
+                    {/* Unified toast system using shadcn-ui toasts */}
+                    <Toaster />
+                  </BrowserRouter>
+                </TabManagerProvider>
+              </AuthProvider>
+            </PerformanceProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  } catch (error) {
+    console.error("❌ AppProviders error:", error);
+    throw error;
+  }
 }

@@ -13,14 +13,22 @@ if (import.meta.env.DEV) {
 
 const rootElement = document.getElementById("root");
 
+console.log("🔍 Debug: Root element found:", !!rootElement);
+
 if (!rootElement) {
+  console.error("❌ Root element not found");
   throw new Error("Root element not found");
 }
+
+console.log("🚀 Starting app initialization");
 
 // Setup session monitoring
 setupSessionListener();
 
+console.log("📡 Session listener setup complete");
+
 // Render the app with properly ordered providers
+console.log("🎨 Rendering app with providers");
 createRoot(rootElement).render(
   <StrictMode>
     <AppProviders>
@@ -29,6 +37,8 @@ createRoot(rootElement).render(
     </AppProviders>
   </StrictMode>
 );
+
+console.log("✅ App render initiated");
 
 // Load optional modules after app renders
 if (import.meta.env.PROD) {
