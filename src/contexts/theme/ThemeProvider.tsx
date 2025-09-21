@@ -48,7 +48,7 @@ const DEFAULT_THEME: ThemeConfig = {
   colorScheme: 'green',
   soundEnabled: true,
   glowIntensity: 75,
-  scanLineIntensity: 50,
+  scanLineIntensity: 0,
   backgroundScanLines: 0,        // Scanlines OFF by default
   scrollingScanLines: 'off',     // Scrolling scanlines OFF by default
   layoutMode: 'tabbed',
