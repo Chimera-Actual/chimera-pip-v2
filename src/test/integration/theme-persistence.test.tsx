@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { AppProviders } from '@/app/AppProviders';
 import { useTheme } from '@/contexts/theme';

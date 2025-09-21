@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import * as testingLibrary from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DashboardContent } from '@/components/PipBoy/DashboardContent';
