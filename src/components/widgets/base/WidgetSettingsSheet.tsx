@@ -6,6 +6,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 interface WidgetSettingsSheetProps {
@@ -32,11 +33,11 @@ export const WidgetSettingsSheet: React.FC<WidgetSettingsSheetProps> = ({
         className={cn(
           "w-[420px] sm:w-[520px]",
           "bg-pip-bg-primary text-pip-text-primary border-l border-pip-border",
-          "overflow-y-auto",
+          "flex flex-col",
           className
         )}
       >
-        <SheetHeader className="border-b border-pip-border pb-4 mb-6">
+        <SheetHeader className="border-b border-pip-border pb-4 mb-6 flex-shrink-0">
           <SheetTitle className="text-pip-text-bright font-pip-display text-lg">
             {title}
           </SheetTitle>
@@ -47,9 +48,11 @@ export const WidgetSettingsSheet: React.FC<WidgetSettingsSheetProps> = ({
           )}
         </SheetHeader>
         
-        <div className="space-y-6">
-          {children}
-        </div>
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 pr-4">
+            {children}
+          </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );
