@@ -7,6 +7,18 @@ const isLovablePreview =
 
 export async function registerAppSW() {
   if (isDev || isLovablePreview) {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        if (registrations.length > 0) {
+          await Promise.all(registrations.map(registration => registration.unregister()));
+          console.info('Preview environment: cleaned up existing service workers');
+        }
+      } catch (error) {
+        console.warn('Preview environment: failed to unregister service workers', error);
+      }
+    }
+
     // Never register a service worker in dev or lovable preview
     // to avoid stale cache mismatches for hashed chunks.
     console.info('Service Worker registration skipped (dev/preview environment)');

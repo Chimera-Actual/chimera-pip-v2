@@ -7,6 +7,66 @@ import { AppProviders } from '@/app/AppProviders'
 import { setupSessionListener } from '@/lib/auth/session'
 import { BootErrorBoundary } from '@/components/system/BootErrorBoundary'
 
+const CHUNK_RELOAD_STORAGE_KEY = 'chimera:chunk-reload'
+
+function setupChunkReloadGuard() {
+  if (typeof window === 'undefined' || !import.meta.env.PROD) {
+    return
+  }
+
+  let storage: Storage | undefined
+  try {
+    storage = window.sessionStorage
+  } catch (error) {
+    console.warn('Chunk reload guard: sessionStorage unavailable', error)
+  }
+
+  const clearReloadFlag = () => {
+    try {
+      storage?.removeItem(CHUNK_RELOAD_STORAGE_KEY)
+    } catch (error) {
+      console.warn('Chunk reload guard: unable to clear flag', error)
+    }
+  }
+
+  // If we reloaded previously due to a chunk error, clear the flag on successful boot.
+  clearReloadFlag()
+
+  window.addEventListener('vite:preloadError', (event) => {
+    const alreadyReloaded = (() => {
+      try {
+        return storage?.getItem(CHUNK_RELOAD_STORAGE_KEY) === 'true'
+      } catch (error) {
+        console.warn('Chunk reload guard: unable to read flag', error)
+        return false
+      }
+    })()
+
+    const customEvent = event as CustomEvent<{ href?: string; message?: string }>
+    console.warn('Chunk preload error detected, refreshing application once.', customEvent.detail)
+
+    if (!alreadyReloaded) {
+      if (typeof (event as any).preventDefault === 'function') {
+        (event as any).preventDefault()
+      }
+
+      try {
+        storage?.setItem(CHUNK_RELOAD_STORAGE_KEY, 'true')
+      } catch (error) {
+        console.warn('Chunk reload guard: unable to persist flag', error)
+      }
+
+      window.location.reload()
+      return
+    }
+
+    clearReloadFlag()
+    console.error('Chunk preload error persisted after forced reload.', customEvent.detail)
+  })
+}
+
+setupChunkReloadGuard()
+
 // Load performance monitoring in development
 if (import.meta.env.DEV) {
   import('./lib/wdyr.ts');

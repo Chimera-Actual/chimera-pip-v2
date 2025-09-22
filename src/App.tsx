@@ -1,22 +1,23 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
+import { lazyWithRetry } from "@/lib/dynamicImport";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { LoadingSuspense } from "@/components/ui/LoadingSuspense";
 
 // Lazy load auth components
-const VaultLogin = lazy(() => import("@/components/auth/VaultLogin").then(m => ({ default: m.VaultLogin })));
-const VaultRegistration = lazy(() => import("@/components/auth/VaultRegistration").then(m => ({ default: m.VaultRegistration })));
-const CharacterCreation = lazy(() => import("@/components/auth/CharacterCreation").then(m => ({ default: m.CharacterCreation })));
-const EmailVerification = lazy(() => import("@/components/auth/EmailVerification").then(m => ({ default: m.EmailVerification })));
-const AuthMethodSelector = lazy(() => import("@/components/auth/AuthMethodSelector").then(m => ({ default: m.AuthMethodSelector })));
-const ResetPasswordPage = lazy(() => import("@/components/auth/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })));
+const VaultLogin = lazyWithRetry(() => import("@/components/auth/VaultLogin").then(m => ({ default: m.VaultLogin })));
+const VaultRegistration = lazyWithRetry(() => import("@/components/auth/VaultRegistration").then(m => ({ default: m.VaultRegistration })));
+const CharacterCreation = lazyWithRetry(() => import("@/components/auth/CharacterCreation").then(m => ({ default: m.CharacterCreation })));
+const EmailVerification = lazyWithRetry(() => import("@/components/auth/EmailVerification").then(m => ({ default: m.EmailVerification })));
+const AuthMethodSelector = lazyWithRetry(() => import("@/components/auth/AuthMethodSelector").then(m => ({ default: m.AuthMethodSelector })));
+const ResetPasswordPage = lazyWithRetry(() => import("@/components/auth/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })));
 
 // Lazy load pages
-const Landing = lazy(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
-const Index = lazy(() => import("./pages/Index"));
+const Landing = lazyWithRetry(() => import("./pages/Landing").then(m => ({ default: m.Landing })));
+const Index = lazyWithRetry(() => import("./pages/Index"));
 
-const NotFound = lazy(() => import("./pages/NotFound"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Providers are now handled in AppProviders
 
