@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { normalizeError } from '@/lib/errors';
@@ -76,7 +76,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }
   
   const { user, profile, updateProfile } = authContext;
-  const [theme, setTheme] = useState<ThemeConfig>({ ...DEFAULT_THEME, ...defaultTheme });
+  const combinedDefaultTheme = useMemo(() => ({ ...DEFAULT_THEME, ...defaultTheme }), [defaultTheme]);
+  const [theme, setTheme] = useState<ThemeConfig>(combinedDefaultTheme);
   const [isLoading, setIsLoading] = useState(false);
 
   // Load theme on mount
@@ -86,14 +87,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         console.log('🎨 ThemeProvider: Loading theme from user profile:', profile.theme_config);
         // Load from user profile with proper defaults
         const userTheme: ThemeConfig = {
-          ...DEFAULT_THEME,
+          ...combinedDefaultTheme,
           ...profile.theme_config,
         };
         console.log('🎨 ThemeProvider: Applied user theme:', userTheme);
         setTheme(userTheme);
       } else if (user && !profile?.theme_config) {
         console.log('🎨 ThemeProvider: User authenticated but no theme_config, using defaults');
-        setTheme(DEFAULT_THEME);
+        setTheme(combinedDefaultTheme);
       } else {
         console.log('🎨 ThemeProvider: Loading theme from localStorage (guest mode)');
         // Load from localStorage for guests
@@ -101,20 +102,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           const stored = localStorageService.get<ThemeConfig>(STORAGE_KEY);
           if (stored) {
             console.log('🎨 ThemeProvider: Loaded theme from localStorage:', stored);
-            setTheme({ ...DEFAULT_THEME, ...stored });
+            setTheme({ ...combinedDefaultTheme, ...stored });
           } else {
             console.log('🎨 ThemeProvider: No stored theme, using defaults');
-            setTheme(DEFAULT_THEME);
+            setTheme(combinedDefaultTheme);
           }
         } catch (error) {
           console.warn('Failed to load theme from localStorage:', error);
-          setTheme(DEFAULT_THEME);
+          setTheme(combinedDefaultTheme);
         }
       }
     };
 
     loadTheme();
-  }, [user, profile]);
+  }, [user, profile, combinedDefaultTheme]);
 
   // Apply theme to document
   useEffect(() => {
@@ -380,3 +381,4 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     </ThemeContext.Provider>
   );
 };
+

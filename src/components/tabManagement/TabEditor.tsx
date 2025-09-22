@@ -3,7 +3,7 @@ import { TabConfiguration } from '@/types/tabManagement';
 import { reportError } from '@/lib/errorReporting';
 import { Button } from '@/components/ui/button';
 import { Edit, Palette, Info } from 'lucide-react';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsInput } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { IconSelectionModal } from '@/components/ui/IconSelectionModal';
@@ -242,21 +242,26 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
 
   return (
     <>
-      <SettingsModal
-        isOpen={isOpen}
-        onClose={onClose}
+      <SettingsSheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            onClose();
+          }
+        }}
+        onCancel={onClose}
         title={tab ? 'EDIT TAB' : 'CREATE NEW TAB'}
         description="TAB_MANAGEMENT_PROTOCOL_v2.1"
         onSave={handleSubmit}
         isDirty={isDirty}
-        isLoading={isSubmitting}
+        isSaving={isSubmitting}
       >
         {sections.map((section) => (
           <div key={section.id}>
             {section.content}
           </div>
         ))}
-      </SettingsModal>
+      </SettingsSheet>
       
       <IconSelectionModal
         isOpen={showIconModal}
@@ -268,3 +273,4 @@ export const TabEditor = memo(({ tab, isOpen, onClose, onSave, existingTabs = []
     </>
   );
 });
+

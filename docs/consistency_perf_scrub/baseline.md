@@ -35,23 +35,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
    - Character profile, security, Quick Access, notifications
    - Currently uses Dialog-based SettingsModal
 
-3. **src/components/PipBoy/ApiKeysModal.tsx** - `ApiKeysModal` (uses SettingsModal)
+3. **src/components/PipBoy/ApiKeysModal.tsx** - `ApiKeysModal` (uses SettingsSheet)
    - API key management
-   - Currently uses Dialog-based SettingsModal
+   - Implements the shared right-side settings sheet
 
-4. **src/components/ui/SettingsModal.tsx** - Base SettingsModal component
-   - Dialog-based modal with max-w-2xl and h-[85vh]
-   - Provides standardized header, content area, and action buttons
-
-### Sheet-based Settings:
-5. **src/components/widgets/base/WidgetSettingsSheet.tsx** - `WidgetSettingsSheet`
-   - Right-side sheet for widget settings
-   - Uses shadcn Sheet component
+4. **src/components/common/SettingsSheet.tsx** - Base settings sheet component
+   - Right-side slide-out built on the shadcn Sheet primitive
+   - Provides standardized header, scrollable body, and action buttons
 
 ### Other Dialog Components:
-6. **src/components/auth/ChangePasswordModal.tsx** - Password change dialog
-7. **src/components/widgets/WidgetSelectorModal.tsx** - Widget selection modal
-8. Various alert dialogs in ApiKeyManager.tsx
+5. **src/components/auth/ChangePasswordModal.tsx** - Password change dialog
+6. **src/components/widgets/WidgetSelectorModal.tsx** - Widget selection modal
+7. Various alert dialogs in ApiKeyManager.tsx
 
 ## Current Theme Provider Defaults (src/contexts/theme/ThemeProvider.tsx)
 ```typescript
@@ -59,9 +54,9 @@ const DEFAULT_THEME: ThemeConfig = {
   colorScheme: 'green',
   soundEnabled: true,
   glowIntensity: 75,
-  scanLineIntensity: 50,
-  backgroundScanLines: 50,        // Currently set to 50 (scanlines ON by default)
-  scrollingScanLines: 'normal',   // Currently set to 'normal' (scanlines ON by default)  
+  scanLineIntensity: 0,
+  backgroundScanLines: 0,        // Scanlines OFF by default
+  scrollingScanLines: 'off',     // Moving scan line OFF by default
   layoutMode: 'tabbed',
 };
 ```
@@ -71,7 +66,7 @@ No console errors currently captured during baseline assessment.
 
 ## Issues Identified
 1. **Mixed UI Patterns**: Mix of Dialog-based SettingsModal and Sheet-based settings
-2. **Scanlines Default**: backgroundScanLines: 50 and scrollingScanLines: 'normal' means scanlines are ON by default
+2. **Scanlines Default**: Defaults now set to backgroundScanLines: 0 and scrollingScanLines: 'off' so scanlines stay disabled until the user opts in
 3. **Environment Error Handling**: Hard crash on missing env variables - not graceful
 4. **Settings Persistence**: Complex theme persistence system but no unified user settings store
 5. **Provider Order**: Need to verify ThemeProvider → PerformanceProvider → AuthProvider → TabManagerProvider order

@@ -1,5 +1,5 @@
 import React from 'react'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { ThemeProvider, useTheme } from '@/contexts/theme'
 import { useAuth } from '@/contexts/AuthContext'
@@ -8,7 +8,9 @@ import { useAuth } from '@/contexts/AuthContext'
 vi.mock('@/contexts/AuthContext')
 vi.mock('@/lib/supabaseClient')
 vi.mock('@/hooks/use-toast')
-vi.mock('@/lib/errors')
+vi.mock('@/lib/errors', () => ({
+  normalizeError: vi.fn(() => ({ userMessage: 'Test error' })),
+}))
 
 const createWrapper = (defaultTheme = {}) => {
   return ({ children }: { children: React.ReactNode }) => {
@@ -19,8 +21,20 @@ const createWrapper = (defaultTheme = {}) => {
 describe('useTheme', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Clear localStorage
-    localStorage.clear()
+
+    const storage = new Map<string, string>()
+    localStorage.getItem = vi.fn((key: string) => (storage.has(key) ? storage.get(key)! : null))
+    localStorage.setItem = vi.fn((key: string, value: string) => {
+      storage.set(key, value)
+    })
+    localStorage.removeItem = vi.fn((key: string) => {
+      storage.delete(key)
+    })
+    localStorage.clear = vi.fn(() => {
+      storage.clear()
+    })
+    localStorage.key = vi.fn((index: number) => Array.from(storage.keys())[index] ?? null)
+    Object.defineProperty(localStorage, 'length', { get: () => storage.size })
   })
 
   it('should provide default theme values', () => {
@@ -36,9 +50,9 @@ describe('useTheme', () => {
     expect(result.current.colorScheme).toBe('green')
     expect(result.current.soundEnabled).toBe(true)
     expect(result.current.glowIntensity).toBe(75)
-    expect(result.current.scanLineIntensity).toBe(50)
-    expect(result.current.backgroundScanLines).toBe(50)
-    expect(result.current.scrollingScanLines).toBe('normal')
+    expect(result.current.scanLineIntensity).toBe(0)
+    expect(result.current.backgroundScanLines).toBe(0)
+    expect(result.current.scrollingScanLines).toBe('off')
   })
 
   it('should load theme from user profile when authenticated', () => {
@@ -62,7 +76,7 @@ describe('useTheme', () => {
     expect(result.current.soundEnabled).toBe(false)
   })
 
-  it('should load theme from localStorage for guests', () => {
+  it('should load theme from localStorage for guests', async () => {
     const savedTheme = {
       colorScheme: 'amber',
       soundEnabled: false,
@@ -80,7 +94,7 @@ describe('useTheme', () => {
     const wrapper = createWrapper()
     const { result } = renderHook(() => useTheme(), { wrapper })
 
-    expect(result.current.colorScheme).toBe('amber')
+    await waitFor(() => expect(result.current.colorScheme).toBe('amber'))
     expect(result.current.soundEnabled).toBe(false)
     expect(result.current.glowIntensity).toBe(80)
   })
@@ -107,9 +121,10 @@ describe('useTheme', () => {
         colorScheme: 'red',
         soundEnabled: true,
         glowIntensity: 75,
-        scanLineIntensity: 50,
-        backgroundScanLines: 50,
-        scrollingScanLines: 'normal',
+        scanLineIntensity: 0,
+        backgroundScanLines: 0,
+        scrollingScanLines: 'off',
+        layoutMode: 'tabbed',
       }
     })
   })
@@ -136,9 +151,10 @@ describe('useTheme', () => {
         colorScheme: 'green',
         soundEnabled: false,
         glowIntensity: 75,
-        scanLineIntensity: 50,
-        backgroundScanLines: 50,
-        scrollingScanLines: 'normal',
+        scanLineIntensity: 0,
+        backgroundScanLines: 0,
+        scrollingScanLines: 'off',
+        layoutMode: 'tabbed',
       }
     })
   })
@@ -157,8 +173,10 @@ describe('useTheme', () => {
       result.current.setColorScheme('amber')
     })
 
-    const saved = JSON.parse(localStorage.getItem('chimera-pip-theme') || '{}')
-    expect(saved.colorScheme).toBe('amber')
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('chimera-pip-theme') || '{}')
+      expect(saved.colorScheme).toBe('amber')
+    })
   })
 
   it('should handle profile update errors', async () => {
@@ -184,7 +202,7 @@ describe('useTheme', () => {
     expect(mockUpdateProfile).toHaveBeenCalled()
   })
 
-  it('should apply theme to document', () => {
+  it('should apply theme to document', async () => {
     vi.mocked(useAuth).mockReturnValue({ 
       user: null, 
       profile: null,
@@ -195,6 +213,6 @@ describe('useTheme', () => {
     renderHook(() => useTheme(), { wrapper })
 
     // Check that theme is applied to document
-    expect(document.documentElement.dataset.theme).toBe('blue')
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe('blue'))
   })
 })

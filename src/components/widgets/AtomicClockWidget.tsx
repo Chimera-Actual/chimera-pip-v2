@@ -5,7 +5,7 @@ import { WidgetShell } from './base/WidgetShell';
 import type { WidgetAction } from './base/WidgetActionBar';
 import { ConsolidatedClocksPanel } from './clock/ConsolidatedClocksPanel';
 import { AlarmManager } from './clock/AlarmManager';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsToggle } from '@/components/ui/SettingsControls';
 import { PrimarySettingsGroup, SecondarySettingsGroup } from '@/components/ui/SettingsGroupEnhanced';
 import { VisualEffectsRenderer } from './clock/VisualEffectsRenderer';
@@ -79,7 +79,7 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
     alarms: [],
     effects: {
       particles: true,
-      scanlines: true,
+      scanlines: false,
       glow: true
     }
   };
@@ -241,18 +241,28 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
       </WidgetShell>
 
       {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
+      <SettingsSheet
+        open={showSettings}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowSettings(false);
+          }
+        }}
+        onCancel={() => setShowSettings(false)}
         title="Clock Settings"
         description="Configure your atomic clock display preferences"
-        onSave={() => { handleSettingsUpdate(tempSettings); setShowSettings(false); }}
-        onReset={() => setTempSettings({
-          format24: mergedSettings.format24,
-          showSeconds: mergedSettings.showSeconds,
-          showDate: mergedSettings.showDate,
-          effects: mergedSettings.effects,
-        })}
+        onSave={() => {
+          handleSettingsUpdate(tempSettings);
+          setShowSettings(false);
+        }}
+        onReset={() =>
+          setTempSettings({
+            format24: mergedSettings.format24,
+            showSeconds: mergedSettings.showSeconds,
+            showDate: mergedSettings.showDate,
+            effects: mergedSettings.effects,
+          })
+        }
         isDirty={isDirty}
       >
         <PrimarySettingsGroup 
@@ -315,7 +325,8 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
             }))}
           />
         </SecondarySettingsGroup>
-      </SettingsModal>
+      </SettingsSheet>
     </>
   );
 };
+

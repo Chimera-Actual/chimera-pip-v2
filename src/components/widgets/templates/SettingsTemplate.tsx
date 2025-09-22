@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsModal } from '@/components/ui/SettingsModal';
+import { SettingsSheet } from '@/components/common/SettingsSheet';
 import { SettingsGroup, SettingsInput, SettingsToggle } from '@/components/ui/SettingsControls';
 
 interface SettingsTemplateProps {
@@ -25,19 +25,26 @@ export const SettingsTemplate: React.FC<SettingsTemplateProps> = ({
   isDirty = false,
   isLoading = false,
 }) => {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <SettingsModal
-      isOpen={isOpen}
-      onClose={onClose}
+    <SettingsSheet
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      onCancel={onClose}
       title={title}
       description={description}
       onSave={onSave}
       onReset={onReset}
       isDirty={isDirty}
-      isLoading={isLoading}
+      isSaving={isLoading}
     >
       {children}
-    </SettingsModal>
+    </SettingsSheet>
   );
 };
 

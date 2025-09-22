@@ -130,7 +130,7 @@ const vaultTecTheme: PipTheme = {
     sans: 'Inter',
   },
   effects: {
-    scanlines: true,
+    scanlines: false,
     crt: true,
     glow: true,
     noise: false,
@@ -268,7 +268,7 @@ const ncrTheme: PipTheme = {
     sans: 'Inter',
   },
   effects: {
-    scanlines: true,
+    scanlines: false,
     crt: false,
     glow: false,
     noise: true,

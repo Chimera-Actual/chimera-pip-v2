@@ -53,9 +53,9 @@ All hardcoded hex colors and rgba values have been replaced with semantic theme 
 
 ## Modal and Dialog Improvements
 
-### Settings Modal (`src/components/ui/SettingsModal.tsx`)
+### Settings Sheet (`src/components/common/SettingsSheet.tsx`)
 - Added `aria-describedby` attribute for description association
-- Assigned proper IDs to dialog elements for ARIA references
+- Assigned proper IDs to sheet elements for ARIA references
 
 ### Widget Selector Modal (`src/components/widgets/WidgetSelectorModal.tsx`)
 - Added `aria-labelledby` and `aria-describedby` attributes
@@ -125,3 +125,4 @@ All hardcoded hex colors and rgba values have been replaced with semantic theme 
 - Implement focus restoration when modals close
 - Add live region announcements for dynamic content updates
 - Consider adding high contrast mode support
+
