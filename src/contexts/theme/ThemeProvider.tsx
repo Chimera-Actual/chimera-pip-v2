@@ -84,27 +84,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   useEffect(() => {
     const loadTheme = () => {
       if (user && profile?.theme_config) {
-        console.log('🎨 ThemeProvider: Loading theme from user profile:', profile.theme_config);
         // Load from user profile with proper defaults
         const userTheme: ThemeConfig = {
           ...combinedDefaultTheme,
           ...profile.theme_config,
         };
-        console.log('🎨 ThemeProvider: Applied user theme:', userTheme);
         setTheme(userTheme);
       } else if (user && !profile?.theme_config) {
-        console.log('🎨 ThemeProvider: User authenticated but no theme_config, using defaults');
+        
         setTheme(combinedDefaultTheme);
       } else {
-        console.log('🎨 ThemeProvider: Loading theme from localStorage (guest mode)');
+        
         // Load from localStorage for guests
         try {
           const stored = localStorageService.get<ThemeConfig>(STORAGE_KEY);
           if (stored) {
-            console.log('🎨 ThemeProvider: Loaded theme from localStorage:', stored);
             setTheme({ ...combinedDefaultTheme, ...stored });
           } else {
-            console.log('🎨 ThemeProvider: No stored theme, using defaults');
             setTheme(combinedDefaultTheme);
           }
         } catch (error) {
@@ -115,7 +111,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
 
     loadTheme();
-  }, [user, profile, combinedDefaultTheme]);
+  }, [user, profile?.theme_config]);
 
   // Apply theme to document
   useEffect(() => {
