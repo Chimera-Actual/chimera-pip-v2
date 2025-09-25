@@ -76,42 +76,46 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }
   
   const { user, profile, updateProfile } = authContext;
-  const combinedDefaultTheme = useMemo(() => ({ ...DEFAULT_THEME, ...defaultTheme }), [defaultTheme]);
-  const [theme, setTheme] = useState<ThemeConfig>(combinedDefaultTheme);
-  const [isLoading, setIsLoading] = useState(false);
+  const [theme, setTheme] = useState<ThemeConfig>(() => ({ ...DEFAULT_THEME, ...defaultTheme }));
 
-  // Load theme on mount
+  // Load theme on mount - ONLY run once per user/profile change
   useEffect(() => {
+    let isMounted = true;
+    
     const loadTheme = () => {
+      if (!isMounted) return;
+      
       if (user && profile?.theme_config) {
-        // Load from user profile with proper defaults
         const userTheme: ThemeConfig = {
-          ...combinedDefaultTheme,
+          ...DEFAULT_THEME,
+          ...defaultTheme,
           ...profile.theme_config,
         };
         setTheme(userTheme);
       } else if (user && !profile?.theme_config) {
-        
-        setTheme(combinedDefaultTheme);
+        setTheme({ ...DEFAULT_THEME, ...defaultTheme });
       } else {
-        
         // Load from localStorage for guests
         try {
           const stored = localStorageService.get<ThemeConfig>(STORAGE_KEY);
           if (stored) {
-            setTheme({ ...combinedDefaultTheme, ...stored });
+            setTheme({ ...DEFAULT_THEME, ...defaultTheme, ...stored });
           } else {
-            setTheme(combinedDefaultTheme);
+            setTheme({ ...DEFAULT_THEME, ...defaultTheme });
           }
         } catch (error) {
           console.warn('Failed to load theme from localStorage:', error);
-          setTheme(combinedDefaultTheme);
+          setTheme({ ...DEFAULT_THEME, ...defaultTheme });
         }
       }
     };
 
     loadTheme();
-  }, [user, profile?.theme_config]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, profile?.theme_config, defaultTheme]);
 
   // Apply theme to document
   useEffect(() => {
@@ -251,71 +255,50 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     applyTheme();
   }, [theme]);
 
-  // Persist theme changes
+  // Persist theme changes - debounced to prevent spam
   const persistTheme = useCallback(async (newTheme: ThemeConfig) => {
-    console.log('🔄 ThemeProvider: persistTheme called with:', newTheme);
-    
     if (user && updateProfile) {
-      console.log('🔄 ThemeProvider: Saving to user profile (authenticated user)');
-      // Persist to user profile
-      setIsLoading(true);
       try {
-        const result = await updateProfile({
+        const { error: result } = await updateProfile({
           theme_config: newTheme,
         });
 
-        if (result.error) {
-          console.error('❌ ThemeProvider: Failed to save to profile:', result.error);
-          throw new Error('Failed to save theme preferences');
+        if (result) {
+          console.error('Failed to save theme to profile:', result);
+          // Fallback to localStorage on database error
+          try {
+            localStorageService.set(STORAGE_KEY, newTheme);
+          } catch (storageError) {
+            console.error('Failed to save theme to localStorage:', storageError);
+          }
         }
-
-        console.log('✅ ThemeProvider: Theme saved to user profile successfully');
-        toast({
-          title: 'Theme Updated',
-          description: 'Your theme preferences have been saved.',
-        });
       } catch (error) {
-        console.error('❌ ThemeProvider: Persistence error:', error);
-        const normalizedError = normalizeError(error, 'ThemeProvider');
-        toast({
-          title: 'Error',
-          description: normalizedError.userMessage,
-          variant: 'destructive',
-        });
-        
+        console.error('Persistence error:', error);
         // Fallback to localStorage on database error
-        console.log('🔄 ThemeProvider: Falling back to localStorage due to database error');
         try {
           localStorageService.set(STORAGE_KEY, newTheme);
-          console.log('✅ ThemeProvider: Fallback to localStorage successful');
-        } catch (fallbackError) {
-          console.error('❌ ThemeProvider: localStorage fallback also failed:', fallbackError);
+        } catch (storageError) {
+          console.error('Failed to save theme to localStorage:', storageError);
         }
-      } finally {
-        setIsLoading(false);
       }
     } else {
-      console.log('🔄 ThemeProvider: Saving to localStorage (guest mode or auth unavailable)');
-      // Persist to localStorage for guests or when auth is not available
+      // Persist to localStorage for guests
       try {
         localStorageService.set(STORAGE_KEY, newTheme);
-        console.log('✅ ThemeProvider: Theme saved to localStorage successfully');
       } catch (error) {
-        console.error('❌ ThemeProvider: Failed to save theme to localStorage:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to save theme preferences locally.',
-          variant: 'destructive',
-        });
+        console.error('Failed to save theme to localStorage:', error);
       }
     }
-  }, [user, updateProfile]);
+  }, [user?.id, updateProfile]);
 
   const updateTheme = useCallback((updates: Partial<ThemeConfig>) => {
-    const newTheme = { ...theme, ...updates };
-    setTheme(newTheme);
-    persistTheme(newTheme);
-  }, [theme, persistTheme]);
+    setTheme(prevTheme => {
+      const newTheme = { ...prevTheme, ...updates };
+      // Use setTimeout to prevent blocking and avoid infinite loops
+      setTimeout(() => persistTheme(newTheme), 0);
+      return newTheme;
+    });
+  }, [persistTheme]);
 
   const setColorScheme = useCallback((colorScheme: ColorScheme) => {
     updateTheme({ colorScheme });
@@ -351,11 +334,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Batch update function for settings modal
   const updateThemeSettings = useCallback((updates: Partial<ThemeConfig>) => {
-    console.log('🎨 ThemeProvider: updateThemeSettings called with:', updates);
-    const newTheme = { ...theme, ...updates };
-    setTheme(newTheme);
-    persistTheme(newTheme);
-  }, [theme, persistTheme]);
+    setTheme(prevTheme => {
+      const newTheme = { ...prevTheme, ...updates };
+      // Use setTimeout to prevent blocking and avoid infinite loops  
+      setTimeout(() => persistTheme(newTheme), 0);
+      return newTheme;
+    });
+  }, [persistTheme]);
 
   const contextValue: ThemeContextValue = {
     ...theme,
@@ -368,7 +353,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     setScrollingScanLines,
     setLayoutMode,
     updateThemeSettings,
-    isLoading,
+    isLoading: false,
   };
 
   return (
