@@ -8,7 +8,11 @@ import { CSP_HEADER } from "./config/csp";
 export default defineConfig(({ mode }) => ({
   base: '/', // Ensure dynamic imports resolve from root
   server: {
-    host: "::",
+    host: "0.0.0.0",
+    port: 8080,
+  },
+  preview: {
+    host: "0.0.0.0",
     port: 8080,
   },
   plugins: [
