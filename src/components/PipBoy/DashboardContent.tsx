@@ -5,7 +5,7 @@ import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useWidgetsQuery } from '@/hooks/useWidgetsQuery';
-import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
+import { WidgetSelector } from '@/components/canvas/WidgetSelector';
 import { TabWidgetManager } from './TabWidgetManager';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
@@ -107,14 +107,14 @@ export const DashboardContent = memo<DashboardContentProps>(({
       {/* Only show sidebar in tabbed mode */}
       {layoutMode === 'tabbed' && (
         <div className="relative h-full">
-          <TabWidgetDrawer 
+          <WidgetSelector 
             activeTab={activeTab} 
             widgets={currentTabData?.widgets || []}
+            activeWidget={currentTabData?.activeWidget || null}
             isLoading={currentTabData?.isLoading || false}
             onAddWidget={handleShowWidgetSelector}
-            onToggleVisibility={async (widget) => {
-              currentTabData?.updateWidget({ widgetId: widget.id, updates: { is_archived: !widget.is_archived } });
-              return true;
+            onSelectWidget={(widgetId) => {
+              currentTabData?.setActiveWidget(widgetId);
             }}
             isCollapsed={isDrawerCollapsed}
             onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}

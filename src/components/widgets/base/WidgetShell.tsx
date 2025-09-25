@@ -42,11 +42,9 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
   return (
     <Card className={cn(
       "w-full relative group transition-all duration-300",
-      // Full space mode for single widget display
-      isFullSpace ? 'h-full' : '',
-      // Grid layout support (legacy)
-      isFullWidth ? 'col-span-2' : 'col-span-1',
-      // Pip-Boy styling
+      // Full space mode for single widget display - takes entire available space
+      isFullSpace ? 'h-full flex flex-col' : '',
+      // Pip-Boy styling optimized for full space
       "bg-pip-bg-secondary border-pip-border hover:border-pip-border-bright pip-widget-card hover:pip-glow-subtle",
       effects.glow && "shadow-lg shadow-primary/20 pip-glow",
       isCollapsed && "min-h-[80px]",
@@ -77,7 +75,7 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
       {/* Content */}
       <CardContent className={cn(
         isCollapsed ? "p-4" : "px-4 pb-4 pt-0",
-        isFullSpace && !isCollapsed ? "flex-1 h-0" : "",
+        isFullSpace && !isCollapsed ? "flex-1 flex flex-col h-0" : "",
         contentClassName
       )}>
         {isCollapsed ? (
@@ -89,7 +87,7 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
         ) : (
           <div className={cn(
             "widget-content-direct",
-            isFullSpace ? "h-full" : ""
+            isFullSpace ? "h-full flex flex-col flex-1" : ""
           )}>
             {children}
           </div>
