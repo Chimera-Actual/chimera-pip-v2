@@ -1,11 +1,11 @@
 import React, { memo, useMemo } from 'react';
-import { useTabWidgets } from '@/hooks/useTabWidgets';
+import { useWidgetsQuery } from '@/hooks/useWidgetsQuery';
 import { TabConfiguration } from '@/types/tabManagement';
 import { useMemoizedSelector } from '@/features/state-management/hooks/useMemoizedSelector';
 
 interface TabWidgetManagerProps {
   tab: TabConfiguration;
-  onDataReady: (tabName: string, data: ReturnType<typeof useTabWidgets>) => void;
+  onDataReady: (tabName: string, data: ReturnType<typeof useWidgetsQuery>) => void;
 }
 
 /**
@@ -14,7 +14,7 @@ interface TabWidgetManagerProps {
  * and avoid Rules of Hooks violations. Optimized for performance.
  */
 export const TabWidgetManager = memo<TabWidgetManagerProps>(({ tab, onDataReady }) => {
-  const tabWidgetData = useTabWidgets(tab.name);
+  const tabWidgetData = useWidgetsQuery(tab.name);
   
   // Memoize the callback data to prevent unnecessary parent re-renders
   const memoizedData = useMemoizedSelector(

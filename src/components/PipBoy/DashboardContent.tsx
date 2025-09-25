@@ -4,7 +4,7 @@ import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
 import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
-import { useTabWidgets } from '@/hooks/useTabWidgets';
+import { useWidgetsQuery } from '@/hooks/useWidgetsQuery';
 import { TabWidgetDrawer } from '@/components/canvas/TabWidgetDrawer';
 import { TabWidgetManager } from './TabWidgetManager';
 import { cn } from '@/lib/utils';
@@ -25,14 +25,14 @@ export const DashboardContent = memo<DashboardContentProps>(({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
-  const [tabWidgetData, setTabWidgetData] = useState<Record<string, ReturnType<typeof useTabWidgets>>>({});
+  const [tabWidgetData, setTabWidgetData] = useState<Record<string, ReturnType<typeof useWidgetsQuery>>>({});
   
   const { tabs, updateTab, deleteTab, archiveTab } = useTabManagerContext();
   const { toast } = useToast();
   const { layoutMode } = useTheme();
   
   // Memoized callback to receive widget data from TabWidgetManager components
-  const handleTabDataReady = useCallback((tabName: string, data: ReturnType<typeof useTabWidgets>) => {
+  const handleTabDataReady = useCallback((tabName: string, data: ReturnType<typeof useWidgetsQuery>) => {
     setTabWidgetData(prev => ({
       ...prev,
       [tabName]: data
@@ -81,13 +81,11 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    const result = await currentTabData?.addWidget?.(widgetType, settings);
-    if (result) {
-      toast({
-        title: "Widget Added",
-        description: `${widgetType} widget has been added successfully`,
-      });
-    }
+    currentTabData?.addWidget({ widgetType, settings });
+    toast({
+      title: "Widget Added",
+      description: `${widgetType} widget has been added successfully`,
+    });
     setShowWidgetSelector(false);
   }, [currentTabData?.addWidget, toast]);
 
@@ -114,7 +112,10 @@ export const DashboardContent = memo<DashboardContentProps>(({
             widgets={currentTabData?.widgets || []}
             isLoading={currentTabData?.isLoading || false}
             onAddWidget={handleShowWidgetSelector}
-            onToggleVisibility={currentTabData?.toggleVisibility}
+            onToggleVisibility={async (widget) => {
+              currentTabData?.updateWidget({ widgetId: widget.id, updates: { is_archived: !widget.is_archived } });
+              return true;
+            }}
             isCollapsed={isDrawerCollapsed}
             onToggleCollapsed={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
           />
@@ -152,12 +153,22 @@ export const DashboardContent = memo<DashboardContentProps>(({
               <CanvasIntegration 
                 tab={tab.name}
                 widgets={tab.data?.widgets || []}
+                activeWidget={tab.data?.activeWidget || null}
                 isLoading={tab.data?.isLoading || false}
                 isActive={tab.isActive}
                 onDoubleClick={handleShowWidgetSelector}
-                onDeleteWidget={tab.data?.deleteWidget}
-                onUpdateWidget={tab.data?.updateWidget}
-                onToggleCollapsed={tab.data?.toggleCollapsed}
+                onDeleteWidget={async (widgetId) => {
+                  currentTabData?.deleteWidget(widgetId);
+                  return true;
+                }}
+                onUpdateWidget={async (widgetId, updates) => {
+                  currentTabData?.updateWidget({ widgetId, updates });
+                  return true;
+                }}
+                onToggleCollapsed={async (widget) => {
+                  currentTabData?.updateWidget({ widgetId: widget.id, updates: { is_collapsed: !widget.is_collapsed } });
+                  return true;
+                }}
               />
             </div>
           ))}

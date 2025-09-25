@@ -272,8 +272,29 @@ export const useWidgetsQuery = (tabAssignment: string) => {
     }, 300);
   };
 
+  // Active widget management
+  const setActiveWidget = React.useCallback((widgetId: string) => {
+    const widgets = widgetsQuery.data || [];
+    widgets.forEach(widget => {
+      if (widget.id === widgetId) {
+        updateWidgetMutation.mutate({ widgetId: widget.id, updates: { display_order: 1 } });
+      } else {
+        updateWidgetMutation.mutate({ widgetId: widget.id, updates: { display_order: 999 } });
+      }
+    });
+  }, [widgetsQuery.data, updateWidgetMutation]);
+
+  const activeWidget = React.useMemo(() => {
+    const widgets = widgetsQuery.data || [];
+    return widgets.length > 0 ? widgets.reduce((prev, current) => 
+      prev.display_order < current.display_order ? prev : current
+    ) : null;
+  }, [widgetsQuery.data]);
+
   return {
     widgets: widgetsQuery.data || [],
+    activeWidget,
+    setActiveWidget,
     isLoading: widgetsQuery.isLoading,
     error: widgetsQuery.error,
     addWidget: addWidgetMutation.mutate,

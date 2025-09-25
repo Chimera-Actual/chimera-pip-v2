@@ -20,8 +20,9 @@ const widgetDescriptions: Record<string, string> = {
 interface CanvasIntegrationProps {
   tab: string;
   widgets: UserWidget[];
+  activeWidget: UserWidget | null;
   isLoading: boolean;
-  isActive?: boolean; // New prop to gate expensive operations
+  isActive?: boolean;
   className?: string;
   onDoubleClick?: () => void;
   onDeleteWidget: (widgetId: string) => Promise<boolean>;
@@ -32,6 +33,7 @@ interface CanvasIntegrationProps {
 export const CanvasIntegration = memo<CanvasIntegrationProps>(({ 
   tab, 
   widgets,
+  activeWidget,
   isLoading,
   isActive = true,
   className, 
@@ -40,15 +42,14 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
   onUpdateWidget,
   onToggleCollapsed
 }) => {
-  // Memoize expensive widget data processing
-  const processedWidgets = useMemoizedSelector(
-    { widgets, isActive },
-    ({ widgets, isActive }) => {
-      // Only process widgets if tab is active to save CPU
-      if (!isActive) return [];
-      return widgets.filter(widget => !widget.is_archived);
+  // Display only the active widget in full space
+  const displayWidget = useMemoizedSelector(
+    { activeWidget, isActive },
+    ({ activeWidget, isActive }) => {
+      if (!isActive || !activeWidget || activeWidget.is_archived) return null;
+      return activeWidget;
     },
-    [widgets, isActive]
+    [activeWidget, isActive]
   );
 
   // Memoize widget interaction handlers 
@@ -87,44 +88,44 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
     switch (normalizedType) {
       case 'atomicclock':
       case 'clockwidget':
-        return (
-          <AtomicClockWidget
-            title={widget.widget_config?.title || 'Atomic Clock'}
-            settings={widget.widget_config || {}}
-            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-            widgetId={widget.id}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-          />
-        );
+         return (
+           <AtomicClockWidget
+             title={widget.widget_config?.title || 'Atomic Clock'}
+             settings={widget.widget_config || {}}
+             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+             widgetId={widget.id}
+             widget={widget}
+             onRemove={() => handleCloseWidget(widget.id)}
+             onToggleCollapse={() => handleToggleCollapse(widget)}
+             onToggleFullWidth={() => handleToggleFullWidth(widget)}
+           />
+         );
       case 'weatherdashboard':
       case 'weather':
-        return (
-          <WeatherDashboardWidget
-            title={widget.widget_config?.title || 'Weather Dashboard'}
-            settings={widget.widget_config || {}}
-            onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
-            widgetId={widget.id}
-            widget={widget}
-            onRemove={() => handleCloseWidget(widget.id)}
-            onToggleCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-          />
-        );
+         return (
+           <WeatherDashboardWidget
+             title={widget.widget_config?.title || 'Weather Dashboard'}
+             settings={widget.widget_config || {}}
+             onSettingsChange={(settings) => handleSaveSettings(widget.id, settings)}
+             widgetId={widget.id}
+             widget={widget}
+             onRemove={() => handleCloseWidget(widget.id)}
+             onToggleCollapse={() => handleToggleCollapse(widget)}
+             onToggleFullWidth={() => handleToggleFullWidth(widget)}
+           />
+         );
       case 'aiagent':
       case 'ai-agent':
-        return (
-          <AIAgentWidget
-            widgetId={widget.id}
-            widget={widget}
-            onConfigUpdate={(config) => handleSaveSettings(widget.id, config)}
-            onClose={() => handleCloseWidget(widget.id)}
-            onCollapse={() => handleToggleCollapse(widget)}
-            onToggleFullWidth={() => handleToggleFullWidth(widget)}
-          />
-        );
+         return (
+           <AIAgentWidget
+             widgetId={widget.id}
+             widget={widget}
+             onConfigUpdate={(config) => handleSaveSettings(widget.id, config)}
+             onClose={() => handleCloseWidget(widget.id)}
+             onCollapse={() => handleToggleCollapse(widget)}
+             onToggleFullWidth={() => handleToggleFullWidth(widget)}
+           />
+         );
       default:
         return (
           <ScrollArea className="h-48">
@@ -159,7 +160,19 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
             No widgets found for {tab}
           </p>
           <p className="text-pip-text-muted text-xs">
-            Double-click to add your first widget
+            Use the left drawer to add widgets
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!displayWidget) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Card className="p-8 text-center border-pip-border bg-pip-bg-secondary/20">
+          <p className="text-pip-text-secondary font-pip-mono text-sm">
+            Select a widget from the left drawer
           </p>
         </Card>
       </div>
@@ -167,17 +180,10 @@ export const CanvasIntegration = memo<CanvasIntegrationProps>(({
   }
 
   return (
-    <div className={`w-full space-y-4 py-4 ${className || ''}`}>
-      {/* Widget Grid - Use processed widgets for performance */}
-      <div className="grid grid-cols-2 gap-4 auto-rows-max">
-        {processedWidgets.map((widget) => (
-          <div
-            key={widget.id}
-            className={widget.widget_width === 'full' ? 'col-span-2' : 'col-span-1'}
-          >
-            {renderWidgetContent(widget)}
-          </div>
-        ))}
+    <div className={`w-full h-full ${className || ''}`}>
+      {/* Full-space single widget display */}
+      <div className="h-full">
+        {renderWidgetContent(displayWidget)}
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ function setupChunkReloadGuard() {
       }
     })()
 
-    const customEvent = event as CustomEvent<{ href?: string; message?: string }>
+    const customEvent = event as unknown as CustomEvent<{ href?: string; message?: string }>
     console.warn('Chunk preload error detected, refreshing application once.', customEvent.detail)
 
     if (!alreadyReloaded) {
