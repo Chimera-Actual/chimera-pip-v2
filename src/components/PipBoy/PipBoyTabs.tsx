@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, GripVertical } from 'lucide-react';
+import { Plus, GripVertical, Settings } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PipBoyTab } from './PipBoyContainer';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { TabEditor } from '@/components/tabManagement/TabEditor';
@@ -281,15 +282,41 @@ export const PipBoyTabs = ({ currentTab, onTabChange }: PipBoyTabsProps) => {
             })}
           </SortableContext>
           
-          {/* Add Tab Button */}
-          <Button
-            variant="ghost"
-            className={`h-10 ${isMobile ? 'px-3' : 'px-4'} border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
-            onClick={() => setShowTabEditor(true)}
-            title="Create new tab (Ctrl+T)"
-          >
-            <Plus className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-          </Button>
+          {/* Tab Actions */}
+          <div className="flex">
+            {/* Add Tab Button */}
+            <Button
+              variant="ghost"
+              className={`h-10 ${isMobile ? 'px-3' : 'px-4'} border-r border-pip-border text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
+              onClick={() => setShowTabEditor(true)}
+              title="Create new tab (Ctrl+T)"
+            >
+              <Plus className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+            </Button>
+            
+            {/* Tab Settings Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={`h-10 ${isMobile ? 'px-3' : 'px-4'} text-pip-text-secondary hover:text-primary hover:bg-pip-bg-secondary/50 transition-all flex-shrink-0`}
+                  title="Tab settings"
+                >
+                  <Settings className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => {
+                  const currentTabConfig = tabs.find(t => t.name === currentTab);
+                  if (currentTabConfig) {
+                    handleEditTab(currentTabConfig);
+                  }
+                }}>
+                  Edit Current Tab
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </DndContext>
       

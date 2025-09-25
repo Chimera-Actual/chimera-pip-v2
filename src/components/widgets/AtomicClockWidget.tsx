@@ -200,11 +200,8 @@ export const AtomicClockWidget: React.FC<AtomicClockWidgetProps> = ({
         title={title}
         icon={Clock}
         actions={actions}
-        onCollapse={onToggleCollapse}
         onClose={onRemove}
-        onToggleFullWidth={onToggleFullWidth}
         isFullWidth={widget?.widget_width === 'full'}
-        isCollapsed={widget?.collapsed}
         effects={mergedSettings.effects}
         className="atomic-clock-widget clock-theme-vault-tec relative overflow-hidden"
       >

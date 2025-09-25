@@ -1,7 +1,7 @@
 import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
 import { useMemoizedSelector } from '@/features/state-management/hooks/useMemoizedSelector';
 import { CanvasIntegration } from '@/components/canvas/CanvasIntegration';
-import { DashboardHeaderSection, DashboardModals } from '@/features/dashboard';
+import { DashboardModals } from '@/features/dashboard';
 import { WidgetSelectorModal } from '@/components/widgets/WidgetSelectorModal';
 import { useTabManagerContext } from '@/contexts/TabManagerContext';
 import { useWidgetsQuery } from '@/hooks/useWidgetsQuery';
@@ -122,25 +122,12 @@ export const DashboardContent = memo<DashboardContentProps>(({
         </div>
       )}
       
-      {/* Main Content Area - preserve all tab content */}
-      <main className={cn(
-        "dashboard-content flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3 transition-all duration-300",
-        layoutMode === 'tabbed' ? (isDrawerCollapsed ? "ml-12" : "ml-80") : "",
-        className
+      {/* Main Content */}
+      <div className={cn(
+        "flex-1 transition-all duration-300 h-full flex flex-col px-6 pb-6 pt-3",
+        layoutMode === 'tabbed' && !isDrawerCollapsed ? "ml-2" : "ml-0"
       )}>
-        {/* Only show header section in tabbed mode */}
-        {layoutMode === 'tabbed' && (
-          <DashboardHeaderSection
-            activeTab={activeTab}
-            description={currentTab?.description}
-            onShowTabEditor={() => setShowTabEditor(true)}
-            onArchiveTab={handleArchiveTab}
-            onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
-            isDefaultTab={currentTab?.isDefault || false}
-          />
-        )}
-
-        {/* Canvas Content Container - Optimized tab rendering */}
+        {/* Main Content */}
         <div className="widget-content flex-1 min-h-0 relative">
           {tabsWithData.map((tab) => (
             <div
@@ -173,24 +160,24 @@ export const DashboardContent = memo<DashboardContentProps>(({
             </div>
           ))}
         </div>
+      </div>
+      
+      <WidgetSelectorModal
+        isOpen={showWidgetSelector}
+        onClose={() => setShowWidgetSelector(false)}
+        onAddWidget={handleAddWidget}
+        activeTab={activeTab}
+      />
 
-        <WidgetSelectorModal
-          isOpen={showWidgetSelector}
-          onClose={() => setShowWidgetSelector(false)}
-          onAddWidget={handleAddWidget}
-          activeTab={activeTab}
-        />
-
-        <DashboardModals
-          showTabEditor={showTabEditor}
-          onCloseTabEditor={() => setShowTabEditor(false)}
-          onSaveTab={handleSaveTab}
-          currentTab={currentTab}
-          showDeleteConfirm={showDeleteConfirm}
-          onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
-          onDeleteTab={handleDeleteTab}
-        />
-      </main>
+      <DashboardModals
+        showTabEditor={showTabEditor}
+        onCloseTabEditor={() => setShowTabEditor(false)}
+        onSaveTab={handleSaveTab}
+        currentTab={currentTab}
+        showDeleteConfirm={showDeleteConfirm}
+        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+        onDeleteTab={handleDeleteTab}
+      />
     </div>
   );
 });

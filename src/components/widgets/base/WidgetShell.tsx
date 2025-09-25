@@ -23,11 +23,8 @@ export interface WidgetShellProps extends Omit<WidgetHeaderProps, 'className'> {
 export const WidgetShell: React.FC<WidgetShellProps> = ({
   title,
   icon,
-  onCollapse,
   onClose,
-  onToggleFullWidth,
-  dragHandle = false,
-  isCollapsed = false,
+  onSettings,
   isFullWidth = false,
   isFullSpace = false,
   showTitle = true,
@@ -47,25 +44,20 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
       // Pip-Boy styling optimized for full space
       "bg-pip-bg-secondary border-pip-border hover:border-pip-border-bright pip-widget-card hover:pip-glow-subtle",
       effects.glow && "shadow-lg shadow-primary/20 pip-glow",
-      isCollapsed && "min-h-[80px]",
       className
     )}>
       {/* Header */}
       <WidgetHeader
         title={title}
         icon={icon}
-        onCollapse={onCollapse}
         onClose={onClose}
-        onToggleFullWidth={onToggleFullWidth}
-        dragHandle={dragHandle}
-        isCollapsed={isCollapsed}
-        isFullWidth={isFullWidth}
+        onSettings={onSettings}
         showTitle={showTitle}
         className={headerClassName}
       />
 
       {/* Function Bar */}
-      {!isCollapsed && actions.length > 0 && (
+      {actions.length > 0 && (
         <WidgetActionBar
           actions={actions}
           className={actionBarClassName}
@@ -74,28 +66,20 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
 
       {/* Content */}
       <CardContent className={cn(
-        isCollapsed ? "p-4" : "px-4 pb-4 pt-0",
-        isFullSpace && !isCollapsed ? "flex-1 flex flex-col h-0" : "",
+        "px-4 pb-4 pt-0",
+        isFullSpace ? "flex-1 flex flex-col h-0" : "",
         contentClassName
       )}>
-        {isCollapsed ? (
-          <div className="flex items-center justify-center py-2">
-            <span className="text-pip-text-muted text-xs font-pip-mono">
-              Widget collapsed - click to expand
-            </span>
-          </div>
-        ) : (
-          <div className={cn(
-            "widget-content-direct",
-            isFullSpace ? "h-full flex flex-col flex-1" : ""
-          )}>
-            {children}
-          </div>
-        )}
+        <div className={cn(
+          "widget-content-direct",
+          isFullSpace ? "h-full flex flex-col flex-1" : ""
+        )}>
+          {children}
+        </div>
       </CardContent>
 
       {/* Visual Effects */}
-      {!isCollapsed && effects.scanlines && (
+      {effects.scanlines && (
         <div className="absolute inset-0 pointer-events-none">
           <div className="w-full h-full opacity-10 bg-gradient-to-b from-transparent via-pip-text-bright to-transparent animate-pulse" 
                style={{
@@ -104,7 +88,7 @@ export const WidgetShell: React.FC<WidgetShellProps> = ({
         </div>
       )}
 
-      {!isCollapsed && effects.particles && (
+      {effects.particles && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-primary/30 rounded-full animate-ping" />
           <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-primary/20 rounded-full animate-ping animation-delay-300" />

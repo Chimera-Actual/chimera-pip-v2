@@ -367,11 +367,8 @@ export const WeatherDashboardWidget: React.FC<WeatherDashboardWidgetProps> = ({
         title={title}
         icon={Cloud}
         actions={actions}
-        onCollapse={onToggleCollapse}
         onClose={onRemove}
-        onToggleFullWidth={onToggleFullWidth}
         isFullWidth={widget?.widget_width === 'full'}
-        isCollapsed={widget?.collapsed}
       >
         {renderContent()}
       </WidgetShell>

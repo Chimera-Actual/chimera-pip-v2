@@ -90,7 +90,8 @@ export const WidgetSelector = memo<WidgetSelectorProps>(({
           variant="ghost"
           size="sm"
           onClick={onToggleCollapsed}
-          className="h-8 w-8 p-0 hover:bg-pip-bg-secondary"
+          className="h-8 w-8 p-0 text-pip-text-bright hover:text-pip-green-bright hover:bg-pip-bg-secondary border border-pip-border hover:border-pip-green-secondary"
+          title={isCollapsed ? "Expand widget drawer" : "Collapse widget drawer"}
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4" />

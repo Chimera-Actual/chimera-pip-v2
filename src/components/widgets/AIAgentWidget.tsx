@@ -349,8 +349,6 @@ export default function AIAgentWidget({
         title="AI Agent"
         icon={Bot}
         onClose={onClose}
-        onCollapse={onCollapse}
-        onToggleFullWidth={onToggleFullWidth}
         contentClassName="pt-0 pb-1 px-0"
       >
         <WidgetActionBar actions={actions} />
