@@ -81,6 +81,8 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
+    console.log('🔧 handleAddWidget called with:', { widgetType, settings, currentTabData: !!currentTabData });
+    console.log('🔧 addWidget function:', currentTabData?.addWidget);
     currentTabData?.addWidget({ widgetType, settings });
     toast({
       title: "Widget Added",
@@ -90,6 +92,7 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTabData?.addWidget, toast]);
 
   const handleShowWidgetSelector = useCallback(() => {
+    console.log('🔧 handleShowWidgetSelector called - opening widget modal');
     setShowWidgetSelector(true);
   }, []);
 

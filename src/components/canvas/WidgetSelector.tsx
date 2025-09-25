@@ -108,7 +108,10 @@ export const WidgetSelector = memo<WidgetSelectorProps>(({
             {/* Add Widget Button */}
             <div className="p-4">
               <Button
-                onClick={onAddWidget}
+                onClick={() => {
+                  console.log('🔧 Add Widget button clicked - calling onAddWidget');
+                  onAddWidget();
+                }}
                 variant="outline"
                 className="w-full justify-start gap-2"
                 size="sm"
