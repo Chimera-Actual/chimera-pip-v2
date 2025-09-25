@@ -110,7 +110,13 @@ export const useWidgetsQuery = (tabAssignment: string) => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Immediately update cache with the new widget
+      queryClient.setQueryData<UserWidget[]>(
+        queryKeys.widgets(tabAssignment, user?.id || ''),
+        (prev = []) => [...prev, data].sort((a, b) => a.display_order - b.display_order)
+      );
+      
       toast({
         title: 'Widget Added',
         description: 'Successfully added widget',

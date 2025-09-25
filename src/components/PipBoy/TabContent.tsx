@@ -23,7 +23,7 @@ export const TabContent = React.memo(function TabContent({ tab, active }: TabCon
     setActiveWidget, 
     isLoading, 
     addWidget 
-  } = useWidgetsQuery(tab.id);
+  } = useWidgetsQuery(tab.name);
   
   const [showWidgetModal, setShowWidgetModal] = useState(false);
   const [isWidgetSelectorCollapsed, setIsWidgetSelectorCollapsed] = useState(false);

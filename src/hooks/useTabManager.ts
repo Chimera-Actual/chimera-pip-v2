@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTabsQuery } from './useTabsQuery';
 import { TabConfiguration } from '@/types/tabManagement';
 
@@ -66,6 +66,16 @@ export const useTabManager = () => {
   const reorderTab = async (tabId: string, newPosition: number) => {
     return updateTabById(tabId, { position: newPosition });
   };
+
+  // Auto-set activeTab to first available tab if current activeTab doesn't exist
+  useEffect(() => {
+    if (!isLoading && tabs.length > 0) {
+      const tabExists = tabs.some(tab => tab.name === activeTab || tab.id === activeTab);
+      if (!tabExists) {
+        setActiveTab(tabs[0].name);
+      }
+    }
+  }, [tabs, activeTab, isLoading]);
 
   // Derived state
   const currentTab = tabs.find(tab => tab.name === activeTab || tab.id === activeTab);

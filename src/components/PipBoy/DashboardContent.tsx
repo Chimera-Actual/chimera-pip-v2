@@ -81,13 +81,18 @@ export const DashboardContent = memo<DashboardContentProps>(({
   }, [currentTab, updateTab]);
 
   const handleAddWidget = useCallback(async (widgetType: string, settings: any) => {
-    currentTabData?.addWidget({ widgetType, settings });
-    toast({
-      title: "Widget Added",
-      description: `${widgetType} widget has been added successfully`,
-    });
+    if (!currentTabData) {
+      toast({
+        title: "Error",
+        description: "Select a tab before adding widgets",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    currentTabData.addWidget({ widgetType, settings });
     setShowWidgetSelector(false);
-  }, [currentTabData?.addWidget, toast]);
+  }, [currentTabData, toast]);
 
   const handleShowWidgetSelector = useCallback(() => {
     setShowWidgetSelector(true);
