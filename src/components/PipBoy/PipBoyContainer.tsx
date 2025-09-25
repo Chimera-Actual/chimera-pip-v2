@@ -83,20 +83,7 @@ export const PipBoyContainer: React.FC<PipBoyContainerProps> = ({ className }) =
     }
   };
 
-  // Apply theme to document and sync with user profile
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', colorTheme);
-    
-    // Update user profile theme if user is authenticated
-    if (profile && profile.theme_config.colorScheme !== colorTheme) {
-      updateProfile({
-        theme_config: {
-          ...profile.theme_config,
-          colorScheme: colorTheme,
-        }
-      });
-    }
-  }, [colorTheme, profile, updateProfile]);
+  // Theme application is handled by ThemeProvider; avoid duplicate syncing here
 
   // Show boot sequence only if booting or critical data still loading
   if (isBooting || (tabsLoading && !hasVisited)) {
