@@ -17,10 +17,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          {/* Provider order: Theme → Performance → Auth → TabManager */}
-          <ThemeProvider>
-            <PerformanceProvider enableByDefault={import.meta.env.DEV}>
-              <AuthProvider>
+          {/* Provider order: Auth → Theme → Performance → TabManager */}
+          <AuthProvider>
+            <ThemeProvider>
+              <PerformanceProvider enableByDefault={import.meta.env.DEV}>
                 <TabManagerProvider>
                   <BrowserRouter>
                     {children}
@@ -28,9 +28,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
                     <Toaster />
                   </BrowserRouter>
                 </TabManagerProvider>
-              </AuthProvider>
-            </PerformanceProvider>
-          </ThemeProvider>
+              </PerformanceProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </TooltipProvider>
       </QueryClientProvider>
     );
