@@ -109,7 +109,8 @@ export const WidgetSelector = memo<WidgetSelectorProps>(({
             <div className="p-4">
               <Button
                 onClick={onAddWidget}
-                className="w-full justify-start gap-2 bg-pip-bg-secondary hover:bg-pip-bg-secondary/80 border border-pip-border"
+                variant="outline"
+                className="w-full justify-start gap-2"
                 size="sm"
               >
                 <Plus className="h-4 w-4" />
